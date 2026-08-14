@@ -1,0 +1,36 @@
+{
+  "id": "meet-the-pieces.06-bishop-colours",
+  "version": 1,
+  "unitId": "meet-the-pieces",
+  "title": "Bishop colours and blocked paths",
+  "objectives": ["Recognize that each bishop stays on one square colour for the whole game"],
+  "prerequisites": ["meet-the-pieces.05-meet-the-bishop"],
+  "xpReward": 15,
+  "masteryTags": ["bishop-movement", "blocked-paths"],
+  "difficulty": 1,
+  "estimatedDurationSec": 150,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "A bishop that starts on a light square stays on light squares forever — it can never reach a dark square. The same is true for a dark-squared bishop.",
+      "boardFen": "8/8/8/8/4B3/8/8/8 w - - 0 1"
+    },
+    {
+      "id": "step-2",
+      "type": "true-false",
+      "prompt": "A bishop that starts on a dark square can eventually reach a light square.",
+      "correct": false,
+      "feedback": { "default": "Diagonal moves always keep a bishop on the same colour square for the entire game." }
+    },
+    {
+      "id": "step-3",
+      "type": "find-legal-move",
+      "fen": "8/8/2p5/8/4B3/8/8/8 w - - 0 1",
+      "validMoves": ["e4c6"],
+      "feedback": {
+        "default": "The bishop can slide diagonally right up to and capture the pawn on c6 — but it can't go past it."
+      }
+    }
+  ]
+}

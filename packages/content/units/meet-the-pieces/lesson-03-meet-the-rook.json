@@ -1,0 +1,55 @@
+{
+  "id": "meet-the-pieces.03-meet-the-rook",
+  "version": 1,
+  "unitId": "meet-the-pieces",
+  "title": "Meet the rook",
+  "objectives": [
+    "Understand that the rook moves in straight lines, any distance"
+  ],
+  "prerequisites": ["meet-the-pieces.02-ranks-files-squares"],
+  "xpReward": 15,
+  "masteryTags": ["rook-movement"],
+  "difficulty": 1,
+  "estimatedDurationSec": 150,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "The rook moves in straight lines — forward, backward, left, or right — as far as it likes, as long as nothing blocks it.",
+      "boardFen": "8/8/8/8/4R3/8/8/8 w - - 0 1",
+      "highlights": ["e1", "e2", "e3", "e5", "e6", "e7", "e8", "a4", "b4", "c4", "d4", "f4", "g4", "h4"]
+    },
+    {
+      "id": "step-2",
+      "type": "move-piece",
+      "fen": "8/8/8/8/4R3/8/8/8 w - - 0 1",
+      "expectedMoves": ["e4e8"],
+      "altValid": ["e4a4", "e4h4", "e4e1"],
+      "hints": [
+        { "level": 1, "text": "Move the rook as far as it can go in one straight line." },
+        { "level": 2, "text": "Try moving it all the way up the board.", "highlightSquares": ["e4"] },
+        { "level": 3, "text": "Here's one path.", "arrowFrom": "e4", "arrowTo": "e8" },
+        { "level": 4, "text": "The rook can slide from e4 to e8 — a straight line, all the way." }
+      ],
+      "feedback": {
+        "default": "The rook can't move diagonally. Keep it on the same rank or file."
+      }
+    },
+    {
+      "id": "step-3",
+      "type": "move-piece",
+      "fen": "4k3/8/8/8/3pR3/8/8/4K3 w - - 0 1",
+      "expectedMoves": ["e4d4"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "There's a black pawn in the rook's path. What can the rook do about it?" },
+        { "level": 2, "text": "Rooks can capture pieces in their path.", "highlightSquares": ["d4"] },
+        { "level": 3, "text": "Capture it.", "arrowFrom": "e4", "arrowTo": "d4" },
+        { "level": 4, "text": "The rook captures the pawn on d4." }
+      ],
+      "feedback": {
+        "default": "The rook can't jump over the pawn — it has to stop when something blocks its path, or capture it if that something is an enemy piece."
+      }
+    }
+  ]
+}

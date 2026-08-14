@@ -1,0 +1,44 @@
+{
+  "id": "meet-the-pieces.01-welcome",
+  "version": 1,
+  "unitId": "meet-the-pieces",
+  "title": "Welcome to the chessboard",
+  "objectives": [
+    "Identify the board's orientation and the two sides"
+  ],
+  "prerequisites": [],
+  "xpReward": 10,
+  "masteryTags": ["board-orientation"],
+  "difficulty": 1,
+  "estimatedDurationSec": 90,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "This is a chessboard. It has 64 squares, alternating light and dark. You'll always play from the bottom of the board.",
+      "boardFen": "8/8/8/8/8/8/8/8 w - - 0 1"
+    },
+    {
+      "id": "step-2",
+      "type": "explain",
+      "text": "Each player controls one side: White pieces and Black pieces. White always moves first.",
+      "boardFen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    },
+    {
+      "id": "step-3",
+      "type": "select-square",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "correctSquares": ["e1"],
+      "hints": [
+        { "level": 1, "text": "Look for White's king. It's the tallest piece with a small cross on top." },
+        { "level": 2, "text": "It sits on White's back row, right of center.", "highlightSquares": ["d1", "e1"] },
+        { "level": 3, "text": "One more look at that square.", "arrowFrom": "e2", "arrowTo": "e1" },
+        { "level": 4, "text": "White's king starts on e1." }
+      ],
+      "feedback": {
+        "d1": "That's the queen's starting square — she stands right next to the king.",
+        "default": "That's not the king's starting square. Look for the tallest piece with a small cross."
+      }
+    }
+  ]
+}

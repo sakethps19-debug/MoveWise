@@ -1,0 +1,37 @@
+{
+  "id": "meet-the-pieces.05-meet-the-bishop",
+  "version": 1,
+  "unitId": "meet-the-pieces",
+  "title": "Meet the bishop",
+  "objectives": ["Understand that the bishop moves diagonally, any distance"],
+  "prerequisites": ["meet-the-pieces.04-rook-captures"],
+  "xpReward": 15,
+  "masteryTags": ["bishop-movement"],
+  "difficulty": 1,
+  "estimatedDurationSec": 150,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "The bishop moves diagonally — any distance — as long as nothing blocks it.",
+      "boardFen": "8/8/8/8/4B3/8/8/8 w - - 0 1",
+      "highlights": ["a8", "b7", "c6", "d5", "f3", "g2", "h1", "b1", "c2", "d3", "f5", "g6", "h7"]
+    },
+    {
+      "id": "step-2",
+      "type": "move-piece",
+      "fen": "8/8/8/8/4B3/8/8/8 w - - 0 1",
+      "expectedMoves": ["e4h7"],
+      "altValid": ["e4a8", "e4h1", "e4b1"],
+      "hints": [
+        { "level": 1, "text": "Slide the bishop as far as it can go along one diagonal." },
+        { "level": 2, "text": "Any of the four diagonal directions works.", "highlightSquares": ["e4"] },
+        { "level": 3, "text": "Here's one path.", "arrowFrom": "e4", "arrowTo": "h7" },
+        { "level": 4, "text": "The bishop can slide from e4 all the way to h7." }
+      ],
+      "feedback": {
+        "default": "The bishop only moves diagonally — not up, down, or sideways."
+      }
+    }
+  ]
+}
