@@ -101,8 +101,10 @@ export function LessonRunner({ lesson, onComplete }: LessonRunnerProps) {
   const activeHint = "hints" in step ? step.hints.find((h) => h.level === hintLevel) : undefined;
   const highlightSquares =
     activeHint && "highlightSquares" in activeHint ? activeHint.highlightSquares : [];
-  const arrowSquares =
-    activeHint && "arrowFrom" in activeHint ? [activeHint.arrowFrom, activeHint.arrowTo] : [];
+  const activeArrow =
+    activeHint && "arrowFrom" in activeHint
+      ? { from: activeHint.arrowFrom as Square, to: activeHint.arrowTo as Square }
+      : null;
 
   function advance() {
     setSelected(null);
@@ -277,7 +279,8 @@ export function LessonRunner({ lesson, onComplete }: LessonRunnerProps) {
             fen={step.fen}
             selected={selected}
             legalTargets={legalTargets}
-            highlightSquares={[...highlightSquares, ...arrowSquares] as Square[]}
+            highlightSquares={highlightSquares as Square[]}
+            arrow={activeArrow}
             onSquareClick={handleSquareClick}
           />
           {status === "incorrect" && feedback && (

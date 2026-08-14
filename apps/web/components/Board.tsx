@@ -57,12 +57,21 @@ export function parseFenBoard(fen: string): ParsedSquare[][] {
   });
 }
 
+/** Center of a square in an 8x8 (0..8) coordinate space, a8 at the top-left. */
+function squareCenter(square: Square): { x: number; y: number } {
+  const file = FILES.indexOf(square[0] as (typeof FILES)[number]);
+  const rank = Number(square[1]);
+  return { x: file + 0.5, y: 8 - rank + 0.5 };
+}
+
 export interface BoardProps {
   fen: string;
   selected?: Square | null;
   legalTargets?: Square[];
   highlightSquares?: Square[];
   lastMove?: { from: Square; to: Square } | null;
+  /** Drawn as an arrow line/arrowhead overlay, e.g. for a hint's suggested move. */
+  arrow?: { from: Square; to: Square } | null;
   onSquareClick?: (square: Square) => void;
   interactive?: boolean;
 }
@@ -73,94 +82,136 @@ export function Board({
   legalTargets = [],
   highlightSquares = [],
   lastMove = null,
+  arrow = null,
   onSquareClick,
   interactive = true,
 }: BoardProps) {
   const rows = parseFenBoard(fen);
 
   return (
-    <div
-      className="movewise-board"
-      role="grid"
-      aria-label="Chessboard"
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(8, 1fr)",
-        width: "min(92vw, 420px)",
-        aspectRatio: "1 / 1",
-        border: "2px solid var(--board-border, #3a3a3a)",
-      }}
-    >
-      {rows.flatMap((row, rowIndex) =>
-        row.map(({ square, piece }, colIndex) => {
-          const isLight = (rowIndex + colIndex) % 2 === 0;
-          const isSelected = selected === square;
-          const isLegal = legalTargets.includes(square);
-          const isHighlighted = highlightSquares.includes(square);
-          const wasLastMove = lastMove?.from === square || lastMove?.to === square;
+    <div style={{ position: "relative", width: "min(92vw, 420px)" }}>
+      <div
+        className="movewise-board"
+        role="grid"
+        aria-label="Chessboard"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(8, 1fr)",
+          width: "100%",
+          aspectRatio: "1 / 1",
+          border: "2px solid var(--board-border, #3a3a3a)",
+        }}
+      >
+        {rows.flatMap((row, rowIndex) =>
+          row.map(({ square, piece }, colIndex) => {
+            const isLight = (rowIndex + colIndex) % 2 === 0;
+            const isSelected = selected === square;
+            const isLegal = legalTargets.includes(square);
+            const isHighlighted = highlightSquares.includes(square);
+            const wasLastMove = lastMove?.from === square || lastMove?.to === square;
 
-          const label = piece
-            ? `${square}, ${piece.color === "w" ? "white" : "black"} ${PIECE_NAMES[piece.type]}`
-            : `${square}, empty`;
+            const label = piece
+              ? `${square}, ${piece.color === "w" ? "white" : "black"} ${PIECE_NAMES[piece.type]}`
+              : `${square}, empty`;
 
-          return (
-            <button
-              type="button"
-              key={square}
-              role="gridcell"
-              aria-label={label}
-              aria-pressed={isSelected}
-              disabled={!interactive}
-              onClick={() => onSquareClick?.(square)}
-              style={{
-                position: "relative",
-                background: isSelected
-                  ? "#f0c419"
-                  : isHighlighted
-                    ? "#ffe9a8"
-                    : wasLastMove
-                      ? "#d7e8c8"
-                      : isLight
-                        ? "#eeeed2"
-                        : "#769656",
-                border: "none",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "min(6vw, 32px)",
-                cursor: interactive ? "pointer" : "default",
-                touchAction: "manipulation",
-              }}
-            >
-              {piece && (
-                <span aria-hidden="true">{PIECE_GLYPHS[`${piece.color}${piece.type}`]}</span>
-              )}
-              {isLegal && !piece && (
-                <span
-                  aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    width: "28%",
-                    height: "28%",
-                    borderRadius: "50%",
-                    background: "rgba(0,0,0,0.25)",
-                  }}
-                />
-              )}
-              {isLegal && piece && (
-                <span
-                  aria-hidden="true"
-                  style={{
-                    position: "absolute",
-                    inset: 2,
-                    borderRadius: "50%",
-                    border: "3px solid rgba(0,0,0,0.35)",
-                  }}
-                />
-              )}
-            </button>
-          );
-        }),
+            return (
+              <button
+                type="button"
+                key={square}
+                role="gridcell"
+                aria-label={label}
+                aria-pressed={isSelected}
+                disabled={!interactive}
+                onClick={() => onSquareClick?.(square)}
+                style={{
+                  position: "relative",
+                  background: isSelected
+                    ? "#f0c419"
+                    : isHighlighted
+                      ? "#ffe9a8"
+                      : wasLastMove
+                        ? "#d7e8c8"
+                        : isLight
+                          ? "#eeeed2"
+                          : "#769656",
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "min(6vw, 32px)",
+                  cursor: interactive ? "pointer" : "default",
+                  touchAction: "manipulation",
+                }}
+              >
+                {piece && (
+                  <span aria-hidden="true">{PIECE_GLYPHS[`${piece.color}${piece.type}`]}</span>
+                )}
+                {isLegal && !piece && (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      width: "28%",
+                      height: "28%",
+                      borderRadius: "50%",
+                      background: "rgba(0,0,0,0.25)",
+                    }}
+                  />
+                )}
+                {isLegal && piece && (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      inset: 2,
+                      borderRadius: "50%",
+                      border: "3px solid rgba(0,0,0,0.35)",
+                    }}
+                  />
+                )}
+              </button>
+            );
+          }),
+        )}
+      </div>
+      {arrow && (
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 8 8"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}
+        >
+          <defs>
+            <marker id="movewise-arrowhead" markerWidth="3" markerHeight="3" refX="1.5" refY="1.5" orient="auto">
+              <path d="M0,0 L3,1.5 L0,3 Z" fill="#c2410c" />
+            </marker>
+          </defs>
+          {(() => {
+            const from = squareCenter(arrow.from);
+            const to = squareCenter(arrow.to);
+            const dx = to.x - from.x;
+            const dy = to.y - from.y;
+            const length = Math.hypot(dx, dy) || 1;
+            const startFrac = 0.18;
+            const endFrac = 0.35;
+            const x1 = from.x + (dx / length) * startFrac;
+            const y1 = from.y + (dy / length) * startFrac;
+            const x2 = to.x - (dx / length) * endFrac;
+            const y2 = to.y - (dy / length) * endFrac;
+            return (
+              <line
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="#c2410c"
+                strokeWidth={0.12}
+                strokeLinecap="round"
+                markerEnd="url(#movewise-arrowhead)"
+                opacity={0.85}
+              />
+            );
+          })()}
+        </svg>
       )}
     </div>
   );
