@@ -5,6 +5,9 @@ node_modules/
 .next/
 out/
 
+# staged from the stockfish npm package by scripts/copy-engine-assets.mjs
+apps/web/public/engine/
+
 # build output
 dist/
 
