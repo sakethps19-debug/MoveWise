@@ -1,0 +1,55 @@
+{
+  "id": "check-and-checkmate.03-thinking-under-check",
+  "version": 1,
+  "unitId": "check-and-checkmate",
+  "title": "Thinking under check",
+  "objectives": [
+    "Learn a reliable order to check your options when in check",
+    "Practice blocking a check and following up",
+    "Practice converting a material advantage into checkmate"
+  ],
+  "prerequisites": ["check-and-checkmate.02-what-is-checkmate"],
+  "xpReward": 30,
+  "masteryTags": ["check", "checkmate", "decision-making"],
+  "difficulty": 2,
+  "estimatedDurationSec": 360,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "There are only ever three ways to answer a check — capture the checking piece, block the line of attack, or move your king to safety. Working through them in that order, every time, keeps you from missing your best option under pressure."
+    },
+    {
+      "id": "step-2",
+      "type": "order-steps",
+      "items": ["Move your king", "Block the check", "Capture the checking piece"],
+      "correctOrder": [2, 1, 0]
+    },
+    {
+      "id": "step-3",
+      "type": "explain",
+      "text": "Let's put 'block the check' into practice. White is in check from the rook on e8. There's no way to capture it, so the knight has to block the line — then be ready for what happens next.",
+      "boardFen": "k3r3/8/8/8/8/8/2N5/4K3 w - - 0 1",
+      "highlights": ["e1", "e8"]
+    },
+    {
+      "id": "step-4",
+      "type": "guided-sequence",
+      "fen": "k3r3/8/8/8/8/8/2N5/4K3 w - - 0 1",
+      "playerMoves": ["c2e3", "e1d2"],
+      "forcedReplies": ["e8e3"]
+    },
+    {
+      "id": "step-5",
+      "type": "mini-game",
+      "fen": "4k3/8/8/8/8/8/8/R3K3 w - - 0 1",
+      "objective": "Checkmate the lone black king using your rook and king.",
+      "winCondition": "Deliver checkmate."
+    },
+    {
+      "id": "step-6",
+      "type": "review",
+      "summary": "Capture, block, or move — in that order, every time you're in check. And when the position is winning, remember checkmate is the goal, not just winning material."
+    }
+  ]
+}

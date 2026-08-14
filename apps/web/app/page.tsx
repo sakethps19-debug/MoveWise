@@ -4,8 +4,13 @@ import { loadUnitLessons } from "../lib/lessons";
 import { getSession } from "../lib/auth";
 import { logoutAction } from "./actions";
 
+const UNITS = [
+  { id: "meet-the-pieces", title: "Meet the Pieces" },
+  { id: "check-and-checkmate", title: "Check and Checkmate Basics" },
+];
+
 export default async function HomePage() {
-  const lessons = loadUnitLessons("meet-the-pieces");
+  const units = UNITS.map((unit) => ({ ...unit, lessons: loadUnitLessons(unit.id) }));
   const user = await getSession();
 
   let totalXp = 0;
@@ -40,14 +45,18 @@ export default async function HomePage() {
       <p>
         <Link href="/play">Play vs. Stockfish →</Link>
       </p>
-      <h2>Meet the Pieces</h2>
-      <ol style={{ display: "flex", flexDirection: "column", gap: 8, paddingLeft: 20 }}>
-        {lessons.map((lesson) => (
-          <li key={lesson.id}>
-            <Link href={`/learn/${lesson.id}`}>{lesson.title}</Link>
-          </li>
-        ))}
-      </ol>
+      {units.map((unit) => (
+        <div key={unit.id}>
+          <h2>{unit.title}</h2>
+          <ol style={{ display: "flex", flexDirection: "column", gap: 8, paddingLeft: 20 }}>
+            {unit.lessons.map((lesson) => (
+              <li key={lesson.id}>
+                <Link href={`/learn/${lesson.id}`}>{lesson.title}</Link>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))}
     </main>
   );
 }

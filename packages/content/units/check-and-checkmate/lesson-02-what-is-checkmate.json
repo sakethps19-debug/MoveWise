@@ -1,0 +1,42 @@
+{
+  "id": "check-and-checkmate.02-what-is-checkmate",
+  "version": 1,
+  "unitId": "check-and-checkmate",
+  "title": "What is checkmate?",
+  "objectives": ["Understand checkmate as check with no escape", "Find a move that delivers checkmate"],
+  "prerequisites": ["check-and-checkmate.01-what-is-check"],
+  "xpReward": 15,
+  "masteryTags": ["checkmate"],
+  "difficulty": 2,
+  "estimatedDurationSec": 150,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "Checkmate is check with no way out: the king can't move to safety, the check can't be blocked, and the checking piece can't be captured. Checkmate ends the game immediately.",
+      "boardFen": "6k1/5ppp/8/8/8/8/8/4R1K1 b - - 0 1",
+      "highlights": ["g8", "e1"]
+    },
+    {
+      "id": "step-2",
+      "type": "find-checkmate",
+      "fen": "6k1/5ppp/8/8/8/8/8/4R1K1 w - - 0 1",
+      "correctSquares": ["e8"],
+      "feedback": {
+        "default": "That's check, but the black king can still escape. The king's own pawns are blocking every square along the back rank — where does the rook need to land to control all of it?"
+      }
+    },
+    {
+      "id": "step-3",
+      "type": "true-false",
+      "prompt": "Every check is also checkmate.",
+      "correct": false,
+      "feedback": { "default": "Most checks aren't mate — the defender can usually capture, block, or move the king to safety." }
+    },
+    {
+      "id": "step-4",
+      "type": "review",
+      "summary": "Checkmate is a check with no escape. Next: how to actually think through your options the moment you're in check."
+    }
+  ]
+}
