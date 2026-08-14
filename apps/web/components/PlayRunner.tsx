@@ -1,19 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   gameStatus,
   inCheck,
   isGameOver,
   legalTargetsFrom,
+  parseUci,
   tryMove,
   type Square,
 } from "@movewise/chess-rules";
-import { createEngine, sideToMove, type EngineHandle } from "@movewise/engine";
+import { sideToMove } from "@movewise/engine";
+import { useStockfishEngine } from "../lib/useStockfishEngine";
 import { Board } from "./Board";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-const WORKER_URL = "/engine/stockfish-18-lite-single.js";
 
 const SKILL_LEVELS = [
   { label: "Beginner", value: 0 },
@@ -24,15 +25,6 @@ const SKILL_LEVELS = [
 ] as const;
 
 type PlayerColor = "w" | "b";
-
-/** Parses a UCI move like "e2e4" or "e7e8q" into a MoveAttempt. */
-function parseUciMove(uci: string) {
-  return {
-    from: uci.slice(0, 2) as Square,
-    to: uci.slice(2, 4) as Square,
-    promotion: uci.length > 4 ? (uci[4] as "q" | "r" | "b" | "n") : undefined,
-  };
-}
 
 function statusText(fen: string, playerColor: PlayerColor, thinking: boolean): string {
   const status = gameStatus(fen);
@@ -56,23 +48,10 @@ export function PlayRunner() {
   const [selected, setSelected] = useState<Square | null>(null);
   const [lastMove, setLastMove] = useState<{ from: Square; to: Square } | null>(null);
   const [thinking, setThinking] = useState(false);
-  const [engineReady, setEngineReady] = useState(false);
-  const [engineError, setEngineError] = useState<string | null>(null);
+  const [engineFailure, setEngineFailure] = useState<string | null>(null);
 
-  const engineRef = useRef<EngineHandle | null>(null);
-
-  // Create the engine once on mount; dispose the Worker on unmount.
-  useEffect(() => {
-    const engine = createEngine({ workerUrl: WORKER_URL });
-    engineRef.current = engine;
-    engine.ready
-      .then(() => setEngineReady(true))
-      .catch(() => setEngineError("Couldn't load the Stockfish engine."));
-    return () => {
-      engine.dispose();
-      engineRef.current = null;
-    };
-  }, []);
+  const { engineRef, ready: engineReady, error: engineLoadError } = useStockfishEngine(true);
+  const engineError = engineLoadError ?? engineFailure;
 
   // Whenever it's Stockfish's turn, ask the engine for a move and play it.
   useEffect(() => {
@@ -85,15 +64,15 @@ export function PlayRunner() {
       .bestMove(fen, { skill, depth: 12 })
       .then((analysis) => {
         if (analysis.bestMove === "(none)") return;
-        const attempt = parseUciMove(analysis.bestMove);
+        const attempt = parseUci(analysis.bestMove);
         const result = tryMove(fen, attempt);
         if (!result) return;
         setFen(result.fenAfter);
         setLastMove({ from: attempt.from, to: attempt.to });
       })
-      .catch(() => setEngineError("Stockfish stopped responding."))
+      .catch(() => setEngineFailure("Stockfish stopped responding."))
       .finally(() => setThinking(false));
-  }, [fen, engineReady, playerColor, skill, thinking, engineError]);
+  }, [fen, engineRef, engineReady, playerColor, skill, thinking, engineError]);
 
   const legalTargets = selected ? legalTargetsFrom(fen, selected) : [];
   const canInteract = engineReady && !thinking && !isGameOver(fen) && sideToMove(fen) === playerColor;
@@ -121,7 +100,7 @@ export function PlayRunner() {
     setSelected(null);
     setLastMove(null);
     setPlayerColor(color);
-    setEngineError(null);
+    setEngineFailure(null);
   }
 
   return (

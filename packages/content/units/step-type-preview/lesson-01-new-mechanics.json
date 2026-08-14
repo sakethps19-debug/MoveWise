@@ -1,0 +1,65 @@
+{
+  "id": "step-type-preview.01-new-mechanics",
+  "version": 1,
+  "unitId": "step-type-preview",
+  "title": "New mechanics preview",
+  "objectives": [
+    "Try the five newly-supported exercise types: find-check, find-checkmate, order-steps, guided-sequence, and mini-game"
+  ],
+  "prerequisites": [],
+  "xpReward": 25,
+  "masteryTags": ["preview"],
+  "difficulty": 2,
+  "estimatedDurationSec": 300,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "This is a preview lesson exercising the five step types just added to the renderer: find-check, find-checkmate, order-steps, guided-sequence, and mini-game. It isn't part of the curated curriculum — it's a working demo of each mechanic.",
+      "boardFen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    },
+    {
+      "id": "step-2",
+      "type": "find-check",
+      "fen": "k7/8/8/8/3Q4/8/8/4K3 w - - 0 1",
+      "correctSquares": ["a7", "d5", "d8", "h8", "e4", "a1", "a4"],
+      "feedback": {
+        "default": "None of those deliver check. Look at every square the queen can reach in one move — which ones land on the same rank, file, or diagonal as the black king?"
+      }
+    },
+    {
+      "id": "step-3",
+      "type": "find-checkmate",
+      "fen": "6k1/5ppp/8/8/8/8/8/4R1K1 w - - 0 1",
+      "correctSquares": ["e8"],
+      "feedback": {
+        "default": "Not mate. The black king is trapped behind its own pawns — which rook move controls the entire back rank with no escape square?"
+      }
+    },
+    {
+      "id": "step-4",
+      "type": "order-steps",
+      "items": ["Endgame", "Opening", "Middlegame"],
+      "correctOrder": [1, 2, 0]
+    },
+    {
+      "id": "step-5",
+      "type": "guided-sequence",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "playerMoves": ["e2e4", "g1f3", "f1c4"],
+      "forcedReplies": ["e7e5", "b8c6"]
+    },
+    {
+      "id": "step-6",
+      "type": "mini-game",
+      "fen": "4k3/8/8/8/8/8/8/3QK3 w - - 0 1",
+      "objective": "Checkmate the lone black king with your queen and king.",
+      "winCondition": "Deliver checkmate."
+    },
+    {
+      "id": "step-7",
+      "type": "review",
+      "summary": "That covers all thirteen exercise-step types the schema supports. Real lesson content for these mechanics — a proper 'Check and Checkmate' unit, an opening-principles unit, an endgame-practice unit — is still to be authored."
+    }
+  ]
+}

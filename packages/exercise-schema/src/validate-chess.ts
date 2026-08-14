@@ -14,10 +14,14 @@
  * exercise validation), so this module is new, not ported.
  */
 import {
+  gameStatus,
+  inCheck,
   isLegalFen,
   legalMoves,
   moveMatches,
+  parseUci,
   tryMove,
+  type Square,
 } from "@movewise/chess-rules";
 import type { ExerciseStep, Lesson } from "./index";
 
@@ -39,13 +43,47 @@ function checkStep(lessonId: string, step: ExerciseStep): ValidationIssue[] {
   }
 
   switch (step.type) {
-    case "select-square":
-    case "find-check":
-    case "find-checkmate": {
+    case "select-square": {
       // correctSquares should exist on the board (occupied for
       // select-square-on-a-piece style exercises is validated at
       // authoring time via the piece-movement lessons; here we only
       // confirm the FEN parses, already done above).
+      break;
+    }
+    case "find-check":
+    case "find-checkmate": {
+      const isMate = step.type === "find-checkmate";
+      const deliveringSquares = new Set(
+        legalMoves(fenOf!)
+          .filter((m) => {
+            const result = tryMove(fenOf!, { from: m.from, to: m.to, promotion: m.promotion });
+            if (!result) return false;
+            return isMate ? gameStatus(result.fenAfter) === "checkmate" : inCheck(result.fenAfter);
+          })
+          .map((m) => m.to),
+      );
+      if (deliveringSquares.size === 0) {
+        fail(`no legal move in this position delivers ${isMate ? "checkmate" : "check"}`);
+      }
+      for (const square of step.correctSquares) {
+        if (!deliveringSquares.has(square as Square)) {
+          fail(`"${square}" is not a square a ${isMate ? "checkmate" : "check"}-delivering move lands on`);
+        }
+      }
+      break;
+    }
+    case "order-steps": {
+      if (step.correctOrder.length !== step.items.length) {
+        fail(`correctOrder has ${step.correctOrder.length} entries but there are ${step.items.length} items`);
+        break;
+      }
+      const seen = new Set(step.correctOrder);
+      const isPermutation =
+        seen.size === step.items.length &&
+        step.correctOrder.every((index) => index >= 0 && index < step.items.length);
+      if (!isPermutation) {
+        fail("correctOrder must be a permutation of the item indices");
+      }
       break;
     }
     case "move-piece":
@@ -73,15 +111,26 @@ function checkStep(lessonId: string, step: ExerciseStep): ValidationIssue[] {
     }
     case "guided-sequence": {
       let fen = fenOf!;
-      for (const uci of step.playerMoves) {
-        const from = uci.slice(0, 2) as never;
-        const to = uci.slice(2, 4) as never;
-        const result = tryMove(fen, { from, to });
+      for (let i = 0; i < step.playerMoves.length; i++) {
+        const uci = step.playerMoves[i];
+        const result = tryMove(fen, parseUci(uci));
         if (!result) {
-          fail(`guided-sequence player move "${uci}" is not legal at that point`);
+          fail(`guided-sequence player move "${uci}" (move ${i + 1}) is not legal at that point`);
           break;
         }
         fen = result.fenAfter;
+
+        // The engine's scripted reply is applied between player moves, so a
+        // later player move can only be validated against the position it
+        // actually occurs in once earlier replies have been played out too.
+        const reply = step.forcedReplies[i];
+        if (reply === undefined) continue;
+        const replyResult = tryMove(fen, parseUci(reply));
+        if (!replyResult) {
+          fail(`guided-sequence forced reply "${reply}" (after move ${i + 1}) is not legal at that point`);
+          break;
+        }
+        fen = replyResult.fenAfter;
       }
       break;
     }

@@ -32,6 +32,15 @@ export interface MoveAttempt {
   promotion?: PieceSymbol;
 }
 
+/** Parses a UCI move like "e2e4" or "e7e8q" into a MoveAttempt. */
+export function parseUci(uci: string): MoveAttempt {
+  return {
+    from: uci.slice(0, 2) as Square,
+    to: uci.slice(2, 4) as Square,
+    promotion: uci.length > 4 ? (uci[4] as PieceSymbol) : undefined,
+  };
+}
+
 const PIECE_NAMES: Record<PieceSymbol, string> = {
   p: "pawn",
   n: "knight",

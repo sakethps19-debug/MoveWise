@@ -8,6 +8,7 @@ import {
   legalMoves,
   legalTargetsFrom,
   moveMatches,
+  parseUci,
   tryMove,
 } from "./index";
 
@@ -109,5 +110,15 @@ describe("describeMove", () => {
 
   it("legalMoves returns 20 legal moves from the starting position", () => {
     expect(legalMoves(START_FEN)).toHaveLength(20);
+  });
+});
+
+describe("parseUci", () => {
+  it("parses a plain move with no promotion", () => {
+    expect(parseUci("e2e4")).toEqual({ from: "e2", to: "e4", promotion: undefined });
+  });
+
+  it("parses a promotion move", () => {
+    expect(parseUci("e7e8q")).toEqual({ from: "e7", to: "e8", promotion: "q" });
   });
 });
