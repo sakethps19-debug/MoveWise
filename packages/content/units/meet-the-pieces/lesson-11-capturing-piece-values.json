@@ -29,7 +29,7 @@
     {
       "id": "step-3",
       "type": "capture",
-      "fen": "8/8/8/3n4/4Q3/8/8/8 w - - 0 1",
+      "fen": "7k/8/8/3n4/4Q3/8/8/K7 w - - 0 1",
       "expectedMoves": ["e4d5"],
       "feedback": {
         "default": "Move the queen onto the square the knight occupies to capture it."

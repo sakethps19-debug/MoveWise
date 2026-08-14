@@ -89,7 +89,11 @@ function checkStep(lessonId: string, step: ExerciseStep): ValidationIssue[] {
       break;
   }
 
-  if ("hints" in step) {
+  // Arrow hints only represent an actual chess move on move-piece steps.
+  // On select-square steps the arrow just points at the target square,
+  // which is frequently not reachable as a "move" (e.g. it's occupied by
+  // the piece being identified), so it isn't checked for legality there.
+  if (step.type === "move-piece" && "hints" in step) {
     for (const hint of step.hints) {
       if (hint.level === 3) {
         const legalFromArrow = legalMoves(fenOf!).some(

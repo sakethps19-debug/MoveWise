@@ -122,7 +122,7 @@ export function LessonRunner({ lesson, onComplete }: LessonRunnerProps) {
       {step.type === "explain" && (
         <>
           {step.boardFen && (
-            <Board fen={step.boardFen} highlightSquares={step.highlights ?? []} interactive={false} />
+            <Board fen={step.boardFen} highlightSquares={(step.highlights ?? []) as Square[]} interactive={false} />
           )}
           <p>{step.text}</p>
           <button type="button" onClick={advance}>
@@ -140,7 +140,7 @@ export function LessonRunner({ lesson, onComplete }: LessonRunnerProps) {
             fen={step.fen}
             selected={selected}
             legalTargets={legalTargets}
-            highlightSquares={[...highlightSquares, ...arrowSquares]}
+            highlightSquares={[...highlightSquares, ...arrowSquares] as Square[]}
             onSquareClick={handleSquareClick}
           />
           {status === "incorrect" && feedback && (

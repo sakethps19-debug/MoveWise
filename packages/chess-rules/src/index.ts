@@ -132,7 +132,7 @@ export function isCheckmateMove(fen: string, attempt: MoveAttempt): boolean {
  * misconception-specific and hint-solution feedback text without
  * exposing raw algebraic notation to beginners.
  */
-export function describeMove(fen: string, move: Move): string {
+export function describeMove(_fen: string, move: Move): string {
   const piece = PIECE_NAMES[move.piece];
   const captured = move.captured ? PIECE_NAMES[move.captured] : null;
   return captured
