@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "predev": "node scripts/copy-engine-assets.mjs",
+    "predev": "node scripts/copy-engine-assets.mjs && node scripts/setup-db.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/copy-engine-assets.mjs",
+    "prebuild": "node scripts/copy-engine-assets.mjs && node scripts/setup-db.mjs",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
@@ -16,9 +16,12 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "stockfish": "18.0.8",
+    "bcryptjs": "^3.0.2",
+    "server-only": "^0.0.1",
     "@movewise/chess-rules": "workspace:*",
     "@movewise/exercise-schema": "workspace:*",
-    "@movewise/engine": "workspace:*"
+    "@movewise/engine": "workspace:*",
+    "@movewise/db": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

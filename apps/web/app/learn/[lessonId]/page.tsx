@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { loadLesson } from "../../../lib/lessons";
 import { LessonRunner } from "../../../components/LessonRunner";
+import { completeLessonAction } from "../../actions";
 
 export default async function LessonPage({
   params,
@@ -13,7 +14,7 @@ export default async function LessonPage({
 
   return (
     <main>
-      <LessonRunner lesson={lesson} />
+      <LessonRunner lesson={lesson} onComplete={completeLessonAction.bind(null, lesson.id)} />
     </main>
   );
 }

@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  sessions    Session[]
+  completions LessonCompletion[]
+}
+
+/// Opaque database-backed session tokens (not JWTs) — the cookie holds
+/// only a random token, looked up server-side on every request. Simpler
+/// to reason about than a signed-token scheme, and trivially revocable.
+model Session {
+  token     String   @id
+  userId    String
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LessonCompletion {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  xpEarned    Int
+  completedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
