@@ -5,9 +5,8 @@
  * grid. Preserves the accessibility convention proven in the
  * prototype: every square has an aria-label naming its contents
  * ("e4, white pawn" / "e5, empty"), and the selected square carries
- * aria-pressed. Piece glyphs use Unicode chess symbols rather than a
- * graphics dependency, keeping this component dependency-free — swap
- * in SVG piece art later without changing the interaction logic.
+ * aria-pressed. Piece art is the "Cburnett" SVG set (CC BY-SA 3.0,
+ * the same set Lichess uses by default) — see public/pieces/CREDITS.md.
  *
  * Board state (selected square, legal targets, hints) is owned by
  * the caller (LessonRunner) — this component is presentation-only,
@@ -16,11 +15,6 @@
 import type { Square } from "@movewise/chess-rules";
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
-
-const PIECE_GLYPHS: Record<string, string> = {
-  wp: "♙", wn: "♘", wb: "♗", wr: "♖", wq: "♕", wk: "♔",
-  bp: "♟", bn: "♞", bb: "♝", br: "♜", bq: "♛", bk: "♚",
-};
 
 const PIECE_NAMES: Record<string, string> = {
   p: "pawn", n: "knight", b: "bishop", r: "rook", q: "queen", k: "king",
@@ -138,13 +132,18 @@ export function Board({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "min(6vw, 32px)",
                   cursor: interactive ? "pointer" : "default",
                   touchAction: "manipulation",
                 }}
               >
                 {piece && (
-                  <span aria-hidden="true">{PIECE_GLYPHS[`${piece.color}${piece.type}`]}</span>
+                  // eslint-disable-next-line @next/next/no-img-element -- tiny static vector art, no optimization needed
+                  <img
+                    src={`/pieces/${piece.color}${piece.type}.svg`}
+                    alt=""
+                    aria-hidden="true"
+                    style={{ width: "80%", height: "80%" }}
+                  />
                 )}
                 {isLegal && !piece && (
                   <span
