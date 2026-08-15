@@ -1,23 +1,25 @@
 import "server-only";
+import { prisma } from "@movewise/db";
 
 /**
- * In-memory sliding-window rate limiter. A deliberate stopgap, not a
- * production-grade solution: it's per-process state, so it resets on
- * every deploy/restart and doesn't share state across multiple server
- * instances. That's an accepted gap tracked in docs/known-risks.md,
- * consistent with SQLite being a dev-only datastore for the same reason
- * (see ADR-0002) — a real fix needs a shared store (e.g. Redis) and
- * should land together with the Postgres/hosting migration, not before.
+ * Postgres-backed sliding-window rate limiter (RateLimitHit — one row per
+ * attempt, not per key). Replaced an in-memory version specifically
+ * because that doesn't work on a serverless deploy target: every
+ * function invocation there is a fresh process with fresh memory, so an
+ * in-memory limiter is close to a no-op in production as actually
+ * deployed (see docs/deployment.md, docs/known-risks.md). A real shared
+ * store existing at all (this app's own Postgres database, via
+ * ADR-0005) is what made this fix possible without adding a new piece
+ * of infrastructure just for rate limiting.
  *
- * Good enough today to stop naive automated credential-stuffing and
- * signup-spam bots, which is the actual risk this closes.
+ * Still a pragmatic middle ground, not the final answer: rows for a key
+ * that never returns (e.g. a one-off signup attempt from an IP that
+ * never comes back) are cleaned up opportunistically on that key's own
+ * next hit, not on a schedule — a key that's hit exactly once leaves one
+ * permanent row. Fine at this app's current scale (each row is a cuid +
+ * a short string + a timestamp); a real cleanup job would be the next
+ * step if that ever matters.
  */
-
-const hits = new Map<string, number[]>();
-
-// Bound memory: without this, an attacker cycling through unique keys
-// (e.g. spoofed IPs) could grow this map indefinitely.
-const MAX_TRACKED_KEYS = 50_000;
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -25,27 +27,28 @@ export interface RateLimitResult {
   retryAfterMs?: number;
 }
 
-export function checkRateLimit(key: string, limit: number, windowMs: number): RateLimitResult {
-  const now = Date.now();
-  const windowStart = now - windowMs;
+export async function checkRateLimit(key: string, limit: number, windowMs: number): Promise<RateLimitResult> {
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - windowMs);
 
-  let timestamps = hits.get(key);
-  timestamps = timestamps ? timestamps.filter((t) => t > windowStart) : [];
+  const hitsInWindow = await prisma.rateLimitHit.findMany({
+    where: { key, createdAt: { gt: windowStart } },
+    orderBy: { createdAt: "asc" },
+    select: { createdAt: true },
+  });
 
-  if (timestamps.length >= limit) {
-    const retryAfterMs = timestamps[0]! + windowMs - now;
-    hits.set(key, timestamps);
+  if (hitsInWindow.length >= limit) {
+    const retryAfterMs = hitsInWindow[0]!.createdAt.getTime() + windowMs - now.getTime();
     return { allowed: false, retryAfterMs };
   }
 
-  timestamps.push(now);
-  if (hits.size >= MAX_TRACKED_KEYS && !hits.has(key)) {
-    // Drop the oldest-inserted key to bound memory. Map preserves
-    // insertion order, so the first key is the oldest.
-    const oldestKey = hits.keys().next().value;
-    if (oldestKey !== undefined) hits.delete(oldestKey);
-  }
-  hits.set(key, timestamps);
+  await prisma.rateLimitHit.create({ data: { key } });
+  // Opportunistic cleanup, scoped to this key only — cheap (uses the
+  // same @@index([key, createdAt])), and self-limiting: a key that never
+  // returns just never gets cleaned, which is the accepted gap noted
+  // above, not a bug in this line.
+  await prisma.rateLimitHit.deleteMany({ where: { key, createdAt: { lte: windowStart } } });
+
   return { allowed: true };
 }
 

@@ -96,7 +96,7 @@ export interface FormState {
 
 export async function signupAction(_prevState: FormState, formData: FormData): Promise<FormState> {
   const ip = await clientIp();
-  const signupLimit = checkRateLimit(`signup:${ip}`, SIGNUP_LIMIT.limit, SIGNUP_LIMIT.windowMs);
+  const signupLimit = await checkRateLimit(`signup:${ip}`, SIGNUP_LIMIT.limit, SIGNUP_LIMIT.windowMs);
   if (!signupLimit.allowed) {
     return { error: `Too many signup attempts. Try again in ${formatRetryAfter(signupLimit.retryAfterMs!)}.` };
   }
@@ -145,9 +145,9 @@ export async function loginAction(_prevState: FormState, formData: FormData): Pr
   const password = String(formData.get("password") ?? "");
 
   const ip = await clientIp();
-  const ipLimit = checkRateLimit(`login-ip:${ip}`, LOGIN_IP_LIMIT.limit, LOGIN_IP_LIMIT.windowMs);
+  const ipLimit = await checkRateLimit(`login-ip:${ip}`, LOGIN_IP_LIMIT.limit, LOGIN_IP_LIMIT.windowMs);
   const emailLimit = email
-    ? checkRateLimit(`login-email:${email}`, LOGIN_EMAIL_LIMIT.limit, LOGIN_EMAIL_LIMIT.windowMs)
+    ? await checkRateLimit(`login-email:${email}`, LOGIN_EMAIL_LIMIT.limit, LOGIN_EMAIL_LIMIT.windowMs)
     : { allowed: true as const };
   if (!ipLimit.allowed || !emailLimit.allowed) {
     const retryAfterMs = Math.max(ipLimit.retryAfterMs ?? 0, emailLimit.retryAfterMs ?? 0);

@@ -71,12 +71,16 @@ database is behind it). Schema changes go through real tracked migrations
 (`prisma/migrations/`, applied via `prisma migrate deploy` in
 `predev`/`prebuild` — see ADR-0005), not `prisma db push`.
 
-Three models today: `User`, `Session`, `LessonCompletion`. The ~25-entity
-model the brief's Section 12 describes (course/lesson versioning, concept
-mastery, XP transactions, achievements, revision schedules, saved games,
-audit logs) doesn't exist — additions would be additive to this schema, not
-a redesign, since nothing built so far assumes a fixed shape beyond these
-three tables.
+Four models today: `User`, `Session`, `LessonCompletion`, and
+`RateLimitHit` (one row per login/signup attempt, backing
+`apps/web/lib/rate-limit.ts` — see `docs/known-risks.md` for why an
+earlier in-memory version wasn't good enough once a serverless deploy
+target was concrete rather than theoretical). The ~25-entity model the
+brief's Section 12 describes (course/lesson versioning, concept mastery,
+XP transactions, achievements, revision schedules, saved games, audit
+logs) doesn't exist — additions would be additive to this schema, not a
+redesign, since nothing built so far assumes a fixed shape beyond these
+four tables.
 
 `/account` (`app/account/page.tsx`) gives a signed-in user data export and
 account deletion. Export is a Route Handler (`app/account/export/route.ts`)

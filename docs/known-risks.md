@@ -11,7 +11,6 @@ rather than repeating it.
   stopgap (block under-13 signup outright). This is a legal question, not
   an engineering one — see `docs/security-checklist.md` and
   `docs/roadmap.md`'s open-decisions list.
-
 ## Medium priority
 
 - **No analytics.** None of the brief's Section 18 questions ("where do
@@ -113,29 +112,40 @@ rather than repeating it.
   action versions), weekly. Security-update PRs are never batched;
   routine version bumps are grouped into one PR to keep noise down for
   a small team.
-- **No rate limiting on login/signup**: `apps/web/lib/rate-limit.ts` adds
-  an in-memory sliding-window limiter — 20 signups/hour per IP, 15
-  logins/15min per IP, and 8 logins/15min per email (the last one to
-  catch credential stuffing distributed across IPs against a single
-  account). Explicitly a stopgap, not the final answer, for two reasons:
-  it's per-process state, so it doesn't survive a restart or share state
-  across multiple server instances; and every key can collapse many real,
-  unrelated users into one bucket — shared NAT (a school computer lab is
-  exactly this product's audience) collapses by IP, and any deploy
-  without a reverse proxy setting `x-forwarded-for` collapses *every*
-  visitor into a literal `"unknown"` bucket. Generous limits are the only
-  lever available against that until this becomes a real shared-store,
-  per-user/session limiter — now that ADR-0005 gives the app a real
-  Postgres database, that's a plausible place to back it (a
-  `RateLimitBucket` table, or a real cache layer), but it isn't built.
-  The signup limit started at 5/hour and was
-  raised to 20/hour after the full local E2E suite itself tripped it —
-  every local test request shares the same `"unknown"` IP bucket in dev
-  (no reverse proxy), so a suite doing 7 signups across its specs is
-  exactly the shared-bucket scenario the limiter needs to tolerate, not
-  an edge case to special-case away. Verified: full
-  E2E suite (14/14 at the time this landed) still passes with the
-  limiter active, plus a direct read of the new code.
+- **No rate limiting on login/signup**: started as an in-memory sliding-
+  window limiter — 20 signups/hour per IP, 15 logins/15min per IP, and 8
+  logins/15min per email (the last one to catch credential stuffing
+  distributed across IPs against a single account); the signup limit
+  started at 5/hour and was raised to 20/hour after the full local E2E
+  suite itself tripped it (every local test request shares the same
+  `"unknown"` IP bucket with no reverse proxy in dev, so a suite doing 7
+  signups across its specs is exactly the shared-bucket scenario the
+  limiter needs to tolerate, not an edge case to special-case away).
+  Documented from the start as a stopgap, for two reasons: per-process
+  state doesn't survive a restart or share state across instances, and
+  every key can collapse many real, unrelated users into one bucket
+  (shared NAT — a school computer lab is exactly this product's
+  audience — or any deploy without a reverse proxy setting
+  `x-forwarded-for`).
+  **Escalated to High priority and then fixed in the same pass**: writing
+  `docs/deployment.md` (Vercel, the actual planned target) made the first
+  reason concrete rather than theoretical — serverless functions don't
+  share memory between invocations at all, so the in-memory version would
+  have been close to a no-op in production as actually deployed, not just
+  "a stopgap." `apps/web/lib/rate-limit.ts` is now backed by a
+  `RateLimitHit` Postgres table (one row per attempt; a key's count is a
+  `COUNT(*) WHERE key = ? AND createdAt > window-start`), made possible
+  without new infrastructure specifically because ADR-0005 had already
+  given the app a real shared database. Still imperfect, on purpose, not
+  by oversight: rows for a key that's hit exactly once and never returns
+  are cleaned up only opportunistically on that key's *own* next hit, so
+  a key that never returns leaves one permanent row — acceptable at this
+  app's current scale (each row is a cuid, a short string, and a
+  timestamp), not a real cleanup job. Verified: a direct check against
+  real local Postgres (blocking at the limit, correct `retryAfterMs`,
+  access restored after the window passes, independent keys not sharing
+  state, cleanup actually deleting old rows) plus the full 24-test E2E
+  suite (real signup/login flows exercising the limiter live) both green.
 - **No E2E suite was committed to the repo**: `apps/web/e2e/` now has 8
   real `@playwright/test` specs (14 tests at the time this landed — see
   `docs/testing-strategy.md` for the current count) covering lesson

@@ -45,3 +45,19 @@ model LessonCompletion {
 
   @@unique([userId, lessonId])
 }
+
+/// Backs apps/web/lib/rate-limit.ts's sliding-window limiter. One row per
+/// attempt (login/signup), not per key — a key's current count is
+/// `COUNT(*) WHERE key = ? AND createdAt > now() - window`. Exists
+/// specifically because in-memory, per-process state doesn't work on a
+/// serverless deploy target (see docs/deployment.md, docs/known-risks.md)
+/// — every invocation there is a fresh process with fresh memory, so an
+/// in-memory limiter is close to a no-op in production as actually
+/// deployed.
+model RateLimitHit {
+  id        String   @id @default(cuid())
+  key       String
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
