@@ -39,6 +39,31 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **No accessibility test automation**: `e2e/accessibility.spec.ts` runs
+  `@axe-core/playwright` (scoped to WCAG 2.0/2.1 A and AA rules, not
+  axe's full best-practice set) against the home page, login/signup, a
+  lesson mid-flow, the completion screen, Play mode, and `/account`.
+  Writing it immediately found two real bugs in `Board.tsx` — a
+  `role="gridcell"` with no `role="row"` ancestor (ARIA requires one;
+  fixed with `display: contents` row wrappers that don't disturb the CSS
+  Grid layout they sit inside), and `aria-pressed` used on a gridcell,
+  which isn't an ARIA-allowed attribute for that role at all (fixed by
+  switching to `aria-selected`, the ARIA-correct selection state for a
+  grid cell) — both invisible to the by-eye verification this project
+  relied on before, and both fixed properly rather than suppressed via a
+  rule exclusion.
+- **The chess-legality validator's own logic had no dedicated unit
+  tests**: `packages/exercise-schema/src/validate-chess.test.ts` (22
+  tests) now exercises `checkStep`'s branches directly — illegal-FEN
+  short-circuiting, check/checkmate-delivering-square computation, the
+  order-steps permutation check, move-piece/capture/find-legal-move
+  legality checks, the guided-sequence forced-reply-application fix (see
+  below), and the deliberate move-piece-only scoping of hint-arrow
+  legality checks — instead of relying only on real lesson content
+  happening to trip them. Several fixtures reuse the exact FEN/move data
+  from real, already-validated lessons, so a "this should pass" case is
+  checked against data independently known correct, not just internally
+  consistent with itself.
 - **No account export or deletion**: `/account` (linked from the
   signed-in home page) offers both. Export is a Route Handler
   (`app/account/export/route.ts`, not a Server Action — it needs to hand

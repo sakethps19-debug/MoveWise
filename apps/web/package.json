@@ -13,22 +13,23 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@movewise/chess-rules": "workspace:*",
+    "@movewise/db": "workspace:*",
+    "@movewise/engine": "workspace:*",
+    "@movewise/exercise-schema": "workspace:*",
+    "bcryptjs": "^3.0.2",
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "stockfish": "18.0.8",
-    "bcryptjs": "^3.0.2",
     "server-only": "^0.0.1",
-    "@movewise/chess-rules": "workspace:*",
-    "@movewise/exercise-schema": "workspace:*",
-    "@movewise/engine": "workspace:*",
-    "@movewise/db": "workspace:*"
+    "stockfish": "18.0.8"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.56.1",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "typescript": "^5.6.0",
-    "@playwright/test": "^1.56.1"
+    "typescript": "^5.6.0"
   }
 }

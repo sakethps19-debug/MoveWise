@@ -5,8 +5,12 @@
  * grid. Preserves the accessibility convention proven in the
  * prototype: every square has an aria-label naming its contents
  * ("e4, white pawn" / "e5, empty"), and the selected square carries
- * aria-pressed. Piece art is the "Cburnett" SVG set (CC BY-SA 3.0,
- * the same set Lichess uses by default) — see public/pieces/CREDITS.md.
+ * aria-selected — the ARIA-correct state for a role="gridcell"
+ * (role="gridcell" doesn't support aria-pressed at all; that's a
+ * "button" pattern property, not a grid one — an axe-core check
+ * flagged this as a real violation, not a style choice). Piece art is
+ * the "Cburnett" SVG set (CC BY-SA 3.0, the same set Lichess uses by
+ * default) — see public/pieces/CREDITS.md.
  *
  * Board state (selected square, legal targets, hints) is owned by
  * the caller (LessonRunner) — this component is presentation-only,
@@ -96,82 +100,90 @@ export function Board({
           border: "2px solid var(--board-border, #3a3a3a)",
         }}
       >
-        {rows.flatMap((row, rowIndex) =>
-          row.map(({ square, piece }, colIndex) => {
-            const isLight = (rowIndex + colIndex) % 2 === 0;
-            const isSelected = selected === square;
-            const isLegal = legalTargets.includes(square);
-            const isHighlighted = highlightSquares.includes(square);
-            const wasLastMove = lastMove?.from === square || lastMove?.to === square;
+        {rows.map((row, rowIndex) => (
+          // ARIA requires a gridcell's parent to have role="row" (an
+          // axe-core "aria-required-parent" violation without this) —
+          // display: contents keeps the row out of the box-layout tree so
+          // the 64 gridcell buttons still lay out as direct children of
+          // the CSS grid above (`grid-template-columns: repeat(8, 1fr)`),
+          // while still being real DOM ancestors for the accessibility tree.
+          <div role="row" key={`rank-${8 - rowIndex}`} style={{ display: "contents" }}>
+            {row.map(({ square, piece }, colIndex) => {
+              const isLight = (rowIndex + colIndex) % 2 === 0;
+              const isSelected = selected === square;
+              const isLegal = legalTargets.includes(square);
+              const isHighlighted = highlightSquares.includes(square);
+              const wasLastMove = lastMove?.from === square || lastMove?.to === square;
 
-            const label = piece
-              ? `${square}, ${piece.color === "w" ? "white" : "black"} ${PIECE_NAMES[piece.type]}`
-              : `${square}, empty`;
+              const label = piece
+                ? `${square}, ${piece.color === "w" ? "white" : "black"} ${PIECE_NAMES[piece.type]}`
+                : `${square}, empty`;
 
-            return (
-              <button
-                type="button"
-                key={square}
-                role="gridcell"
-                aria-label={label}
-                aria-pressed={isSelected}
-                disabled={!interactive}
-                onClick={() => onSquareClick?.(square)}
-                style={{
-                  position: "relative",
-                  background: isSelected
-                    ? "#f0c419"
-                    : isHighlighted
-                      ? "#ffe9a8"
-                      : wasLastMove
-                        ? "#d7e8c8"
-                        : isLight
-                          ? "#eeeed2"
-                          : "#769656",
-                  border: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: interactive ? "pointer" : "default",
-                  touchAction: "manipulation",
-                }}
-              >
-                {piece && (
-                  // eslint-disable-next-line @next/next/no-img-element -- tiny static vector art, no optimization needed
-                  <img
-                    src={`/pieces/${piece.color}${piece.type}.svg`}
-                    alt=""
-                    aria-hidden="true"
-                    style={{ width: "80%", height: "80%" }}
-                  />
-                )}
-                {isLegal && !piece && (
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      position: "absolute",
-                      width: "28%",
-                      height: "28%",
-                      borderRadius: "50%",
-                      background: "rgba(0,0,0,0.25)",
-                    }}
-                  />
-                )}
-                {isLegal && piece && (
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      position: "absolute",
-                      inset: 2,
-                      borderRadius: "50%",
-                      border: "3px solid rgba(0,0,0,0.35)",
-                    }}
-                  />
-                )}
-              </button>
-            );
-          }),
-        )}
+              return (
+                <button
+                  type="button"
+                  key={square}
+                  role="gridcell"
+                  aria-label={label}
+                  aria-selected={isSelected}
+                  disabled={!interactive}
+                  onClick={() => onSquareClick?.(square)}
+                  style={{
+                    position: "relative",
+                    background: isSelected
+                      ? "#f0c419"
+                      : isHighlighted
+                        ? "#ffe9a8"
+                        : wasLastMove
+                          ? "#d7e8c8"
+                          : isLight
+                            ? "#eeeed2"
+                            : "#769656",
+                    border: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: interactive ? "pointer" : "default",
+                    touchAction: "manipulation",
+                  }}
+                >
+                  {piece && (
+                    // eslint-disable-next-line @next/next/no-img-element -- tiny static vector art, no optimization needed
+                    <img
+                      src={`/pieces/${piece.color}${piece.type}.svg`}
+                      alt=""
+                      aria-hidden="true"
+                      style={{ width: "80%", height: "80%" }}
+                    />
+                  )}
+                  {isLegal && !piece && (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        width: "28%",
+                        height: "28%",
+                        borderRadius: "50%",
+                        background: "rgba(0,0,0,0.25)",
+                      }}
+                    />
+                  )}
+                  {isLegal && piece && (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        inset: 2,
+                        borderRadius: "50%",
+                        border: "3px solid rgba(0,0,0,0.35)",
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ))}
       </div>
       {arrow && (
         <svg

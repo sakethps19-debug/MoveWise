@@ -3,16 +3,19 @@
 ## What exists
 
 - **Unit tests** (`vitest`) — `packages/chess-rules` (17 tests: move
-  legality, game status, `parseUci`, `describeMove`, etc.) and
+  legality, game status, `parseUci`, `describeMove`, etc.),
   `packages/engine` (11 tests: UCI line parsing, score normalization —
-  pure functions only, no real Worker/browser needed).
-  `packages/exercise-schema` has a test script wired (`--passWithNoTests`
-  so an empty suite doesn't fail the build) but no tests written yet —
-  its correctness is currently covered entirely by content validation
-  (below), not unit tests of the validator logic itself. That's a gap:
-  the validator's *own* logic (e.g. the check/checkmate-delivering-square
-  computation in `validate-chess.ts`) has no dedicated unit tests, only
-  indirect coverage via lesson content passing/failing.
+  pure functions only, no real Worker/browser needed), and
+  `packages/exercise-schema` (22 tests, `validate-chess.test.ts`) —
+  exercising the chess-legality validator's own branches directly
+  (illegal-FEN short-circuiting, check/checkmate-delivering-square
+  computation, the guided-sequence forced-reply-application bug this
+  validator was specifically built to catch, the move-piece-only scoping
+  of hint-arrow legality checks) rather than relying only on real lesson
+  content happening to trip them. Several fixtures are the exact FEN/move
+  data from real, already-validated lessons in `packages/content`, not
+  invented positions, so a "this should pass" assertion is checked
+  against data independently known to be correct.
 - **Content validation** (`pnpm validate:content`) — see
   `docs/architecture.md` for what the two layers (Zod schema,
   chess-legality) check. This is closest to what the brief's Section 19
@@ -23,7 +26,7 @@
   every commit that touches `apps/web`) — not "tests" exactly, but part
   of the same verification gate.
 - **E2E suite** (`@playwright/test`, `apps/web/e2e/`, run via
-  `pnpm --filter @movewise/web test:e2e`) — 9 spec files, 17 tests,
+  `pnpm --filter @movewise/web test:e2e`) — 9 spec files, 23 tests,
   covering lesson flows across all 13 exercise-step types, the
   retry-after-wrong-answer fix, hearts (including flooring at zero
   without lockout), mastery-star tiering, learning-path locking (now
@@ -32,21 +35,27 @@
   flow (signup, the under-13 gate, duplicate email, wrong password,
   logout, XP persistence across re-login), account data export and
   deletion (including that dismissing the delete-confirmation dialog
-  leaves the account intact), and Play mode as both colors. Runs in CI
-  as a dedicated job (browsers installed fresh
-  each run — this sandbox's pre-installed Chromium is only used for
-  local runs here, via a config check that's a no-op on a real CI
-  runner). Uses a shared SQLite `dev.db`, so `workers: 1` — tests aren't
-  isolated from each other's data, only ordered.
+  leaves the account intact), automated accessibility checks
+  (`accessibility.spec.ts`, see below), and Play mode as both colors.
+  Runs in CI as a dedicated job (browsers installed fresh each run —
+  this sandbox's pre-installed Chromium is only used for local runs
+  here, via a config check that's a no-op on a real CI runner). Uses a
+  shared SQLite `dev.db`, so `workers: 1` — tests aren't isolated from
+  each other's data, only ordered.
+- **Accessibility test automation** (`@axe-core/playwright`,
+  `e2e/accessibility.spec.ts`) — runs axe against the home page (guest
+  and signed-in), login/signup, a lesson mid-flow (board rendered, both
+  with and without a hint arrow), the lesson-completion screen, Play
+  mode, and `/account`, scoped to WCAG 2.0/2.1 A and AA rules rather than
+  axe's full best-practice rule set (which flags opinions, not defects,
+  and would make the suite noisy instead of trustworthy). Writing this
+  immediately found two real bugs in `Board.tsx`, both fixed, not
+  suppressed — see `docs/known-risks.md`.
 - **Manual browser verification via Playwright**, every feature, every
   commit, beyond what's in the committed suite — see below.
 
 ## What does not exist
 
-- **No accessibility test automation**, despite `Board.tsx`'s ARIA
-  labeling being deliberately built for it (accessible grid roles,
-  `aria-pressed`, alt text). Verified by inspection, not by an automated
-  axe-core-style check.
 - **No load/performance testing.**
 
 ## Section 19's "every exercise must be automatically validated for" — coverage
