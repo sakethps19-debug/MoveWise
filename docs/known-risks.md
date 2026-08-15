@@ -7,8 +7,6 @@ rather than repeating it.
 
 ## High priority
 
-- **No rate limiting on login/signup.** Credential-stuffing risk at any
-  real traffic level. See `docs/security-checklist.md`.
 - **Real COPPA compliance is not implemented**, only a conservative
   stopgap (block under-13 signup outright). This is a legal question, not
   an engineering one — see `docs/security-checklist.md` and
@@ -51,6 +49,18 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **No rate limiting on login/signup**: `apps/web/lib/rate-limit.ts` adds
+  an in-memory sliding-window limiter — 5 signups/hour per IP, 15
+  logins/15min per IP, and 8 logins/15min per email (the last one to
+  catch credential stuffing distributed across IPs against a single
+  account). Explicitly a stopgap, not the final answer: it's per-process
+  state, so it doesn't survive a restart or share state across multiple
+  server instances. A real fix (shared store, e.g. Redis) belongs with
+  the Postgres/hosting migration in `docs/roadmap.md`'s open decisions,
+  for the same reason SQLite is dev-only for now (ADR-0002) — not worth
+  building before that migration's infrastructure exists. Verified: full
+  E2E suite (14/14) still passes with the limiter active, plus a direct
+  read of the new code.
 - **No E2E suite was committed to the repo**: `apps/web/e2e/` now has 8
   real `@playwright/test` specs (14 tests) covering lesson flows across
   all 13 exercise-step types, the retry-bug fix, hearts, mastery stars,

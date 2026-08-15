@@ -1,19 +1,44 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@movewise/db";
 import { createSession, destroySession, getSession, hashPassword, verifyPassword } from "../lib/auth";
+import { checkRateLimit, formatRetryAfter } from "../lib/rate-limit";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
 const MIN_SIGNUP_AGE = 13;
+
+// Deliberately generous: this is meant to stop automated abuse, not slow
+// down a real user retyping a mistyped password a few times. See
+// lib/rate-limit.ts for why this is an in-memory stopgap, not the final
+// answer.
+const SIGNUP_LIMIT = { limit: 5, windowMs: 60 * 60 * 1000 }; // 5/hour per IP
+const LOGIN_IP_LIMIT = { limit: 15, windowMs: 15 * 60 * 1000 }; // 15/15min per IP
+const LOGIN_EMAIL_LIMIT = { limit: 8, windowMs: 15 * 60 * 1000 }; // 8/15min per email, catches distributed attempts against one account
+
+async function clientIp(): Promise<string> {
+  const h = await headers();
+  // First hop only — good enough for the abuse this stops (spoofing the
+  // rest of the chain doesn't help an attacker bypass a limit keyed on
+  // the value their own proxy/client sent first).
+  const forwardedFor = h.get("x-forwarded-for");
+  return forwardedFor?.split(",")[0]?.trim() || "unknown";
+}
 
 export interface FormState {
   error?: string;
 }
 
 export async function signupAction(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const ip = await clientIp();
+  const signupLimit = checkRateLimit(`signup:${ip}`, SIGNUP_LIMIT.limit, SIGNUP_LIMIT.windowMs);
+  if (!signupLimit.allowed) {
+    return { error: `Too many signup attempts. Try again in ${formatRetryAfter(signupLimit.retryAfterMs!)}.` };
+  }
+
   const email = String(formData.get("email") ?? "")
     .trim()
     .toLowerCase();
@@ -55,6 +80,16 @@ export async function loginAction(_prevState: FormState, formData: FormData): Pr
     .trim()
     .toLowerCase();
   const password = String(formData.get("password") ?? "");
+
+  const ip = await clientIp();
+  const ipLimit = checkRateLimit(`login-ip:${ip}`, LOGIN_IP_LIMIT.limit, LOGIN_IP_LIMIT.windowMs);
+  const emailLimit = email
+    ? checkRateLimit(`login-email:${email}`, LOGIN_EMAIL_LIMIT.limit, LOGIN_EMAIL_LIMIT.windowMs)
+    : { allowed: true as const };
+  if (!ipLimit.allowed || !emailLimit.allowed) {
+    const retryAfterMs = Math.max(ipLimit.retryAfterMs ?? 0, emailLimit.retryAfterMs ?? 0);
+    return { error: `Too many login attempts. Try again in ${formatRetryAfter(retryAfterMs)}.` };
+  }
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !(await verifyPassword(password, user.passwordHash))) {
