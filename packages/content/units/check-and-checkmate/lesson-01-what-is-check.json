@@ -45,5 +45,6 @@
       "type": "review",
       "summary": "Check means the king is under attack and must escape immediately. Next: what happens when there's no way out."
     }
-  ]
+  ],
+  "principleId": "check-and-checkmate.recognizing-check"
 }

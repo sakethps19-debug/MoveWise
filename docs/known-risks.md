@@ -34,6 +34,28 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **`check-and-checkmate` and `basic-tactics` were still the flat
+  `Unit → Lesson` shape** (ADR-0008 Phase A): both units now have a
+  `packages/content/principles/{unitId}.json` file — `check-and-checkmate`
+  gets 3 principles (`recognizing-check` → `check`,
+  `recognizing-checkmate` → `checkmate`, `thinking-under-check` →
+  `decision-making`), `basic-tactics` gets 1 (`the-knight-fork` →
+  `knight-fork`, the most specific concept in that unit's
+  `tactics`/`fork`/`knight-fork` hierarchy, chosen the same way
+  `meet-the-pieces`' principles each pick their most specific matching
+  concept). Every affected lesson got a matching `principleId` back-
+  reference. No `apps/web` code changes were needed — `lib/principles.ts`
+  and `LearningPath.tsx` were already written to branch on principle-file
+  presence per unit, exactly so this could be a content-only change.
+  `pnpm validate:content`, `typecheck`, and `test` all pass; two stale
+  code comments (`lib/principles.ts`, `LearningPath.tsx`) and three docs
+  (`docs/architecture.md`, `docs/testing-strategy.md`, this roadmap
+  reference) that said "meet-the-pieces only" were updated to match.
+  Deliberately not done in this pass: no new unit (`check-and-checkmate`,
+  `basic-tactics`)-specific E2E tests — the unlock/grouping mechanism
+  they'd exercise is unit-agnostic code already covered against
+  `meet-the-pieces` in `e2e/learning-path.spec.ts`, and no `Puzzle`
+  content exists yet for either unit (unchanged from before this pass).
 - **Lesson completion alone unlocked the next principle** (ADR-0008
   Phase A): `meet-the-pieces` is now restructured into 7 principles with
   a real `Concept` taxonomy (`packages/content/concepts.json`,

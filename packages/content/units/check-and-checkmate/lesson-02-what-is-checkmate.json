@@ -41,5 +41,6 @@
       "type": "review",
       "summary": "Checkmate is a check with no escape. Next: how to actually think through your options the moment you're in check."
     }
-  ]
+  ],
+  "principleId": "check-and-checkmate.recognizing-checkmate"
 }

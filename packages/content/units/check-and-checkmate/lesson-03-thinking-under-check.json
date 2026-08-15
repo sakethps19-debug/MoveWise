@@ -61,5 +61,6 @@
       "type": "review",
       "summary": "Capture, block, or move — in that order, every time you're in check. And when the position is winning, remember checkmate is the goal, not just winning material: fence the lone king to the edge with your rook, then deliver mate there."
     }
-  ]
+  ],
+  "principleId": "check-and-checkmate.thinking-under-check"
 }

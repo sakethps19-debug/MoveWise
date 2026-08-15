@@ -136,9 +136,9 @@ export function LearningPath({
 
         // ADR-0008: group by Principle where the unit has been
         // restructured into one; fall back to a flat lesson list for
-        // units that haven't been (check-and-checkmate, basic-tactics,
-        // step-type-preview — see docs/roadmap.md's Phase A priority to
-        // restructure one unit fully before the others).
+        // units that haven't been (step-type-preview — a non-curated
+        // demo unit, deliberately left out, see docs/roadmap.md's
+        // Phase A).
         const groups: { heading: string | null; lessons: Lesson[] }[] =
           unit.principles.length > 0
             ? unit.principles.map((principle) => ({

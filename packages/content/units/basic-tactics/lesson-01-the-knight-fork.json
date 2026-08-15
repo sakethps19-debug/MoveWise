@@ -101,5 +101,6 @@
       "type": "review",
       "summary": "A fork is one piece attacking two enemy targets at once. The knight is especially dangerous at it, because its L-shaped jump can attack two squares that have nothing to do with each other geometrically — no line, no diagonal connects them, so the defender rarely sees it coming. When one of the forked pieces is the king, the opponent has to deal with check first, and the other piece is often lost."
     }
-  ]
+  ],
+  "principleId": "basic-tactics.the-knight-fork"
 }

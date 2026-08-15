@@ -19,27 +19,29 @@ apart) — it's a consequence of how the packages were built one at a time
 across this project's history, not a deliberate up-front design exercise,
 but it satisfies the requirement regardless.
 
-## Information architecture (ADR-0008 — built for `meet-the-pieces` only)
+## Information architecture (ADR-0008 — built for all three curated units)
 
 ADR-0008 specifies `Course → Level → Unit → Principle → SubLesson`, plus
 a pooled `Puzzle` content type and a `Concept` taxonomy every teaching
-and diagnostic surface references (`docs/concept-taxonomy.md`). Built so
-far: `Concept` (`packages/content/concepts.json`) and `Principle`
-(`packages/content/principles/meet-the-pieces.json`) for the one unit
-Phase A's own priority says to restructure first —
-`check-and-checkmate` and `basic-tactics` are still the flat
-`Unit → Lesson → Step[]` shape (both content-valid either way; a lesson
-without a `principleId` is simply ungrouped). `Puzzle` isn't built at
-all yet — no puzzle content exists, so every principle's `puzzleIds` is
-empty. `Course`/`Level` remain unmodeled, content or database, at
-today's volume — see ADR-0008's own reasoning. The key continuity
-point: `SubLesson` **is** today's `Lesson` shape, unchanged — the
-existing `packages/exercise-schema` schema, all 8 exercise-step-type
-renderers, and everything ADR-0007 fixed (required prompts, hearts
-recovery, real stars) carry forward without rework. See ADR-0008 for the
-full proposed schema and
-why `Course`/`Level` don't need real tables yet at today's content
-volume.
+and diagnostic surface references (`docs/concept-taxonomy.md`). Built:
+`Concept` (`packages/content/concepts.json`) and `Principle`
+(`packages/content/principles/{unitId}.json`) for all three curated
+units — `meet-the-pieces` (7 principles), `check-and-checkmate` (3),
+and `basic-tactics` (1) — each real unit fully restructured, matching
+Phase A's stated priority to finish one unit before generalizing, then
+applied to the rest once that pattern proved out. The non-curated
+`step-type-preview` unit deliberately stays flat (no principle file; a
+lesson without a `principleId` is simply ungrouped, both shapes are
+content-valid). `Puzzle` isn't built at all yet — no puzzle content
+exists, so every principle's `puzzleIds` is empty. `Course`/`Level`
+remain unmodeled, content or database, at today's volume — see
+ADR-0008's own reasoning. The key continuity point: `SubLesson` **is**
+today's `Lesson` shape, unchanged — the existing
+`packages/exercise-schema` schema, all 8 exercise-step-type renderers,
+and everything ADR-0007 fixed (required prompts, hearts recovery, real
+stars) carry forward without rework. See ADR-0008 for the full proposed
+schema and why `Course`/`Level` don't need real tables yet at today's
+content volume.
 
 ## Data flow: a lesson
 
