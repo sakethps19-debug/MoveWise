@@ -89,58 +89,76 @@ a migration that reshapes existing data — but Phase A does not create
 ## Decision — concept taxonomy
 
 See `docs/concept-taxonomy.md` for the full design. Summary: `Concept`
-formalizes what `masteryTags` already informally represents (this is
-exactly the `Concept` entity `docs/learner-model.md` already proposed —
-extended here, not replaced). Every `SubLesson`, `Puzzle`,
+formalizes what `masteryTags` already informally represents. **Correction
+from this ADR's first draft**: `Concept` is a *content* registry
+(`packages/content/concepts.ts` — like `Unit`/`Lesson`, not a database
+table), not a Prisma model as originally written here — a `conceptId` is
+just a string, the same way `LessonCompletion.lessonId` today is a
+string referencing a JSON file's `id` with no `Lesson` database table
+backing it at all. Only genuinely dynamic per-user *state* about a
+concept (`UserConceptMastery`, `ExerciseAttempt`) belongs in Postgres;
+the concept's own name/description/hierarchy is authored content, same
+as everything else in `packages/content`. Every `SubLesson`, `Puzzle`,
 `MasteryChallenge`, and — new — every instructive move from Play & Learn
-analysis references one or more `conceptId`s. This is the single join
-point the whole two-mode loop depends on: a game mistake maps to a
+analysis references one or more `conceptId` strings. This is the single
+join point the whole two-mode loop depends on: a game mistake maps to a
 `conceptId`, which is exactly what a `SubLesson`/`Puzzle` was authored
 to teach.
 
-## Decision — proposed data model (additive; not migrated yet)
+## Decision — content-hierarchy schema (Zod, `packages/exercise-schema` — not a database model)
+
+**Correction from this ADR's first draft**: `Unit`, `Principle`, and
+`Puzzle` were originally written below as Prisma models. That's wrong,
+for the same reason `Concept` above was wrong — this codebase's
+established pattern (ADR-0002 onward) is content-as-data-files
+validated by Zod, not database rows, and nothing about this ADR's own
+reasoning (`SubLesson` = today's `Lesson`, unchanged) argued for
+breaking that pattern one layer up. Corrected:
+
+```ts
+// packages/exercise-schema — additive to the existing LessonSchema
+const PrincipleSchema = z.object({
+  id: z.string().min(1),          // "<unit-id>.<principle-slug>"
+  unitId: z.string().min(1),
+  title: z.string().min(1),
+  conceptId: z.string().min(1),   // the concept this principle primarily teaches
+  order: z.number().int().min(0),
+  subLessonIds: z.array(z.string().min(1)).min(1), // Lesson ids, existing LessonSchema unchanged
+  puzzleIds: z.array(z.string().min(1)).default([]),
+  masteryChallengeLessonId: z.string().min(1).optional(), // a Lesson with kind = "mastery-challenge"
+});
+
+// LessonSchema gains two additive, optional fields — every existing
+// lesson JSON stays valid unchanged:
+//   principleId?: string   (which Principle this sub-lesson belongs to)
+//   kind?: "sub-lesson" | "mastery-challenge"   (default "sub-lesson")
+
+const PuzzleSchema = z.object({
+  id: z.string().min(1),
+  conceptIds: z.array(z.string().min(1)).min(1),
+  fen: z.string().min(1),
+  prompt: z.string().min(1),      // same non-negotiable requirement ADR-0007 added to every board exercise
+  correctMoves: z.array(z.string().min(1)).min(1),
+  difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  feedback: FeedbackMapSchema,
+  sourceGameId: z.string().optional(), // set when generated from a Play & Learn game, absent for authored puzzles
+});
+```
+
+`Course`/`Level` (the two layers above `Unit`) stay exactly what they
+are today — nothing (a hardcoded `UNITS` array in `apps/web/app/
+page.tsx`, one implicit course/level). Not modeled at all yet, content
+or database, at today's volume — see "what doesn't need to exist yet"
+above; this is unchanged from the first draft.
+
+## Decision — proposed database model (additive; not migrated yet)
 
 Building on the 4 tables that exist today (`User`, `Session`,
-`LessonCompletion`, `RateLimitHit`) and the 4 `docs/learner-model.md`
-already speculatively designed (`Concept`, `UserConceptMastery`,
-`ExerciseAttempt`, `RecurringMistakePattern`):
-
-```prisma
-// Content hierarchy additions
-model Unit {
-  id       String  @id            // matches today's directory-name convention
-  levelId  String?                // nullable — see "what doesn't need to exist yet"
-  title    String
-  principles Principle[]
-}
-
-model Principle {
-  id           String @id
-  unitId       String
-  title        String
-  conceptId    String             // the concept this principle primarily teaches
-  order        Int
-  subLessons   SubLesson[]        // = Lesson, see below — unchanged shape
-  puzzles      Puzzle[]
-  masteryChallengeLessonId String? // a Lesson with kind = "mastery-challenge"
-}
-
-// SubLesson is today's Lesson (packages/exercise-schema's `LessonSchema`)
-// with two additive fields: `principleId` (nullable — today's ungrouped
-// lessons stay valid) and `kind` (default "sub-lesson"; "mastery-
-// challenge" for the existing pattern above).
-
-model Puzzle {
-  id          String   @id
-  conceptIds  String[]           // usually one, sometimes more
-  fen         String
-  prompt      String             // same non-negotiable requirement ADR-0007 added to every board exercise
-  correctMoves String[]
-  difficulty  Int                // 1-3, matches Lesson.difficulty's existing scale
-  feedback    Json               // same FeedbackMapSchema shape as today's exercise steps
-  sourceGameId String?           // set when generated from a Play & Learn game (see below), null for authored puzzles
-}
-```
+`LessonCompletion`, `RateLimitHit`) and the 3 `docs/learner-model.md`
+already speculatively designed, corrected to drop the standalone
+`Concept` table per the correction above (`UserConceptMastery`,
+`ExerciseAttempt`, `RecurringMistakePattern` — `conceptId` on each is a
+plain string, not a foreign key):
 
 ```prisma
 // Play & Learn additions
@@ -250,14 +268,16 @@ instructive moments, map to concepts, recommend lessons, allow retry.
 game-derived puzzles, add safe PGN import.
 
 ## Consequences
-- This is a genuinely large scope increase — the proposed schema above
-  adds 7 new models on top of the 8 already planned/existing. Nothing
-  in Phase A requires `Game`/`GameAnalysis`/`MoveAnalysis`/`StudyPlan`;
-  nothing in Phase B requires `Course`/`Level`. Building the schema
-  incrementally, phase-by-phase, is deliberate — a single "add
-  everything now" migration would create tables Phase A/B don't use yet
-  and can't verify are shaped correctly until real Phase C work exercises
-  them.
+- This is a genuinely large scope increase — 4 new *database* models
+  (`Game`, `GameAnalysis`, `MoveAnalysis`, `StudyPlan`, on top of the 2
+  `docs/learner-model.md` already planned: `UserConceptMastery`,
+  `ExerciseAttempt`) and 3 new *content* schema types (`Principle`,
+  `Puzzle`, plus the `Concept` registry). Nothing in Phase A requires
+  the 4 Play & Learn database models; nothing needs `Course`/`Level` at
+  all yet, content or database. Building incrementally, phase-by-phase,
+  is deliberate — a single "add everything now" migration would create
+  tables Phase A/B don't use yet and can't verify are shaped correctly
+  until real Phase C work exercises them.
 - `SubLesson` reusing today's `Lesson` shape (rather than a new content
   type) means ADR-0007's fixes (required prompts, hearts recovery, real
   stars) automatically apply to every sub-lesson without rework —

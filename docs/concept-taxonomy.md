@@ -19,14 +19,26 @@ which a free-text tag on a lesson supports.
 
 ## Concept shape
 
-```prisma
-model Concept {
-  id           String   @id           // stable slug, e.g. "knight-fork", "development-tempo"
-  name         String                 // "Knight forks", "Developing with tempo"
-  description  String
-  parentId     String?                // e.g. "development-tempo".parentId = "development"
-  unitId       String?                // the unit this concept is primarily introduced in, if any
-}
+`Concept` is a **content registry** (`packages/content/concepts.ts`),
+not a database table — corrected from this document's and ADR-0008's
+first drafts, which modeled it as a Prisma model. That broke this
+codebase's own established pattern: content (units, lessons, and now
+concepts) is authored data validated by a schema, not database rows;
+only per-user, per-concept *state* (`UserConceptMastery`,
+`ExerciseAttempt`) is dynamic enough to need a real table. A `conceptId`
+referenced from the database is a plain string key, the same way
+`LessonCompletion.lessonId` today references a JSON file's `id` with no
+`Lesson` table backing it.
+
+```ts
+// packages/exercise-schema — a Zod schema, validated the same way LessonSchema is
+export const ConceptSchema = z.object({
+  id: z.string().min(1),          // stable slug, e.g. "knight-fork", "development-tempo"
+  name: z.string().min(1),        // "Knight forks", "Developing with tempo"
+  description: z.string().min(1),
+  parentId: z.string().optional(), // e.g. "development-tempo".parentId = "development"
+  unitId: z.string().optional(),   // the unit this concept is primarily introduced in, if any
+});
 ```
 
 Two-level hierarchy is enough to start: a handful of broad concepts
