@@ -101,7 +101,9 @@ export function Board({
           gridTemplateColumns: "repeat(8, 1fr)",
           width: "100%",
           aspectRatio: "1 / 1",
-          border: "2px solid var(--board-border, #3a3a3a)",
+          border: "2px solid var(--mw-text)",
+          borderRadius: "var(--mw-radius-sm)",
+          overflow: "hidden",
         }}
       >
         {rows.map((row, rowIndex) => (
@@ -118,6 +120,8 @@ export function Board({
               const isLegal = legalTargets.includes(square);
               const isHighlighted = highlightSquares.includes(square);
               const wasLastMove = lastMove?.from === square || lastMove?.to === square;
+              const isLeftEdge = colIndex === 0;
+              const isBottomEdge = rowIndex === 7;
 
               const label = piece
                 ? `${square}, ${piece.color === "w" ? "white" : "black"} ${PIECE_NAMES[piece.type]}`
@@ -134,15 +138,14 @@ export function Board({
                   onClick={() => onSquareClick?.(square)}
                   style={{
                     position: "relative",
-                    background: isSelected
-                      ? "#f0c419"
-                      : isHighlighted
-                        ? "#ffe9a8"
-                        : wasLastMove
-                          ? "#d7e8c8"
-                          : isLight
-                            ? "#eeeed2"
-                            : "#769656",
+                    background: isHighlighted
+                      ? "var(--mw-warning-bg)"
+                      : wasLastMove
+                        ? "var(--mw-sq-last-move)"
+                        : isLight
+                          ? "var(--mw-sq-light)"
+                          : "var(--mw-sq-dark)",
+                    boxShadow: isSelected ? "inset 0 0 0 3px var(--mw-moss)" : "none",
                     border: "none",
                     display: "flex",
                     alignItems: "center",
@@ -151,13 +154,51 @@ export function Board({
                     touchAction: "manipulation",
                   }}
                 >
+                  {isLeftEdge && (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        top: 2,
+                        left: 3,
+                        fontFamily: "var(--mw-font-mono)",
+                        fontSize: "9px",
+                        fontWeight: 700,
+                        color: isLight ? "var(--mw-sq-dark)" : "var(--mw-sq-light)",
+                        opacity: 0.7,
+                      }}
+                    >
+                      {8 - rowIndex}
+                    </span>
+                  )}
+                  {isBottomEdge && (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        position: "absolute",
+                        bottom: 1,
+                        right: 3,
+                        fontFamily: "var(--mw-font-mono)",
+                        fontSize: "9px",
+                        fontWeight: 700,
+                        color: isLight ? "var(--mw-sq-dark)" : "var(--mw-sq-light)",
+                        opacity: 0.7,
+                      }}
+                    >
+                      {FILES[colIndex]}
+                    </span>
+                  )}
                   {piece && (
                     // eslint-disable-next-line @next/next/no-img-element -- tiny static vector art, no optimization needed
                     <img
                       src={`/pieces/${piece.color}${piece.type}.svg`}
                       alt=""
                       aria-hidden="true"
-                      style={{ width: "80%", height: "80%" }}
+                      style={{
+                        width: "80%",
+                        height: "80%",
+                        filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.25))",
+                      }}
                     />
                   )}
                   {isLegal && !piece && (
@@ -168,7 +209,7 @@ export function Board({
                         width: "28%",
                         height: "28%",
                         borderRadius: "50%",
-                        background: "rgba(0,0,0,0.25)",
+                        background: "var(--mw-sq-legal-dot)",
                       }}
                     />
                   )}
@@ -179,7 +220,7 @@ export function Board({
                         position: "absolute",
                         inset: 2,
                         borderRadius: "50%",
-                        border: "3px solid rgba(0,0,0,0.35)",
+                        border: "3px solid var(--mw-sq-legal-dot)",
                       }}
                     />
                   )}
@@ -197,7 +238,7 @@ export function Board({
         >
           <defs>
             <marker id="movewise-arrowhead" markerWidth="3" markerHeight="3" refX="1.5" refY="1.5" orient="auto">
-              <path d="M0,0 L3,1.5 L0,3 Z" fill="#c2410c" />
+              <path d="M0,0 L3,1.5 L0,3 Z" fill="var(--mw-brass-ink)" />
             </marker>
           </defs>
           {(() => {
@@ -218,11 +259,11 @@ export function Board({
                 y1={y1}
                 x2={x2}
                 y2={y2}
-                stroke="#c2410c"
+                stroke="var(--mw-brass-ink)"
                 strokeWidth={0.12}
                 strokeLinecap="round"
                 markerEnd="url(#movewise-arrowhead)"
-                opacity={0.85}
+                opacity={0.9}
               />
             );
           })()}

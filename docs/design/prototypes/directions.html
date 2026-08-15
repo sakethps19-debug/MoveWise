@@ -1,0 +1,833 @@
+<title>MoveWise Directions</title>
+<style>
+  /* ============================================================
+     ARTIFACT SHELL — viewer-theme-adaptive (standard three-state pattern).
+     The mockup PREVIEW below has its own independent light/dark toggle —
+     the whole point of this page is to show both regardless of host theme.
+     ============================================================ */
+  :root {
+    --shell-bg: #f7f5f1;
+    --shell-bg-raised: #ffffff;
+    --shell-text: #1a1a1a;
+    --shell-text-dim: #5c5952;
+    --shell-border: #ddd8cd;
+    --shell-accent: #2f5233;
+    --shell-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --shell-bg: #17181a;
+      --shell-bg-raised: #202224;
+      --shell-text: #ece9e2;
+      --shell-text-dim: #9b9790;
+      --shell-border: #34363a;
+      --shell-accent: #7fae82;
+    }
+  }
+  :root[data-theme="dark"] {
+    --shell-bg: #17181a;
+    --shell-bg-raised: #202224;
+    --shell-text: #ece9e2;
+    --shell-text-dim: #9b9790;
+    --shell-border: #34363a;
+    --shell-accent: #7fae82;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--shell-bg);
+    color: var(--shell-text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+  .shell-head {
+    max-width: 720px;
+    margin: 0 0 40px;
+  }
+  .eyebrow {
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--shell-accent);
+    margin: 0 0 10px;
+  }
+  .shell h1 {
+    font-size: clamp(28px, 4vw, 38px);
+    margin: 0 0 14px;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  .shell-head p {
+    color: var(--shell-text-dim);
+    font-size: 15.5px;
+    margin: 0 0 8px;
+  }
+
+  .controls {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--shell-bg);
+    padding: 14px 0;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--shell-border);
+  }
+  .tabgroup { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab {
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--shell-border);
+    background: var(--shell-bg-raised);
+    color: var(--shell-text);
+    cursor: pointer;
+  }
+  .tab[aria-pressed="true"] {
+    background: var(--shell-accent);
+    border-color: var(--shell-accent);
+    color: #fff;
+  }
+  .modegroup { display: flex; gap: 6px; }
+  .modebtn {
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--shell-border);
+    background: var(--shell-bg-raised);
+    color: var(--shell-text-dim);
+    cursor: pointer;
+  }
+  .modebtn[aria-pressed="true"] {
+    color: var(--shell-text);
+    border-color: var(--shell-accent);
+  }
+
+  .direction-note {
+    max-width: 720px;
+    margin: 0 0 32px;
+    padding: 16px 18px;
+    border-left: 3px solid var(--shell-accent);
+    background: var(--shell-bg-raised);
+    border-radius: 0 10px 10px 0;
+    font-size: 14px;
+    color: var(--shell-text-dim);
+  }
+  .direction-note strong { color: var(--shell-text); }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ============================================================
+     PREVIEW FRAME — the actual mockup content. Fully self-themed
+     per direction + explicit light/dark toggle, independent of the
+     shell above.
+     ============================================================ */
+  .frame {
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid var(--shell-border);
+    box-shadow: 0 20px 60px -30px rgba(0,0,0,0.4);
+  }
+  .screens {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mw-screen-gap, 2px);
+  }
+  .screen { padding: var(--mw-screen-pad, 32px); }
+  .screen-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin: 0 0 16px;
+  }
+
+  /* ---------- shared mock primitives, themed via var(--mw-*) tokens ---------- */
+  .mw-board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--mw-board-radius, 6px);
+    overflow: hidden;
+    border: var(--mw-board-border, none);
+  }
+  .mw-sq { display: flex; align-items: center; justify-content: center; position: relative; }
+  .mw-sq.light { background: var(--mw-sq-light); }
+  .mw-sq.dark { background: var(--mw-sq-dark); }
+  .mw-sq .coord {
+    position: absolute; bottom: 2px; left: 3px; font-size: 8px; font-weight: 700;
+    opacity: 0.45; font-family: var(--mw-mono);
+  }
+  .mw-piece {
+    font-size: var(--mw-piece-size, 30px);
+    color: var(--mw-piece-w);
+    text-shadow: var(--mw-piece-shadow, none);
+    line-height: 1;
+  }
+  .mw-piece.b { color: var(--mw-piece-b); }
+  .mw-sq.sel { outline: 3px solid var(--mw-accent); outline-offset: -3px; }
+  .mw-sq.last { background: var(--mw-sq-last); }
+  .mw-sq .dot { width: 22%; height: 22%; border-radius: 50%; background: var(--mw-accent); opacity: 0.55; position: absolute; }
+
+  .mw-card {
+    background: var(--mw-surface);
+    border: var(--mw-card-border, 1px solid var(--mw-border));
+    border-radius: var(--mw-radius, 14px);
+    box-shadow: var(--mw-shadow, none);
+  }
+  .mw-btn {
+    font-family: var(--mw-body);
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    border-radius: var(--mw-radius-sm, 10px);
+    padding: 12px 20px;
+    background: var(--mw-btn-bg, var(--mw-accent));
+    color: var(--mw-on-accent, #fff);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .mw-btn.ghost {
+    background: transparent;
+    border: 1.5px solid var(--mw-border-strong, var(--mw-border));
+    color: var(--mw-text);
+  }
+  .mw-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 11px;
+    border-radius: 999px;
+  }
+  .mw-icon { width: 1em; height: 1em; display: inline-block; vertical-align: -0.15em; }
+</style>
+
+<div class="shell">
+  <div class="shell-head">
+    <p class="eyebrow">Design direction review — do not implement all three</p>
+    <h1>Three ways for MoveWise to look and feel</h1>
+    <p>Five representative screens per direction: Learn &amp; Play home, an interactive lesson, the Play &amp; Learn game screen, post-game analysis, and profile/progress. Switch directions and light/dark below — the recommendation and full rationale follow underneath.</p>
+  </div>
+
+  <div class="controls">
+    <div class="tabgroup" role="tablist" aria-label="Visual direction">
+      <button class="tab" data-dir="a" aria-pressed="true">A · The Study</button>
+      <button class="tab" data-dir="b" aria-pressed="false">B · The Studio</button>
+      <button class="tab" data-dir="c" aria-pressed="false">C · The Strategist</button>
+    </div>
+    <div class="modegroup" role="group" aria-label="Preview theme">
+      <button class="modebtn" data-mode="light" aria-pressed="true">Light</button>
+      <button class="modebtn" data-mode="dark" aria-pressed="false">Dark</button>
+    </div>
+  </div>
+
+  <!-- ============================================================ DIRECTION A ============================================================ -->
+  <div class="panel active" id="panel-a">
+    <div class="direction-note"><strong>The Study</strong> — a chess academy's reading room. Warm paper, a serif that carries real editorial weight, walnut-and-parchment board, brass accents for achievement. Intelligence and warmth, pitched at someone who wants to be taught properly.</div>
+    <div class="frame" id="frame-a" data-mode="light">
+      <div class="screens">
+
+        <div class="screen" data-screen="home">
+          <p class="screen-label">Learn &amp; Play — home</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="width:34px;height:34px;border-radius:8px;background:var(--mw-accent);display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--mw-display);font-weight:700;font-size:16px;">M</div>
+              <span style="font-family:var(--mw-display);font-weight:600;font-size:19px;letter-spacing:-0.01em;">MoveWise</span>
+            </div>
+            <nav style="display:flex;gap:28px;font-size:13.5px;font-weight:600;">
+              <span style="border-bottom:2px solid var(--mw-accent);padding-bottom:4px;">Learn &amp; Play</span>
+              <span style="opacity:0.55;">Play &amp; Learn</span>
+              <span style="opacity:0.55;">Practice</span>
+              <span style="opacity:0.55;">Progress</span>
+            </nav>
+            <div style="width:34px;height:34px;border-radius:50%;background:var(--mw-surface-2);border:1px solid var(--mw-border);"></div>
+          </div>
+
+          <div class="mw-card" style="padding:22px 26px;margin-bottom:26px;display:flex;align-items:center;justify-content:space-between;gap:20px;">
+            <div>
+              <p style="margin:0 0 6px;font-size:11.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--mw-accent);">Continue reading</p>
+              <p style="margin:0;font-family:var(--mw-display);font-size:21px;font-weight:600;">Meet the rook</p>
+              <p style="margin:6px 0 0;font-size:13.5px;color:var(--mw-text-dim);">The Rook · 2 of 2 folios</p>
+            </div>
+            <button class="mw-btn">Continue →</button>
+          </div>
+
+          <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:6px;">
+            <svg class="mw-icon" style="width:22px;height:22px;color:var(--mw-accent);" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M3 9h18M9 3v18" stroke="currentColor" stroke-width="1.6"/></svg>
+            <h2 style="font-family:var(--mw-display);font-size:22px;margin:0;font-weight:600;">Meet the Pieces</h2>
+            <span style="margin-left:auto;font-size:13px;color:var(--mw-text-dim);font-family:var(--mw-mono);">3 / 12</span>
+          </div>
+          <div style="height:3px;background:var(--mw-surface-2);border-radius:2px;margin:10px 0 22px;overflow:hidden;"><div style="width:25%;height:100%;background:var(--mw-accent);"></div></div>
+
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <p style="margin:0;font-weight:700;font-size:14px;">The Rook</p>
+            <span class="mw-pill" style="background:var(--mw-success-bg);color:var(--mw-success);">Proficient</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+            <div class="mw-card" style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
+              <span style="color:var(--mw-success);font-size:16px;">✓</span>
+              <span style="flex:1;font-size:14.5px;">Meet the rook</span>
+              <span style="color:var(--mw-gold);letter-spacing:1px;">★★★</span>
+            </div>
+            <div class="mw-card" style="padding:14px 16px;display:flex;align-items:center;gap:12px;border:1.5px solid var(--mw-accent);">
+              <span style="color:var(--mw-accent);font-size:15px;">▶</span>
+              <span style="flex:1;font-size:14.5px;font-weight:600;">Rook captures and blocked paths</span>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;opacity:0.5;">
+            <p style="margin:0;font-weight:700;font-size:14px;">The Bishop</p>
+          </div>
+          <div class="mw-card" style="padding:14px 16px;display:flex;align-items:center;gap:12px;opacity:0.5;">
+            <span style="font-size:14px;">🔒</span>
+            <span style="flex:1;font-size:14.5px;">Meet the bishop</span>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="lesson">
+          <p class="screen-label">Interactive lesson</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;font-size:13px;">
+            <span style="opacity:0.6;">✕ Exit</span>
+            <span style="font-weight:600;">Meet the rook</span>
+            <span style="font-family:var(--mw-mono);opacity:0.6;">Step 2/3</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+            <span style="color:var(--mw-error);font-size:15px;letter-spacing:2px;">♥♥♥♥</span><span style="opacity:0.25;font-size:15px;">♥</span>
+          </div>
+          <p style="font-family:var(--mw-display);font-size:22px;font-weight:600;margin:0 0 22px;text-wrap:balance;">Move the rook to capture the black pawn blocking its path.</p>
+          <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:28px;align-items:start;">
+            <div class="mw-board" style="max-width:320px;">
+              ${(() => "")()}
+            </div>
+            <div>
+              <div class="mw-card" style="padding:16px 18px;margin-bottom:14px;background:var(--mw-success-bg);border:1px solid var(--mw-success);">
+                <p style="margin:0;font-size:13.5px;color:var(--mw-success-ink);"><strong>Correct.</strong> The rook slides down the file and captures on d4 — exactly the blocked-path rule from the last folio.</p>
+              </div>
+              <button class="mw-btn ghost" style="width:100%;justify-content:center;margin-bottom:10px;">Hint 1 of 4</button>
+              <button class="mw-btn" style="width:100%;justify-content:center;">Continue →</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="game">
+          <p class="screen-label">Play &amp; Learn — game</p>
+          <div style="display:grid;grid-template-columns:1fr 300px;gap:28px;">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <span style="font-size:13.5px;font-weight:600;">Black — Stockfish (1400)</span>
+                <span style="font-family:var(--mw-mono);font-size:13px;">9:58</span>
+              </div>
+              <div class="mw-board"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                <span style="font-size:13.5px;font-weight:600;">You — White</span>
+                <span style="font-family:var(--mw-mono);font-size:13px;">9:41</span>
+              </div>
+            </div>
+            <div>
+              <div class="mw-card" style="padding:16px;margin-bottom:14px;">
+                <p style="margin:0 0 8px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mw-accent);">Coach</p>
+                <p style="margin:0;font-size:13.5px;">A quiet position. Consider finishing development before committing to a plan.</p>
+              </div>
+              <div class="mw-card" style="padding:14px 16px;">
+                <p style="margin:0 0 10px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;opacity:0.6;">Moves</p>
+                <div style="font-family:var(--mw-mono);font-size:13px;line-height:1.9;">
+                  <div>1. e4 e5</div><div>2. Nf3 Nc6</div><div>3. Bb5 a6</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="analysis">
+          <p class="screen-label">Post-game analysis</p>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:22px;">
+            <div style="width:52px;height:52px;border-radius:50%;background:var(--mw-success-bg);display:flex;align-items:center;justify-content:center;font-family:var(--mw-display);font-weight:700;color:var(--mw-success-ink);">W</div>
+            <div>
+              <p style="margin:0;font-family:var(--mw-display);font-size:19px;font-weight:600;">You won by checkmate</p>
+              <p style="margin:4px 0 0;font-size:13px;color:var(--mw-text-dim);">38 moves · Ruy Lopez · 3 instructive moments</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap;">
+            <span class="mw-pill" style="background:var(--mw-success-bg);color:var(--mw-success-ink);">Best ×14</span>
+            <span class="mw-pill" style="background:var(--mw-gold-bg);color:var(--mw-gold-ink);">Excellent ×9</span>
+            <span class="mw-pill" style="background:var(--mw-surface-2);color:var(--mw-text-dim);">Inaccuracy ×3</span>
+            <span class="mw-pill" style="background:var(--mw-error-bg);color:var(--mw-error-ink);">Blunder ×1</span>
+          </div>
+          <div class="mw-card" style="padding:18px 20px;">
+            <p style="margin:0 0 6px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--mw-error-ink);">Critical moment — move 22</p>
+            <p style="margin:0 0 12px;font-size:14px;">Qxd5 hangs the queen to a knight fork. Nxf6+ was winning cleanly instead.</p>
+            <div style="display:flex;gap:10px;">
+              <button class="mw-btn ghost">Retry this position</button>
+              <button class="mw-btn">Review: Knight forks →</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="profile">
+          <p class="screen-label">Progress</p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
+            <div class="mw-card" style="padding:16px;"><p style="margin:0 0 4px;font-size:12px;color:var(--mw-text-dim);">Concepts proficient</p><p style="margin:0;font-family:var(--mw-display);font-size:26px;font-weight:600;">6</p></div>
+            <div class="mw-card" style="padding:16px;"><p style="margin:0 0 4px;font-size:12px;color:var(--mw-text-dim);">Puzzle accuracy</p><p style="margin:0;font-family:var(--mw-display);font-size:26px;font-weight:600;">84%</p></div>
+            <div class="mw-card" style="padding:16px;"><p style="margin:0 0 4px;font-size:12px;color:var(--mw-text-dim);">Total XP</p><p style="margin:0;font-family:var(--mw-display);font-size:26px;font-weight:600;">1,240</p></div>
+          </div>
+          <div class="mw-card" style="padding:16px 18px;">
+            <p style="margin:0;font-size:13.5px;">You learned knight forks and found one in your last game — <strong>concept transferred.</strong></p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ DIRECTION B ============================================================ -->
+  <div class="panel" id="panel-b">
+    <div class="direction-note"><strong>The Studio</strong> — confident, current, coach-energy. Cool paper, a geometric-humanist sans, teal-and-coral accents, card-forward with soft elevation. Progress and curiosity, pitched at someone who wants momentum.</div>
+    <div class="frame" id="frame-b" data-mode="light">
+      <div class="screens">
+
+        <div class="screen" data-screen="home">
+          <p class="screen-label">Learn &amp; Play — home</p>
+          <div style="display:grid;grid-template-columns:220px 1fr;gap:0;margin:-32px;">
+            <div style="background:var(--mw-surface);border-right:1px solid var(--mw-border);padding:28px 20px;display:flex;flex-direction:column;gap:22px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:30px;height:30px;border-radius:9px;background:var(--mw-accent);"></div>
+                <span style="font-family:var(--mw-display);font-weight:800;font-size:17px;">MoveWise</span>
+              </div>
+              <nav style="display:flex;flex-direction:column;gap:4px;font-size:13.5px;font-weight:700;">
+                <span style="padding:9px 12px;border-radius:10px;background:var(--mw-accent-bg);color:var(--mw-accent-ink);">◆ Learn &amp; Play</span>
+                <span style="padding:9px 12px;border-radius:10px;opacity:0.55;">▲ Play &amp; Learn</span>
+                <span style="padding:9px 12px;border-radius:10px;opacity:0.55;">● Practice</span>
+                <span style="padding:9px 12px;border-radius:10px;opacity:0.55;">▪ Progress</span>
+              </nav>
+              <div class="mw-card" style="padding:12px;margin-top:auto;">
+                <p style="margin:0;font-size:11px;font-weight:700;opacity:0.6;">LEVEL 4</p>
+                <div style="height:6px;background:var(--mw-surface-2);border-radius:3px;margin-top:6px;overflow:hidden;"><div style="width:60%;height:100%;background:var(--mw-coral);"></div></div>
+              </div>
+            </div>
+            <div style="padding:28px 30px;">
+              <div class="mw-card" style="padding:20px 22px;margin-bottom:22px;background:linear-gradient(135deg,var(--mw-accent),var(--mw-accent-2));color:#fff;display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                  <p style="margin:0 0 4px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;opacity:0.85;">Up next</p>
+                  <p style="margin:0;font-family:var(--mw-display);font-size:20px;font-weight:800;">Rook captures and blocked paths</p>
+                </div>
+                <button class="mw-btn" style="background:#fff;color:var(--mw-accent-ink);">Start</button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <h2 style="font-family:var(--mw-display);font-size:19px;margin:0;font-weight:800;">Meet the Pieces</h2>
+                <span class="mw-pill" style="background:var(--mw-surface-2);">3/12</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+                <div class="mw-card" style="padding:14px;display:flex;align-items:center;gap:10px;">
+                  <div style="width:30px;height:30px;border-radius:9px;background:var(--mw-success-bg);display:flex;align-items:center;justify-content:center;color:var(--mw-success-ink);font-weight:800;font-size:13px;">✓</div>
+                  <div><p style="margin:0;font-size:13.5px;font-weight:700;">Meet the rook</p><p style="margin:0;font-size:11.5px;color:var(--mw-gold);">★★★</p></div>
+                </div>
+                <div class="mw-card" style="padding:14px;display:flex;align-items:center;gap:10px;border:2px solid var(--mw-accent);">
+                  <div style="width:30px;height:30px;border-radius:9px;background:var(--mw-accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;">▶</div>
+                  <p style="margin:0;font-size:13.5px;font-weight:700;">Rook captures</p>
+                </div>
+                <div class="mw-card" style="padding:14px;display:flex;align-items:center;gap:10px;opacity:0.5;">
+                  <div style="width:30px;height:30px;border-radius:9px;background:var(--mw-surface-2);display:flex;align-items:center;justify-content:center;font-size:13px;">🔒</div>
+                  <p style="margin:0;font-size:13.5px;font-weight:700;">Meet the bishop</p>
+                </div>
+                <div class="mw-card" style="padding:14px;display:flex;align-items:center;gap:10px;opacity:0.5;">
+                  <div style="width:30px;height:30px;border-radius:9px;background:var(--mw-surface-2);display:flex;align-items:center;justify-content:center;font-size:13px;">🔒</div>
+                  <p style="margin:0;font-size:13.5px;font-weight:700;">Bishop colours</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="lesson">
+          <p class="screen-label">Interactive lesson</p>
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+            <span style="opacity:0.5;font-size:18px;">✕</span>
+            <div style="flex:1;height:8px;background:var(--mw-surface-2);border-radius:4px;overflow:hidden;"><div style="width:66%;height:100%;background:var(--mw-accent);border-radius:4px;"></div></div>
+            <span style="color:var(--mw-error);font-size:14px;letter-spacing:2px;">♥♥♥♥</span>
+          </div>
+          <div class="mw-card" style="padding:16px 18px;margin-bottom:20px;background:var(--mw-accent-bg);border:none;">
+            <p style="margin:0;font-family:var(--mw-display);font-size:18px;font-weight:800;color:var(--mw-accent-ink);text-wrap:balance;">Move the rook to capture the black pawn blocking its path.</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:28px;align-items:start;">
+            <div class="mw-board" style="max-width:320px;"></div>
+            <div>
+              <div class="mw-card" style="padding:16px 18px;margin-bottom:14px;background:var(--mw-error-bg);">
+                <p style="margin:0 0 4px;font-size:13px;font-weight:800;color:var(--mw-error-ink);">Not quite</p>
+                <p style="margin:0;font-size:13.5px;color:var(--mw-error-ink);">The rook can't jump the pawn — it has to stop or capture it.</p>
+              </div>
+              <button class="mw-btn ghost" style="width:100%;justify-content:center;margin-bottom:10px;">💡 Hint 1</button>
+              <button class="mw-btn" style="width:100%;justify-content:center;background:var(--mw-surface-2);color:var(--mw-text-dim);">Try again</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="game">
+          <p class="screen-label">Play &amp; Learn — game</p>
+          <div style="display:grid;grid-template-columns:1fr 300px;gap:24px;">
+            <div class="mw-card" style="padding:16px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <span style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;"><span style="width:22px;height:22px;border-radius:6px;background:var(--mw-surface-2);"></span>Stockfish · 1400</span>
+                <span class="mw-pill" style="background:var(--mw-surface-2);font-family:var(--mw-mono);">9:58</span>
+              </div>
+              <div class="mw-board"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+                <span style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700;"><span style="width:22px;height:22px;border-radius:6px;background:var(--mw-accent);"></span>You</span>
+                <span class="mw-pill" style="background:var(--mw-accent-bg);color:var(--mw-accent-ink);font-family:var(--mw-mono);">9:41</span>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div class="mw-card" style="padding:16px;background:var(--mw-accent-bg);">
+                <p style="margin:0 0 6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.05em;color:var(--mw-accent-ink);">Coach</p>
+                <p style="margin:0;font-size:13.5px;color:var(--mw-accent-ink);">Finish developing before you attack.</p>
+              </div>
+              <div class="mw-card" style="padding:14px 16px;">
+                <div style="font-family:var(--mw-mono);font-size:13px;line-height:1.9;">
+                  <div>1. e4 e5</div><div>2. Nf3 Nc6</div><div>3. Bb5 a6</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="analysis">
+          <p class="screen-label">Post-game analysis</p>
+          <div class="mw-card" style="padding:20px 22px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;background:var(--mw-success-bg);">
+            <div>
+              <p style="margin:0;font-family:var(--mw-display);font-size:19px;font-weight:800;color:var(--mw-success-ink);">Victory by checkmate</p>
+              <p style="margin:4px 0 0;font-size:13px;color:var(--mw-success-ink);opacity:0.8;">38 moves · Ruy Lopez</p>
+            </div>
+            <div style="font-family:var(--mw-display);font-size:32px;font-weight:800;color:var(--mw-success-ink);">92</div>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;">
+            <span class="mw-pill" style="background:var(--mw-success-bg);color:var(--mw-success-ink);">● Best ×14</span>
+            <span class="mw-pill" style="background:var(--mw-gold-bg);color:var(--mw-gold-ink);">● Excellent ×9</span>
+            <span class="mw-pill" style="background:var(--mw-surface-2);color:var(--mw-text-dim);">● Inaccuracy ×3</span>
+            <span class="mw-pill" style="background:var(--mw-error-bg);color:var(--mw-error-ink);">● Blunder ×1</span>
+          </div>
+          <div class="mw-card" style="padding:18px 20px;border-left:4px solid var(--mw-error);">
+            <p style="margin:0 0 10px;font-size:14px;font-weight:700;">Move 22 — Qxd5 hangs to a fork</p>
+            <div style="display:flex;gap:10px;">
+              <button class="mw-btn ghost">Retry</button>
+              <button class="mw-btn">Train: Knight forks</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="profile">
+          <p class="screen-label">Progress</p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;">
+            <div class="mw-card" style="padding:16px;background:var(--mw-accent-bg);"><p style="margin:0 0 4px;font-size:12px;color:var(--mw-accent-ink);opacity:0.8;">Concepts</p><p style="margin:0;font-family:var(--mw-display);font-size:26px;font-weight:800;color:var(--mw-accent-ink);">6</p></div>
+            <div class="mw-card" style="padding:16px;"><p style="margin:0 0 4px;font-size:12px;color:var(--mw-text-dim);">Accuracy</p><p style="margin:0;font-family:var(--mw-display);font-size:26px;font-weight:800;">84%</p></div>
+            <div class="mw-card" style="padding:16px;background:var(--mw-coral-bg,var(--mw-surface-2));"><p style="margin:0 0 4px;font-size:12px;color:var(--mw-coral-ink,var(--mw-text-dim));">XP</p><p style="margin:0;font-family:var(--mw-display);font-size:26px;font-weight:800;color:var(--mw-coral-ink,var(--mw-text));">1,240</p></div>
+          </div>
+          <div class="mw-card" style="padding:16px 18px;">
+            <p style="margin:0;font-size:13.5px;">🎯 Knight forks: learned, then found live in your last game.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ DIRECTION C ============================================================ -->
+  <div class="panel" id="panel-c">
+    <div class="direction-note"><strong>The Strategist</strong> — bold, architectural, high-contrast. Crisp white ground, condensed geometric display type, structural rules instead of shadows, one decisive amber accent. Strategic thinking and confidence, pitched at someone who wants to be taken seriously.</div>
+    <div class="frame" id="frame-c" data-mode="light">
+      <div class="screens">
+
+        <div class="screen" data-screen="home">
+          <p class="screen-label">Learn &amp; Play — home</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:2px solid var(--mw-ink);margin-bottom:24px;">
+            <span style="font-family:var(--mw-display);font-weight:800;font-size:22px;letter-spacing:-0.02em;text-transform:uppercase;">MoveWise</span>
+            <nav style="display:flex;gap:0;font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;">
+              <span style="padding:8px 16px;background:var(--mw-ink);color:var(--mw-paper);">Learn &amp; Play</span>
+              <span style="padding:8px 16px;border-top:2px solid var(--mw-ink);border-bottom:2px solid var(--mw-ink);">Play &amp; Learn</span>
+              <span style="padding:8px 16px;border:2px solid var(--mw-ink);border-left:none;">Practice</span>
+            </nav>
+          </div>
+          <div style="display:grid;grid-template-columns:2fr 1fr;gap:0;border:2px solid var(--mw-ink);margin-bottom:26px;">
+            <div style="padding:20px 22px;border-right:2px solid var(--mw-ink);">
+              <p style="margin:0 0 6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--mw-accent-ink);">Objective 03</p>
+              <p style="margin:0;font-family:var(--mw-display);font-size:22px;font-weight:800;text-transform:uppercase;">Rook captures &amp; blocked paths</p>
+            </div>
+            <button class="mw-btn" style="border-radius:0;justify-content:center;font-size:13px;text-transform:uppercase;letter-spacing:0.04em;">Engage →</button>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+            <h2 style="font-family:var(--mw-display);font-size:19px;margin:0;font-weight:800;text-transform:uppercase;letter-spacing:-0.01em;">01 — Meet the Pieces</h2>
+            <span style="font-family:var(--mw-mono);font-size:13px;font-weight:700;">03/12</span>
+          </div>
+          <div style="height:10px;border:1.5px solid var(--mw-ink);margin:10px 0 20px;overflow:hidden;"><div style="width:25%;height:100%;background:var(--mw-accent);"></div></div>
+          <div style="display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:14px;padding:13px 4px;border-bottom:1.5px solid var(--mw-ink);">
+              <span style="font-family:var(--mw-mono);font-size:12px;font-weight:800;width:18px;">✓</span>
+              <span style="flex:1;font-size:14.5px;font-weight:700;">Meet the rook</span>
+              <span style="font-family:var(--mw-mono);font-size:12px;font-weight:800;color:var(--mw-gold-ink);">★★★</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;padding:13px 4px;background:var(--mw-ink);color:var(--mw-paper);">
+              <span style="font-family:var(--mw-mono);font-size:12px;font-weight:800;width:18px;">▶</span>
+              <span style="flex:1;font-size:14.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.02em;">Rook captures</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;padding:13px 4px;border-bottom:1.5px solid var(--mw-ink);opacity:0.4;">
+              <span style="font-family:var(--mw-mono);font-size:12px;font-weight:800;width:18px;">✕</span>
+              <span style="flex:1;font-size:14.5px;font-weight:700;">Meet the bishop</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="lesson">
+          <p class="screen-label">Interactive lesson</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;font-family:var(--mw-mono);font-size:12px;font-weight:700;text-transform:uppercase;">
+            <span>✕ Exit</span>
+            <span>Hearts 4/5</span>
+            <span>Step 02/03</span>
+          </div>
+          <p style="font-family:var(--mw-display);font-size:24px;font-weight:800;margin:0 0 22px;text-transform:uppercase;letter-spacing:-0.01em;text-wrap:balance;border-left:4px solid var(--mw-accent);padding-left:16px;">Move the rook to capture the black pawn blocking its path.</p>
+          <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:0;border:2px solid var(--mw-ink);">
+            <div class="mw-board" style="border-right:2px solid var(--mw-ink);"></div>
+            <div style="padding:20px;">
+              <div style="border:2px solid var(--mw-ink);padding:14px 16px;margin-bottom:16px;">
+                <p style="margin:0;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;">Correct</p>
+                <p style="margin:6px 0 0;font-size:13.5px;">Rook slides and captures on D4.</p>
+              </div>
+              <button class="mw-btn ghost" style="width:100%;justify-content:center;margin-bottom:10px;border-radius:0;text-transform:uppercase;font-size:12.5px;letter-spacing:0.04em;">Hint 01/04</button>
+              <button class="mw-btn" style="width:100%;justify-content:center;border-radius:0;text-transform:uppercase;font-size:12.5px;letter-spacing:0.04em;">Continue →</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="game">
+          <p class="screen-label">Play &amp; Learn — game</p>
+          <div style="display:grid;grid-template-columns:1fr 280px;gap:0;border:2px solid var(--mw-ink);">
+            <div style="border-right:2px solid var(--mw-ink);">
+              <div style="display:flex;justify-content:space-between;padding:10px 14px;border-bottom:2px solid var(--mw-ink);font-family:var(--mw-mono);font-size:12.5px;font-weight:700;text-transform:uppercase;">
+                <span>Stockfish · 1400</span><span>09:58</span>
+              </div>
+              <div class="mw-board"></div>
+              <div style="display:flex;justify-content:space-between;padding:10px 14px;border-top:2px solid var(--mw-ink);font-family:var(--mw-mono);font-size:12.5px;font-weight:700;text-transform:uppercase;">
+                <span>You — White</span><span>09:41</span>
+              </div>
+            </div>
+            <div>
+              <div style="padding:16px;border-bottom:2px solid var(--mw-ink);">
+                <p style="margin:0 0 6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--mw-accent-ink);">Coach</p>
+                <p style="margin:0;font-size:13px;">Finish development before attacking.</p>
+              </div>
+              <div style="padding:14px 16px;font-family:var(--mw-mono);font-size:12.5px;line-height:1.9;">
+                <div>1. e4 e5</div><div>2. Nf3 Nc6</div><div>3. Bb5 a6</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="analysis">
+          <p class="screen-label">Post-game analysis</p>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;border-bottom:2px solid var(--mw-ink);padding-bottom:14px;margin-bottom:18px;">
+            <p style="margin:0;font-family:var(--mw-display);font-size:22px;font-weight:800;text-transform:uppercase;">Checkmate — you win</p>
+            <span style="font-family:var(--mw-mono);font-size:13px;font-weight:700;">38 MOVES</span>
+          </div>
+          <div style="display:flex;gap:0;margin-bottom:22px;">
+            <span style="flex:14;background:var(--mw-success);height:22px;"></span>
+            <span style="flex:9;background:var(--mw-gold);height:22px;"></span>
+            <span style="flex:3;background:var(--mw-ink);opacity:0.15;height:22px;"></span>
+            <span style="flex:1;background:var(--mw-accent);height:22px;"></span>
+          </div>
+          <div style="display:flex;gap:16px;font-size:11.5px;font-weight:700;text-transform:uppercase;margin-bottom:22px;flex-wrap:wrap;">
+            <span>■ Best 14</span><span>■ Excellent 9</span><span>■ Inaccuracy 3</span><span style="color:var(--mw-accent-ink);">■ Blunder 1</span>
+          </div>
+          <div style="border:2px solid var(--mw-accent);padding:16px 18px;">
+            <p style="margin:0 0 10px;font-size:14px;font-weight:800;text-transform:uppercase;">Move 22 — Qxd5 hangs to a fork</p>
+            <div style="display:flex;gap:0;">
+              <button class="mw-btn ghost" style="border-radius:0;">Retry</button>
+              <button class="mw-btn" style="border-radius:0;">Train: Knight forks</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="screen" data-screen="profile">
+          <p class="screen-label">Progress</p>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);border:2px solid var(--mw-ink);margin-bottom:18px;">
+            <div style="padding:16px;border-right:2px solid var(--mw-ink);"><p style="margin:0 0 4px;font-size:11px;font-weight:700;text-transform:uppercase;">Concepts</p><p style="margin:0;font-family:var(--mw-display);font-size:26px;font-weight:800;">6</p></div>
+            <div style="padding:16px;border-right:2px solid var(--mw-ink);"><p style="margin:0 0 4px;font-size:11px;font-weight:700;text-transform:uppercase;">Accuracy</p><p style="margin:0;font-family:var(--mw-display);font-size:26px;font-weight:800;">84%</p></div>
+            <div style="padding:16px;"><p style="margin:0 0 4px;font-size:11px;font-weight:700;text-transform:uppercase;">XP</p><p style="margin:0;font-family:var(--mw-display);font-size:26px;font-weight:800;">1,240</p></div>
+          </div>
+          <div style="border-left:4px solid var(--mw-accent);padding:14px 16px;">
+            <p style="margin:0;font-size:13.5px;">Knight forks: learned, then found live in your last game.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const PIECES_ROW = ["r","n","b","q","k","b","n","r"];
+  function buildBoard(el) {
+    el.innerHTML = "";
+    const placement = [
+      ["r","n","b","q","k","b","n","r"],
+      ["p","p","p","p","p","p","p","p"],
+      [],[],[],[],
+      ["P","P","P","P","P","P","P","P"],
+      ["R","N","B","Q","K","B","N","R"],
+    ];
+    const GLYPH = { p:"♟", r:"♜", n:"♞", b:"♝", q:"♛", k:"♚", P:"♙", R:"♖", N:"♘", B:"♗", Q:"♕", K:"♔" };
+    const files = "abcdefgh";
+    for (let rank = 0; rank < 8; rank++) {
+      const row = placement[rank] || [];
+      for (let file = 0; file < 8; file++) {
+        const sq = document.createElement("div");
+        const isLight = (rank + file) % 2 === 0;
+        sq.className = "mw-sq " + (isLight ? "light" : "dark");
+        const piece = row[file];
+        if (piece) {
+          const span = document.createElement("span");
+          span.className = "mw-piece" + (piece === piece.toLowerCase() ? " b" : "");
+          span.textContent = GLYPH[piece];
+          sq.appendChild(span);
+        }
+        if (file === 0) {
+          const c = document.createElement("span");
+          c.className = "coord";
+          c.textContent = 8 - rank;
+          sq.appendChild(c);
+        }
+        el.appendChild(sq);
+      }
+    }
+  }
+  document.querySelectorAll(".mw-board").forEach(buildBoard);
+
+  document.querySelectorAll(".tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-pressed", "false"));
+      tab.setAttribute("aria-pressed", "true");
+      const dir = tab.dataset.dir;
+      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+      document.getElementById("panel-" + dir).classList.add("active");
+    });
+  });
+  document.querySelectorAll(".modebtn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".modebtn").forEach((b) => b.setAttribute("aria-pressed", "false"));
+      btn.setAttribute("aria-pressed", "true");
+      document.querySelectorAll(".frame").forEach((f) => f.setAttribute("data-mode", btn.dataset.mode));
+    });
+  });
+</script>
+
+<style>
+  /* ============================================================
+     PER-DIRECTION TOKEN SETS — light default, dark via [data-mode="dark"]
+     on the .frame element (explicit UI toggle, not viewer-driven).
+     ============================================================ */
+
+  /* ---- A: The Study ---- */
+  #frame-a {
+    --mw-display: Georgia, "Times New Roman", ui-serif, serif;
+    --mw-body: ui-sans-serif, system-ui, sans-serif;
+    --mw-mono: ui-monospace, "SF Mono", Menlo, monospace;
+    --mw-bg: #f7f1e4; --mw-surface: #fffdf8; --mw-surface-2: #ece2cc;
+    --mw-text: #241f16; --mw-text-dim: #7a6d54; --mw-border: #ddceac;
+    --mw-accent: #4b5d3a; --mw-accent-ink: #3a4a2c; --mw-on-accent: #fffdf8;
+    --mw-gold: #b08a3e; --mw-gold-ink: #8a6a2b; --mw-gold-bg: #f3e6c4;
+    --mw-success: #4b5d3a; --mw-success-ink: #38472b; --mw-success-bg: #e4ecd8;
+    --mw-error: #8b3a3a; --mw-error-ink: #6f2e2e; --mw-error-bg: #f2ddd8;
+    --mw-radius: 10px; --mw-radius-sm: 8px; --mw-shadow: 0 1px 2px rgba(36,31,22,0.06);
+    --mw-sq-light: #ede0c8; --mw-sq-dark: #6b4f3b; --mw-sq-last: #d9c98f;
+    --mw-piece-w: #fffdf8; --mw-piece-b: #241f16; --mw-piece-size: 30px; --mw-piece-shadow: 0 1px 1px rgba(0,0,0,0.25);
+    background: var(--mw-bg); color: var(--mw-text); font-family: var(--mw-body);
+  }
+  #frame-a h2, #frame-a p, #frame-a span, #frame-a div, #frame-a button { font-family: var(--mw-body); }
+  #frame-a[data-mode="dark"] {
+    --mw-bg: #1c1912; --mw-surface: #262117; --mw-surface-2: #332c1e;
+    --mw-text: #f1e9d6; --mw-text-dim: #b3a689; --mw-border: #453a27;
+    --mw-accent: #8fb377; --mw-accent-ink: #cfe4bf; --mw-on-accent: #16220f;
+    --mw-gold: #d8b165; --mw-gold-ink: #f1dcaa; --mw-gold-bg: #3a2f18;
+    --mw-success: #8fb377; --mw-success-ink: #cfe4bf; --mw-success-bg: #26311c;
+    --mw-error: #d98080; --mw-error-ink: #f4c9c9; --mw-error-bg: #3a2020;
+    --mw-sq-light: #4a4030; --mw-sq-dark: #241d15; --mw-sq-last: #5c4f2a;
+    --mw-piece-w: #f1e9d6; --mw-piece-b: #0c0a06;
+  }
+
+  /* ---- B: The Studio ---- */
+  #frame-b {
+    --mw-display: "Trebuchet MS", ui-sans-serif, system-ui, sans-serif;
+    --mw-body: ui-sans-serif, system-ui, sans-serif;
+    --mw-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+    --mw-bg: #f4f7f7; --mw-surface: #ffffff; --mw-surface-2: #e7eef0;
+    --mw-text: #10181a; --mw-text-dim: #5c6e72; --mw-border: #d7e2e3;
+    --mw-accent: #0e7c7b; --mw-accent-2: #14a3a0; --mw-accent-ink: #075a59; --mw-accent-bg: #dff2f1; --mw-on-accent: #fff;
+    --mw-coral: #e8734a; --mw-coral-ink: #b6461f; --mw-coral-bg: #fbe4da;
+    --mw-gold: #cf9a1d; --mw-gold-ink: #8a660f; --mw-gold-bg: #f7ecc9;
+    --mw-success: #0e7c7b; --mw-success-ink: #0b5f5e; --mw-success-bg: #dff2f1;
+    --mw-error: #d64545; --mw-error-ink: #a72e2e; --mw-error-bg: #fbe1e1;
+    --mw-radius: 16px; --mw-radius-sm: 12px; --mw-shadow: 0 8px 20px -12px rgba(16,24,26,0.25);
+    --mw-sq-light: #e7edee; --mw-sq-dark: #3a4a52; --mw-sq-last: #bfe3df;
+    --mw-piece-w: #ffffff; --mw-piece-b: #10181a; --mw-piece-size: 28px; --mw-piece-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    background: var(--mw-bg); color: var(--mw-text); font-family: var(--mw-body);
+  }
+  #frame-b h2, #frame-b p, #frame-b span, #frame-b div, #frame-b button { font-family: var(--mw-body); }
+  #frame-b[data-mode="dark"] {
+    --mw-bg: #0f1517; --mw-surface: #161e21; --mw-surface-2: #1f2a2d;
+    --mw-text: #eaf1f1; --mw-text-dim: #93a5a8; --mw-border: #29373a;
+    --mw-accent: #2bb3ae; --mw-accent-2: #4fd0c9; --mw-accent-ink: #b6efe9; --mw-accent-bg: #14302f; --mw-on-accent: #06201f;
+    --mw-coral: #f28a5f; --mw-coral-ink: #ffd2bd; --mw-coral-bg: #3a2117;
+    --mw-success: #2bb3ae; --mw-success-ink: #b6efe9; --mw-success-bg: #14302f;
+    --mw-error: #ea6b6b; --mw-error-ink: #ffd0d0; --mw-error-bg: #3a1a1a;
+    --mw-sq-light: #33454a; --mw-sq-dark: #101a1c; --mw-sq-last: #1f5a54;
+    --mw-piece-w: #eaf1f1; --mw-piece-b: #04090a;
+  }
+
+  /* ---- C: The Strategist ---- */
+  #frame-c {
+    --mw-display: "Arial Black", Impact, ui-sans-serif, sans-serif;
+    --mw-body: ui-sans-serif, system-ui, sans-serif;
+    --mw-mono: ui-monospace, "Roboto Mono", Consolas, monospace;
+    --mw-paper: #ffffff; --mw-ink: #0c0f13;
+    --mw-bg: #ffffff; --mw-surface: #ffffff; --mw-surface-2: #f0f1f2;
+    --mw-text: #0c0f13; --mw-text-dim: #565b63; --mw-border: #0c0f13;
+    --mw-accent: #d97706; --mw-accent-ink: #a35800; --mw-on-accent: #fff;
+    --mw-gold: #d97706; --mw-gold-ink: #a35800;
+    --mw-success: #1b6b3a; --mw-success-ink: #164f2c;
+    --mw-error: #b3261e;
+    --mw-radius: 0px; --mw-radius-sm: 0px; --mw-shadow: none; --mw-card-border: 2px solid var(--mw-ink);
+    --mw-sq-light: #fdf8f0; --mw-sq-dark: #1b2a3a; --mw-sq-last: #f3d9a8;
+    --mw-piece-w: #0c0f13; --mw-piece-b: #fdf8f0; --mw-piece-size: 30px; --mw-piece-shadow: none;
+    --mw-btn-bg: var(--mw-ink);
+    background: var(--mw-bg); color: var(--mw-text); font-family: var(--mw-body);
+  }
+  #frame-c h2, #frame-c p, #frame-c span, #frame-c div, #frame-c button { font-family: var(--mw-body); }
+  #frame-c[data-mode="dark"] {
+    --mw-paper: #0c0f13; --mw-ink: #f5f2ea;
+    --mw-bg: #0c0f13; --mw-surface: #0c0f13; --mw-surface-2: #1a1e24;
+    --mw-text: #f5f2ea; --mw-text-dim: #a3a8b0; --mw-border: #f5f2ea;
+    --mw-accent: #f5a524; --mw-accent-ink: #ffcf7d; --mw-on-accent: #0c0f13;
+    --mw-success: #4fbf78; --mw-success-ink: #9fe4b8;
+    --mw-error: #e57272;
+    --mw-sq-light: #2a2f38; --mw-sq-dark: #0c0f13; --mw-sq-last: #4a3a1a;
+    --mw-piece-w: #f5f2ea; --mw-piece-b: #05070a;
+  }
+</style>

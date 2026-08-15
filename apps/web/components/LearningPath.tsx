@@ -6,6 +6,10 @@ import type { Lesson, Principle } from "@movewise/exercise-schema";
 import { starsForPerformance } from "../lib/mastery";
 import { PROFICIENT_STATUSES, type MasteryStatus } from "../lib/masteryModel";
 import { clearGuestProgress, readGuestProgress } from "../lib/guestProgress";
+import { Stars } from "./ui/Stars";
+import { MasteryBadge } from "./ui/MasteryBadge";
+import { ProgressBar } from "./ui/ProgressBar";
+import { UnitMotif } from "./UnitMotif";
 
 export interface UnitWithLessons {
   id: string;
@@ -50,43 +54,12 @@ function statusOf(
   return "available";
 }
 
-function Stars({ count }: { count: 1 | 2 | 3 }) {
-  return (
-    <span aria-label={`${count} of 3 stars`} style={{ color: "#c68a00", letterSpacing: 1 }}>
-      {"★".repeat(count)}
-      <span style={{ opacity: 0.3 }}>{"★".repeat(3 - count)}</span>
-    </span>
-  );
-}
-
-const MASTERY_LABELS: Record<MasteryStatus, string> = {
-  "not-started": "Not started",
-  learning: "Learning",
-  practising: "Practising",
-  "ready-for-assessment": "Ready for assessment",
-  proficient: "Proficient",
-  mastered: "Mastered",
-  "revision-due": "Revision due",
-  struggling: "Needs review",
-  recovered: "Recovered",
-};
-
-function MasteryBadge({ status }: { status: MasteryStatus | undefined }) {
-  if (!status || status === "not-started") return null;
-  const color = status === "struggling" ? "#b3261e" : PROFICIENT_STATUSES.has(status) ? "#1e7a34" : "#6b6b78";
-  return (
-    <span style={{ fontSize: 12, fontWeight: 600, color }}>
-      {MASTERY_LABELS[status]}
-    </span>
-  );
-}
-
 /**
  * The default home screen: a status-aware syllabus (locked / available /
  * completed, with mastery stars), not a flat link list. Deliberately not
  * a winding node-path — a clean vertical list of unit sections, each a
  * row per lesson, reads as a course outline rather than a Duolingo-style
- * bubble path.
+ * bubble path (docs/design/visual-directions.md).
  *
  * "In progress" and "due for revision" aren't modeled — both need real
  * attempt-tracking / spaced-repetition infrastructure this pass doesn't
@@ -145,29 +118,21 @@ export function LearningPath({
   const nextUp = allLessons.find((l) => statusFor(l) === "available");
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-6)" }}>
       {nextUp && (
-        <Link
-          href={`/learn/${nextUp.id}`}
-          style={{
-            display: "block",
-            padding: "14px 16px",
-            borderRadius: 10,
-            background: "#4c3fd6",
-            color: "#fff",
-            textDecoration: "none",
-          }}
-        >
-          <div style={{ fontSize: 12, opacity: 0.85, textTransform: "uppercase", letterSpacing: 0.5 }}>
+        <Link href={`/learn/${nextUp.id}`} className="mw-continue-card">
+          <div className="mw-continue-eyebrow">
             {completedIds && completedIds.size > 0 ? "Continue learning" : "Start here"}
           </div>
-          <div style={{ fontSize: 16, fontWeight: 600 }}>{nextUp.title}</div>
+          <div className="mw-continue-title">{nextUp.title}</div>
+          <span className="mw-continue-arrow" aria-hidden="true">
+            →
+          </span>
         </Link>
       )}
 
       {units.map((unit) => {
         const completedInUnit = unit.lessons.filter((l) => statusFor(l) === "completed").length;
-        const progress = unit.lessons.length > 0 ? completedInUnit / unit.lessons.length : 0;
 
         // ADR-0008: group by Principle where the unit has been
         // restructured into one; fall back to a flat lesson list for
@@ -191,23 +156,26 @@ export function LearningPath({
         if (ungrouped.length > 0) groups.push({ heading: null, lessons: ungrouped });
 
         return (
-          <div key={unit.id}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-              <h2 style={{ margin: "0 0 6px" }}>{unit.title}</h2>
-              <span style={{ fontSize: 13, opacity: 0.6 }}>
+          <section key={unit.id}>
+            <div className="mw-unit-header">
+              <span className="mw-unit-motif">
+                <UnitMotif unitId={unit.id} />
+              </span>
+              <h2 className="mw-unit-title">{unit.title}</h2>
+              <span className="mw-unit-count">
                 {completedInUnit} / {unit.lessons.length}
               </span>
             </div>
-            <div style={{ height: 4, borderRadius: 2, background: "#e5e5ea", marginBottom: 10, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${progress * 100}%`, background: "#4c3fd6" }} />
+            <div className="mw-unit-progress">
+              <ProgressBar value={completedInUnit} max={unit.lessons.length} label={`${unit.title} progress`} />
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-5)" }}>
               {groups.map((group, groupIndex) => (
                 <div key={group.heading ?? `ungrouped-${groupIndex}`}>
                   {group.heading && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 4px" }}>
-                      <h3 style={{ margin: 0, fontSize: 14, opacity: 0.85 }}>{group.heading}</h3>
+                    <div className="mw-principle-header">
+                      <h3 className="mw-principle-title">{group.heading}</h3>
                       {(() => {
                         const principle = unit.principles[groupIndex];
                         const status = principle ? effectiveConceptMastery?.get(principle.conceptId) : undefined;
@@ -215,28 +183,17 @@ export function LearningPath({
                       })()}
                     </div>
                   )}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-2)" }}>
                     {group.lessons.map((lesson) => {
                       const status = statusFor(lesson);
                       const record = effectiveCompletions?.get(lesson.id);
 
                       const row = (
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                            padding: "10px 12px",
-                            borderRadius: 8,
-                            border: "1px solid #e5e5ea",
-                            opacity: status === "locked" ? 0.5 : 1,
-                            background: status === "completed" ? "#faf8ff" : "transparent",
-                          }}
-                        >
-                          <span aria-hidden="true" style={{ width: 20, textAlign: "center" }}>
+                        <div className={`mw-lesson-node mw-lesson-node--${status}`}>
+                          <span className="mw-lesson-node-icon" aria-hidden="true">
                             {status === "locked" ? "🔒" : status === "completed" ? "✓" : "▶"}
                           </span>
-                          <span style={{ flex: 1 }}>{lesson.title}</span>
+                          <span className="mw-lesson-node-title">{lesson.title}</span>
                           {status === "completed" && record && (
                             <Stars count={starsForPerformance(record.mistakes, record.hintsUsed)} />
                           )}
@@ -248,11 +205,7 @@ export function LearningPath({
                           {row}
                         </div>
                       ) : (
-                        <Link
-                          key={lesson.id}
-                          href={`/learn/${lesson.id}`}
-                          style={{ textDecoration: "none", color: "inherit" }}
-                        >
+                        <Link key={lesson.id} href={`/learn/${lesson.id}`} className="mw-lesson-node-link">
                           {row}
                         </Link>
                       );
@@ -261,7 +214,7 @@ export function LearningPath({
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         );
       })}
     </div>

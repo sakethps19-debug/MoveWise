@@ -6,6 +6,9 @@ import type { Lesson } from "@movewise/exercise-schema";
 import { useStockfishEngine } from "../lib/useStockfishEngine";
 import { starsForPerformance, starsExplanation } from "../lib/mastery";
 import { recordGuestCompletion } from "../lib/guestProgress";
+import { Hearts } from "./ui/Hearts";
+import { Stars } from "./ui/Stars";
+import { Button } from "./ui/Button";
 import { ExplainStep } from "./exercises/ExplainStep";
 import { ClickSquareStep } from "./exercises/ClickSquareStep";
 import { MoveStep } from "./exercises/MoveStep";
@@ -147,24 +150,16 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
   if (finished) {
     const stars = starsForPerformance(finished.mistakes, finished.hintsUsed);
     return (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 16,
-          maxWidth: 480,
-          margin: "0 auto",
-          textAlign: "center",
-        }}
-      >
-        <h1>Lesson complete!</h1>
-        <p style={{ fontSize: 32, color: "#c68a00" }} aria-label={`${stars} of 3 stars`}>
-          {"★".repeat(stars)}
-          <span style={{ opacity: 0.3 }}>{"★".repeat(3 - stars)}</span>
+      <div className="mw-completion" style={{ maxWidth: 440, margin: "var(--mw-space-7) auto" }}>
+        <h1 className="mw-completion-title">Lesson complete!</h1>
+        <div className="mw-completion-stars">
+          <Stars count={stars} />
+        </div>
+        <p className="mw-completion-explanation">{starsExplanation(finished.mistakes, finished.hintsUsed)}</p>
+        <p role="status" className="mw-completion-xp">
+          +{finished.xp} XP
         </p>
-        <p style={{ opacity: 0.75 }}>{starsExplanation(finished.mistakes, finished.hintsUsed)}</p>
-        <p role="status">+{finished.xp} XP</p>
-        <Link href="/" style={{ padding: "10px 16px", background: "#4c3fd6", color: "#fff", borderRadius: 8 }}>
+        <Link href="/" className="mw-btn mw-btn--primary mw-btn--full">
           Back to learning path
         </Link>
       </div>
@@ -172,29 +167,27 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 480, margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, opacity: 0.7 }}>
-        <span>{lesson.title}</span>
-        <span aria-label={`${hearts} of ${START_HEARTS} hearts remaining`}>
-          {"♥".repeat(hearts)}
-          {"♡".repeat(START_HEARTS - hearts)}
-        </span>
-        <span>
-          Step {stepIndex + 1} / {lesson.steps.length}
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-4)", maxWidth: 480, margin: "0 auto" }}>
+      <div className="mw-lesson-header">
+        <Link href="/" className="mw-lesson-exit" aria-label="Exit lesson">
+          ✕ Exit
+        </Link>
+        <span className="mw-lesson-title">{lesson.title}</span>
+        <Hearts current={hearts} max={START_HEARTS} />
+        <span className="mw-lesson-step-count">
+          Step {stepIndex + 1}/{lesson.steps.length}
         </span>
       </div>
 
       {recovering ? (
-        <div role="status" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div role="status" className="mw-recovery">
           <h2>Let&apos;s review before continuing</h2>
           <p>{reteachText}</p>
-          <p style={{ opacity: 0.75 }}>
+          <p style={{ opacity: 0.8, fontSize: 13.5 }}>
             You've used up your hearts on this lesson, but that's alright — a couple of hearts will come back so you
             can try this exercise again with the idea fresh.
           </p>
-          <button type="button" onClick={handleRecoveryComplete}>
-            Try again
-          </button>
+          <Button onClick={handleRecoveryComplete}>Try again</Button>
         </div>
       ) : (
         <>

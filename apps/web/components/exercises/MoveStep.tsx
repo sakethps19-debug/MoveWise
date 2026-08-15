@@ -5,6 +5,7 @@ import type { MovePieceStep, CaptureStep, FindLegalMoveStep } from "@movewise/ex
 import { legalTargetsFrom, moveMatches, tryMove, type Square } from "@movewise/chess-rules";
 import { Board } from "../Board";
 import { StepFooter } from "./StepFooter";
+import { Button } from "../ui/Button";
 import { STEP_XP, type ExerciseHandlers } from "./types";
 
 /** move-piece, capture, and find-legal-move all share the same "select then move" interaction. */
@@ -65,29 +66,32 @@ export function MoveStep({
       <p id={promptId} className="movewise-exercise-prompt">
         {step.prompt}
       </p>
-      <Board
-        fen={step.fen}
-        selected={selected}
-        legalTargets={legalTargets}
-        highlightSquares={highlightSquares}
-        arrow={activeArrow}
-        onSquareClick={handleClick}
-        describedBy={promptId}
-      />
+      <div style={{ display: "flex", justifyContent: "center", margin: "var(--mw-space-2) 0" }}>
+        <Board
+          fen={step.fen}
+          selected={selected}
+          legalTargets={legalTargets}
+          highlightSquares={highlightSquares}
+          arrow={activeArrow}
+          onSquareClick={handleClick}
+          describedBy={promptId}
+        />
+      </div>
       <StepFooter status={status} feedback={feedback} xp={STEP_XP} isLastStep={isLastStep} onAdvance={onAdvance} />
       {status !== "correct" && "hints" in step && (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          fullWidth
           onClick={() => {
             setHintLevel((l) => Math.min(4, l + 1));
             onHintUsed();
           }}
           disabled={hintLevel >= 4}
         >
-          {hintLevel >= 4 ? "Solution shown" : `Hint ${hintLevel + 1}`}
-        </button>
+          💡 {hintLevel >= 4 ? "Solution shown" : `Hint ${hintLevel + 1}`}
+        </Button>
       )}
-      {activeHint && <p style={{ fontStyle: "italic" }}>{activeHint.text}</p>}
+      {activeHint && <p className="mw-hint-text">{activeHint.text}</p>}
     </>
   );
 }

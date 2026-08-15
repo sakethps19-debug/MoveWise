@@ -5,6 +5,7 @@ import { loadUnitPrinciples } from "../lib/principles";
 import { getSession } from "../lib/auth";
 import { logoutAction } from "./actions";
 import { LearningPath } from "../components/LearningPath";
+import { Nav } from "../components/Nav";
 import type { MasteryStatus } from "../lib/masteryModel";
 
 const UNITS = [
@@ -42,44 +43,39 @@ export default async function HomePage({
   }
 
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
-      <h1>MoveWise</h1>
-      <p style={{ opacity: 0.7 }}>Learn how to think during a chess game.</p>
-
-      {user ? (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14 }}>
-          <span>
-            Signed in as {user.email} — {totalXp} XP, {completions?.size ?? 0} lesson
-            {(completions?.size ?? 0) === 1 ? "" : "s"} completed
-          </span>
-          <span style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <Link href="/account">Account</Link>
+    <div className="mw-app-shell">
+      <Nav active="learn" user={user ? { email: user.email } : null} totalXp={totalXp} />
+      <main style={{ maxWidth: 640, margin: "0 auto", padding: "var(--mw-space-6) var(--mw-space-4)" }}>
+        <div className="mw-page-head">
+          <div>
+            <h1 className="mw-page-title">Learn &amp; Play</h1>
+            <p className="mw-page-subtitle">Learn how to think during a chess game.</p>
+          </div>
+          {user ? (
             <form action={logoutAction}>
-              <button type="submit">Sign out</button>
+              <button type="submit" className="mw-btn mw-btn--ghost">
+                Sign out
+              </button>
             </form>
-          </span>
+          ) : (
+            <div style={{ fontSize: 14 }}>
+              <Link href="/login">Sign in</Link> or <Link href="/signup">create an account</Link>
+            </div>
+          )}
         </div>
-      ) : (
-        <p style={{ fontSize: 14 }}>
-          <Link href="/login">Sign in</Link> or <Link href="/signup">create an account</Link> to save your progress.
-        </p>
-      )}
 
-      <p>
-        <Link href="/play">Play vs. Stockfish →</Link>
-      </p>
+        {locked && (
+          <p role="alert" className="mw-feedback mw-feedback--error" style={{ marginBottom: "var(--mw-space-5)" }}>
+            {needsProficiency
+              ? `"${locked}" is locked until your performance on "${needsProficiency}" is strong enough — completing the lessons isn't quite enough on its own. Try its exercises again for a stronger result.`
+              : needs
+                ? `"${locked}" is locked until you complete "${needs}" first.`
+                : `"${locked}" is locked until you complete its prerequisites first.`}
+          </p>
+        )}
 
-      {locked && (
-        <p role="alert" style={{ background: "#fff4d6", padding: 12, borderRadius: 8 }}>
-          {needsProficiency
-            ? `"${locked}" is locked until your performance on "${needsProficiency}" is strong enough — completing the lessons isn't quite enough on its own. Try its exercises again for a stronger result.`
-            : needs
-              ? `"${locked}" is locked until you complete "${needs}" first.`
-              : `"${locked}" is locked until you complete its prerequisites first.`}
-        </p>
-      )}
-
-      <LearningPath units={units} completions={completions} conceptMastery={conceptMastery} />
-    </main>
+        <LearningPath units={units} completions={completions} conceptMastery={conceptMastery} />
+      </main>
+    </div>
   );
 }

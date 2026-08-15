@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "../ui/Button";
 import type { StepStatus } from "./types";
 
 /** Shared feedback/correct-banner/continue chrome, rendered after every answerable exercise's interactive content. */
@@ -18,21 +19,22 @@ export function StepFooter({
 }) {
   if (status === "incorrect" && feedback) {
     return (
-      <p role="alert" style={{ color: "#b3261e" }}>
+      <p role="alert" className="mw-feedback mw-feedback--error">
+        <strong>Not quite. </strong>
         {feedback}
       </p>
     );
   }
   if (status === "correct") {
     return (
-      <>
-        <p role="status" style={{ color: "#1e7a34" }}>
-          Correct! +{xp} XP
+      <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-3)" }}>
+        <p role="status" className="mw-feedback mw-feedback--success">
+          <strong>Correct!</strong> +{xp} XP
         </p>
-        <button type="button" onClick={onAdvance}>
+        <Button onClick={onAdvance} fullWidth>
           {isLastStep ? "Finish lesson" : "Continue"}
-        </button>
-      </>
+        </Button>
+      </div>
     );
   }
   return null;
