@@ -62,13 +62,23 @@ migrate now rather than continue deferring it.
   never exposes the database password through its API after project
   creation (by design). The user needs to get the real connection string
   from the Supabase dashboard (Project Settings → Database → Connection
-  string → "URI", direct connection — not the pooler, since
-  `@prisma/adapter-pg` does its own pooling) and set it as
-  `DATABASE_URL` wherever the app actually deploys (a deploy platform's
-  env vars) — this repo's own `.env`/`.env.local` files stay local-only
-  and gitignored, same as always. **Use the Supabase project's own
-  `postgres` role for this** (or another role with `BYPASSRLS`), not a
-  restricted one, so the app isn't blocked by the RLS policy from step 5.
+  string) and set it as `DATABASE_URL` wherever the app actually deploys
+  (a deploy platform's env vars) — this repo's own `.env`/`.env.local`
+  files stay local-only and gitignored, same as always. **Use the
+  Supabase project's own `postgres` role for this** (or another role
+  with `BYPASSRLS`), not a restricted one, so the app isn't blocked by
+  the RLS policy from step 5.
+  **Direct connection vs. the pooler depends on the still-unchosen
+  deploy platform**: a long-running server (self-hosted Node, a
+  Docker/VM host) should use the direct connection (port 5432) —
+  `@prisma/adapter-pg` maintains its own long-lived pool, and adding
+  Supabase's pooler on top would just be a second layer of pooling for
+  no benefit. A serverless platform (Vercel and similar) should use
+  Supabase's pooler (Supavisor, port 6543, "Transaction" mode) instead —
+  each function invocation there can open its own short-lived `pg` pool,
+  and many concurrent invocations would exhaust Postgres's direct
+  connection limit fast. This wasn't decided wrong here; it just isn't
+  decidable yet, since no deploy platform is chosen (see below).
 - **A real deploy is still not built.** This ADR only lands the data
   layer; there's no deploy workflow, no hosting platform chosen for the
   Next.js app itself, no production `DATABASE_URL` wired anywhere yet.
