@@ -17,7 +17,7 @@ test("play as White: engine replies to a played move", async ({ page }) => {
 
 test("play as Black: engine plays White's opening move automatically", async ({ page }) => {
   await page.goto("/play");
-  await page.locator("select").first().selectOption("b");
+  await page.getByRole("group", { name: "Choose your side" }).getByRole("button", { name: "Black" }).click();
   await expect(page.getByRole("status")).toContainText("Your move", { timeout: 20_000 });
 
   const whitePawnAdvanced = await page

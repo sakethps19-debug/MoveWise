@@ -157,6 +157,11 @@
   color: var(--mw-error-ink);
   border: 1px solid var(--mw-error);
 }
+.mw-feedback--neutral {
+  background: var(--mw-surface-2);
+  color: var(--mw-text);
+  border: 1px solid var(--mw-border);
+}
 
 /* ---------- Navigation ---------- */
 .mw-app-shell {
@@ -579,3 +584,155 @@
   color: var(--mw-moss-ink);
   margin: 0;
 }
+
+/* ---------- Play & Learn ---------- */
+.mw-play-shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-5);
+}
+.mw-play-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mw-space-5);
+  align-items: flex-end;
+}
+.mw-play-control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mw-play-control-group--actions {
+  flex-direction: row;
+  gap: var(--mw-space-2);
+  margin-left: auto;
+  align-self: flex-end;
+}
+.mw-play-control-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mw-text-dim);
+}
+.mw-segmented {
+  display: inline-flex;
+  border: 1px solid var(--mw-border);
+  border-radius: var(--mw-radius-sm);
+  overflow: hidden;
+}
+.mw-segmented-option {
+  font-family: var(--mw-font-body);
+  font-size: 13.5px;
+  background: var(--mw-surface);
+  color: var(--mw-text);
+  border: none;
+  border-right: 1px solid var(--mw-border);
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.mw-segmented-option:last-child { border-right: none; }
+.mw-segmented-option:hover { background: var(--mw-surface-2); }
+.mw-segmented-option--active {
+  background: var(--mw-moss);
+  color: var(--mw-on-accent, #fff);
+}
+
+.mw-play-layout {
+  display: flex;
+  gap: var(--mw-space-6);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.mw-play-board-column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-3);
+  align-items: center;
+  flex: 1 1 420px;
+}
+.mw-player-card {
+  display: flex;
+  align-items: center;
+  gap: var(--mw-space-3);
+  width: min(92vw, 420px);
+  padding: 8px 12px;
+  border-radius: var(--mw-radius-sm);
+  border: 1px solid transparent;
+  background: var(--mw-surface-2);
+}
+.mw-player-card--active {
+  border-color: var(--mw-moss);
+  background: var(--mw-success-bg);
+}
+.mw-player-card-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+.mw-player-card-detail {
+  font-size: 12.5px;
+  color: var(--mw-text-dim);
+}
+.mw-captured-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin-left: auto;
+}
+.mw-captured-piece {
+  width: 18px;
+  height: 18px;
+  opacity: 0.85;
+}
+
+.mw-play-sidebar {
+  flex: 0 1 260px;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-4);
+}
+.mw-play-sidebar-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mw-text-dim);
+  margin: 0;
+}
+.mw-move-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--mw-border);
+  border-radius: var(--mw-radius-sm);
+  max-height: 260px;
+  overflow-y: auto;
+  font-family: var(--mw-font-mono);
+  font-size: 13px;
+}
+.mw-move-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 1fr;
+  gap: 8px;
+  padding: 4px 10px;
+}
+.mw-move-row:nth-child(odd) { background: var(--mw-surface-2); }
+.mw-move-number { color: var(--mw-text-dim); }
+.mw-move-history-empty {
+  padding: 10px;
+  color: var(--mw-text-dim);
+  font-family: var(--mw-font-body);
+  font-size: 13px;
+}
+.mw-play-analysis-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--mw-space-3);
+  background: var(--mw-surface-2);
+  border-radius: var(--mw-radius-sm);
+  font-size: 13px;
+  color: var(--mw-text-dim);
+}
+.mw-play-analysis-entry .mw-badge { align-self: flex-start; }
