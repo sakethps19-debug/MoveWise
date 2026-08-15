@@ -316,16 +316,34 @@ nothing decorative blocks first paint.
   signal (glyph, icon, or text) in addition to color.
 - [ ] Contrast ratio ≥ 4.5:1 for body text, ≥ 3:1 for large text, in
   both themes — spot-checked against the token table above.
-- [ ] No horizontal scroll at 320/375/390/430/768/1024/1280/1536px.
+- [x] No horizontal scroll at 320/375/390/430/768/1024/1280/1536px —
+  `e2e/responsive.spec.ts`, 26/26 passing (default/light theme; caught
+  and fixed a real 369px-in-320px overflow on Play & Learn's
+  difficulty picker along the way).
 - [ ] Board never clips or drops below 280px rendered width at any
   tested breakpoint down to 320px.
-- [ ] Desktop nav rail and mobile bottom bar both present the same 5
-  IA items in the same order.
+- [x] Desktop nav rail and mobile bottom bar both present the same 5
+  IA items in the same order — asserted in `e2e/responsive.spec.ts`
+  and spot-checked via screenshot.
 - [ ] Light and dark themes both pass the same contrast checks — dark
-  is a deliberate token set (above), not an inverted filter.
+  is a deliberate token set (above), not an inverted filter. (Light
+  theme's `--mw-text-dim` was darkened from `#7a6d54` to `#6b5d44`
+  after axe-core found it failing 4.5:1 against `--mw-surface-2`/
+  `--mw-success-bg`; dark theme's own `--mw-text-dim` was checked by
+  hand and clears 5.46:1+ against its own backgrounds, but the a11y
+  suite doesn't yet run against `prefers-color-scheme: dark` or
+  `data-theme="dark"`, so this isn't machine-verified for dark yet.)
 - [ ] `prefers-reduced-motion` disables all transform/opacity
   animation transitions app-wide, verified by a dedicated Playwright
-  check.
-- [ ] Axe (`@axe-core/playwright`) reports zero new violations on every
-  redesigned screen, extending the existing `accessibility.spec.ts`
-  suite rather than replacing it.
+  check. (The global CSS rule exists in `globals.css`; no dedicated
+  test asserts it yet.)
+- [x] Axe (`@axe-core/playwright`) reports zero new violations on every
+  redesigned screen (home, login/signup, lesson steps + completion,
+  Play & Learn, account) — `accessibility.spec.ts`, 6/6 passing. Found
+  and fixed real pre-existing violations: `--mw-text-dim` contrast
+  (above), disabled-nav-item opacity compounding an already-borderline
+  color below 2.5:1, and `aria-label` on bare `<span>`/`<div>` elements
+  with no ARIA role (Hearts, Stars, Play & Learn's captured-piece
+  rows) — fixed with `role="img"`/`role="group"`. Only run against the
+  default/light theme; dark-theme axe coverage is the same gap noted
+  above.
