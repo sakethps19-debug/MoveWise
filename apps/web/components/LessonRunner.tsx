@@ -189,7 +189,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
         <div role="status" className="mw-recovery">
           <h2>Let&apos;s review before continuing</h2>
           <p>{reteachText}</p>
-          <p style={{ opacity: 0.8, fontSize: 13.5 }}>
+          <p className="mw-recovery-note">
             You've used up your hearts on this lesson, but that's alright — a couple of hearts will come back so you
             can try this exercise again with the idea fresh.
           </p>
