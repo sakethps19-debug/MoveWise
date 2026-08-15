@@ -36,8 +36,8 @@ export function OrderStepsStep({
 
   return (
     <>
-      <p>Tap them in the correct order.</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <p className="movewise-exercise-prompt">{step.prompt}</p>
+      <div className="mw-order-list">
         {step.items.map((item, index) => {
           const placedAt = orderProgress.indexOf(index);
           const isPlaced = placedAt !== -1;
@@ -45,6 +45,7 @@ export function OrderStepsStep({
             <button
               key={item}
               type="button"
+              className="mw-order-item"
               disabled={isPlaced || status === "correct"}
               onClick={() => handlePick(index)}
             >
@@ -54,7 +55,14 @@ export function OrderStepsStep({
           );
         })}
       </div>
-      <StepFooter status={status} feedback={feedback} xp={STEP_XP} isLastStep={isLastStep} onAdvance={onAdvance} />
+      <StepFooter
+        status={status}
+        feedback={feedback}
+        successExplanation={step.successExplanation}
+        xp={STEP_XP}
+        isLastStep={isLastStep}
+        onAdvance={onAdvance}
+      />
     </>
   );
 }

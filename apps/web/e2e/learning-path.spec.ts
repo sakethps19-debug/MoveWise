@@ -172,6 +172,9 @@ test("completing a principle's lessons sloppily doesn't unlock the next principl
   // board-orientation accuracy up to "proficient".
   await page.goto("/learn/meet-the-pieces.02-ranks-files-squares");
   await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
   await page.locator('[aria-label*="e4,"]').click();
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "A row running across the board" }).click();
@@ -209,6 +212,9 @@ test("strong performance in a principle unlocks the next one (ADR-0008)", async 
   await page.waitForURL("/");
 
   await page.goto("/learn/meet-the-pieces.02-ranks-files-squares");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
   await page.locator('[aria-label*="e4,"]').click();
   await page.getByRole("button", { name: "Continue" }).click();

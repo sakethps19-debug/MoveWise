@@ -13,9 +13,9 @@
     {
       "id": "step-1",
       "type": "explain",
-      "text": "Checkmate is check with no way out: the king can't move to safety, the check can't be blocked, and the checking piece can't be captured. Checkmate ends the game immediately.",
-      "boardFen": "6k1/5ppp/8/8/8/8/8/4R1K1 b - - 0 1",
-      "highlights": ["g8", "e1"]
+      "text": "Checkmate is check with no way out: the king can't move to safety, the check can't be blocked, and the checking piece can't be captured. Checkmate ends the game immediately. Here, White's rook on e8 checks the black king — and every escape square is covered or blocked by Black's own pawns.",
+      "boardFen": "4R1k1/5ppp/8/8/8/8/8/6K1 b - - 0 1",
+      "highlights": ["g8", "e8", "f8", "h8"]
     },
     {
       "id": "step-2",
@@ -25,14 +25,16 @@
       "correctSquares": ["e8"],
       "feedback": {
         "default": "That's check, but the black king can still escape. The king's own pawns are blocking every square along the back rank — where does the rook need to land to control all of it?"
-      }
+      },
+      "successExplanation": "Re8 is checkmate. The king can't step to f8 or h8 — both are still on the rook's rank — and f7/g7/h7 are blocked by its own pawns. No piece can capture or block the rook either."
     },
     {
       "id": "step-3",
       "type": "true-false",
       "prompt": "Every check is also checkmate.",
       "correct": false,
-      "feedback": { "default": "Most checks aren't mate — the defender can usually capture, block, or move the king to safety." }
+      "feedback": { "default": "Most checks aren't mate — the defender can usually capture, block, or move the king to safety." },
+      "successExplanation": "Right — check just means the king is under attack right now. It's only checkmate if the defender has no way to capture, block, or move out of it."
     },
     {
       "id": "step-4",

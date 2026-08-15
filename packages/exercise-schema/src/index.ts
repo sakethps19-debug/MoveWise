@@ -105,8 +105,10 @@ export const TrueFalseStepSchema = BaseStep.extend({
 
 export const OrderStepsStepSchema = BaseStep.extend({
   type: z.literal("order-steps"),
+  prompt: z.string().min(1),
   items: z.array(z.string().min(1)).min(2),
   correctOrder: z.array(z.number().int()),
+  successExplanation: z.string().min(1).optional(),
 });
 
 export const FindCheckStepSchema = BaseStep.extend({

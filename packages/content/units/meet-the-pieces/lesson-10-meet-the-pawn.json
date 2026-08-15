@@ -29,6 +29,28 @@
     },
     {
       "id": "step-2",
+      "type": "move-piece",
+      "prompt": "Move the pawn forward two squares — its first move from the starting rank.",
+      "fen": "7k/8/8/8/8/8/4P3/K7 w - - 0 1",
+      "expectedMoves": [
+        "e2e4"
+      ],
+      "altValid": [
+        "e2e3"
+      ],
+      "hints": [
+        { "level": 1, "text": "A pawn on its starting square may move one or two squares straight ahead." },
+        { "level": 2, "text": "Try the full two-square advance.", "highlightSquares": ["e4"] },
+        { "level": 3, "text": "Move here.", "arrowFrom": "e2", "arrowTo": "e4" },
+        { "level": 4, "text": "The pawn advances from e2 to e4 — its two-square first move." }
+      ],
+      "feedback": {
+        "default": "A pawn moves straight ahead — never sideways or diagonally unless it's capturing."
+      },
+      "successExplanation": "That's a legal pawn move. Only on its very first move can a pawn advance two squares instead of one."
+    },
+    {
+      "id": "step-3",
       "type": "explain",
       "text": "A pawn captures differently from how it moves: diagonally, one square forward-left or forward-right — never straight ahead.",
       "boardFen": "8/8/8/3p4/4P3/8/8/8 w - - 0 1",
@@ -37,25 +59,33 @@
       ]
     },
     {
-      "id": "step-3",
+      "id": "step-4",
       "type": "capture",
       "prompt": "Capture the black pawn diagonally ahead of you.",
       "fen": "7k/8/8/3p4/4P3/8/8/K7 w - - 0 1",
       "expectedMoves": [
         "e4d5"
       ],
+      "hints": [
+        { "level": 1, "text": "A pawn captures diagonally, one square ahead — never straight forward." },
+        { "level": 2, "text": "The black pawn is one square diagonally ahead of yours.", "highlightSquares": ["d5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "e4", "arrowTo": "d5" },
+        { "level": 4, "text": "Your pawn captures on d5 — diagonally forward, one square." }
+      ],
       "feedback": {
         "default": "A pawn can only capture diagonally, one square ahead — it can't capture something directly in front of it."
-      }
+      },
+      "successExplanation": "exd5 captures the pawn. This is the one time a pawn's move and its capture use different directions — straight to move, diagonal to capture."
     },
     {
-      "id": "step-4",
+      "id": "step-5",
       "type": "true-false",
       "prompt": "A pawn can capture a piece directly in front of it.",
       "correct": false,
       "feedback": {
         "default": "A pawn moves straight but captures diagonally — a piece directly ahead actually blocks it."
-      }
+      },
+      "successExplanation": "Right — a piece directly ahead blocks a pawn's forward move entirely; it can never be captured that way."
     }
   ],
   "principleId": "meet-the-pieces.the-pawn"

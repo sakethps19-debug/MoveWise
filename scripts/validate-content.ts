@@ -18,6 +18,7 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { parseLesson, parseConcept, parsePrinciple, type Lesson } from "../packages/exercise-schema/src/index";
 import { validateLesson } from "../packages/exercise-schema/src/validate-chess";
+import { validateInstructionalQuality } from "../packages/exercise-schema/src/validate-instructional";
 
 const CONTENT_ROOT = join(import.meta.dirname, "../packages/content");
 const UNITS_ROOT = join(CONTENT_ROOT, "units");
@@ -45,7 +46,7 @@ for (const filePath of walkLessonFiles(UNITS_ROOT)) {
 
   const parsed = parseLesson(raw); // throws on structural schema violation
   lessonsById.set(parsed.id, parsed);
-  const issues = validateLesson(parsed);
+  const issues = [...validateLesson(parsed), ...validateInstructionalQuality(parsed)];
 
   if (issues.length > 0) {
     failures += issues.length;

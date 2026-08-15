@@ -75,7 +75,62 @@
       ],
       "feedback": {
         "default": "The queen moves in straight lines or diagonals only — not like a knight."
-      }
+      },
+      "successExplanation": "That's a legal queen move — any straight line or diagonal, any distance, is open to her."
+    },
+    {
+      "id": "step-3",
+      "type": "capture",
+      "prompt": "Capture the black knight on b1 with your queen, sliding along the diagonal.",
+      "fen": "7k/8/8/8/4Q3/8/8/1n5K w - - 0 1",
+      "expectedMoves": [
+        "e4b1"
+      ],
+      "hints": [
+        { "level": 1, "text": "The queen captures the way she moves — find the diagonal that reaches the knight." },
+        { "level": 2, "text": "The knight sits on the same diagonal as your queen.", "highlightSquares": ["b1"] },
+        { "level": 3, "text": "Slide along here to capture.", "arrowFrom": "e4", "arrowTo": "b1" },
+        { "level": 4, "text": "The queen captures on b1 — straight down the e4-b1 diagonal." }
+      ],
+      "feedback": {
+        "default": "Look for a straight line or diagonal from the queen's square that reaches the knight, with nothing else in the way."
+      },
+      "successExplanation": "Qxb1 captures the knight. The e4-b1 diagonal was completely open, so the queen could slide the whole way."
+    },
+    {
+      "id": "step-4",
+      "type": "move-piece",
+      "prompt": "Move the queen as far as she can go up the e-file — her own pawn stops her early.",
+      "fen": "7k/8/4P3/8/4Q3/8/8/K7 w - - 0 1",
+      "expectedMoves": [
+        "e4e5"
+      ],
+      "altValid": [
+        "e4a4",
+        "e4h4",
+        "e4e1",
+        "e4h7"
+      ],
+      "hints": [
+        { "level": 1, "text": "The queen can't move through or capture her own pieces — she stops right before them." },
+        { "level": 2, "text": "There's a white pawn on e6, two squares up.", "highlightSquares": ["e6"] },
+        { "level": 3, "text": "The farthest she can go up the e-file is here.", "arrowFrom": "e4", "arrowTo": "e5" },
+        { "level": 4, "text": "The queen can reach e5, but no further — her own pawn on e6 blocks the rest of the file." }
+      ],
+      "feedback": {
+        "default": "The queen can't land on or move past a square her own piece occupies. Up the e-file, that own pawn on e6 stops her at e5."
+      },
+      "successExplanation": "Right — the queen isn't blocked by distance, only by pieces in her path. Her own pawn on e6 means e5 is as far as she can go that direction."
+    },
+    {
+      "id": "step-5",
+      "type": "true-false",
+      "prompt": "A queen can capture her own pawn if that's the only way to get past it.",
+      "correct": false,
+      "feedback": {
+        "default": "No piece can ever capture a piece on its own side — friendly pieces block movement, they're never valid targets."
+      },
+      "successExplanation": "Right — a queen simply cannot move onto or through a square her own piece occupies, no exceptions."
     }
   ],
   "principleId": "meet-the-pieces.the-queen"

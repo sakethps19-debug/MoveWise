@@ -22,8 +22,10 @@
     {
       "id": "step-2",
       "type": "order-steps",
+      "prompt": "Tap the three responses to check in the order you should try them, strongest option first.",
       "items": ["Move your king", "Block the check", "Capture the checking piece"],
-      "correctOrder": [2, 1, 0]
+      "correctOrder": [2, 1, 0],
+      "successExplanation": "Capturing removes the threat completely, so try it first. Blocking only works against a sliding piece, and only if a square between it and your king is empty. Moving the king is the fallback — it's legal whenever the other two aren't."
     },
     {
       "id": "step-3",
@@ -42,15 +44,22 @@
     },
     {
       "id": "step-5",
-      "type": "mini-game",
-      "fen": "4k3/8/8/8/8/8/8/R3K3 w - - 0 1",
-      "objective": "Checkmate the lone black king using your rook and king.",
-      "winCondition": "Deliver checkmate."
+      "type": "explain",
+      "text": "One last idea before you finish this off: with a rook and king against a lone king, keep your rook a full move away from the black king so it can't be attacked, and use it to fence the black king onto fewer and fewer squares along a rank or file. Bring your own king up to help — the black king can't cross a line your rook is guarding. Once it's pinned to the very edge of the board, a rook check along that edge is checkmate.",
+      "boardFen": "4k3/8/8/8/8/8/8/R3K3 w - - 0 1",
+      "highlights": ["a1", "a8", "h8"]
     },
     {
       "id": "step-6",
+      "type": "mini-game",
+      "fen": "4k3/8/8/8/8/8/8/R3K3 w - - 0 1",
+      "objective": "Checkmate the lone black king using your rook and king — fence it toward the edge, then deliver mate along that edge.",
+      "winCondition": "Deliver checkmate."
+    },
+    {
+      "id": "step-7",
       "type": "review",
-      "summary": "Capture, block, or move — in that order, every time you're in check. And when the position is winning, remember checkmate is the goal, not just winning material."
+      "summary": "Capture, block, or move — in that order, every time you're in check. And when the position is winning, remember checkmate is the goal, not just winning material: fence the lone king to the edge with your rook, then deliver mate there."
     }
   ]
 }

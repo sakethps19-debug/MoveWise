@@ -21,6 +21,7 @@ test("order-steps and guided-sequence: Thinking under check", async ({ page }) =
   await page.locator('[aria-label*="d2,"]').click();
   await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click(); // explain step-5: K+R vs K technique
 
   // mini-game: verify the embedded engine actually replies to a played move
   await expect(page.getByRole("status").filter({ hasText: "Your move" })).toBeVisible({ timeout: 15_000 });

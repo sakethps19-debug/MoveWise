@@ -41,6 +41,7 @@
     {
       "id": "step-4",
       "type": "order-steps",
+      "prompt": "Tap the three phases of a chess game in the order they happen.",
       "items": ["Endgame", "Opening", "Middlegame"],
       "correctOrder": [1, 2, 0]
     },

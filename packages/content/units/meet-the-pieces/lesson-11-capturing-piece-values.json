@@ -36,14 +36,36 @@
     {
       "id": "step-3",
       "type": "capture",
-      "prompt": "Capture the black knight with your queen.",
+      "prompt": "Capture the black knight on d5 with your queen.",
       "fen": "7k/8/8/3n4/4Q3/8/8/K7 w - - 0 1",
       "expectedMoves": [
         "e4d5"
       ],
+      "hints": [
+        {
+          "level": 1,
+          "text": "The queen captures the same way she moves — in a straight line or a diagonal, landing exactly on the enemy piece's square."
+        },
+        {
+          "level": 2,
+          "text": "The knight is one square diagonally from your queen.",
+          "highlightSquares": ["d5"]
+        },
+        {
+          "level": 3,
+          "text": "Move the queen here to capture.",
+          "arrowFrom": "e4",
+          "arrowTo": "d5"
+        },
+        {
+          "level": 4,
+          "text": "The queen captures on d5 — one diagonal step from e4."
+        }
+      ],
       "feedback": {
-        "default": "Move the queen onto the square the knight occupies to capture it."
-      }
+        "default": "That move doesn't land the queen exactly on d5, where the knight is. A capture only works if you move onto the enemy piece's own square."
+      },
+      "successExplanation": "Qxd5 captures the knight. The queen moves diagonally from e4 to d5, landing exactly on the square the knight occupied."
     },
     {
       "id": "step-4",
@@ -55,7 +77,13 @@
         "Trading your bishop for a knight",
         "Trading your rook for a pawn"
       ],
-      "correctIndex": 2
+      "correctIndex": 2,
+      "feedback": {
+        "0": "A queen (worth about 9) for a pawn (worth about 1) is a huge loss — nowhere close to equal.",
+        "1": "A knight (about 3) for a rook (about 5) actually favors you — you'd be gaining value, not trading evenly.",
+        "3": "A rook (about 5) for a pawn (about 1) is a big loss of value for you."
+      },
+      "successExplanation": "Right — a bishop and a knight are both worth about 3 points, so trading one for the other is roughly even."
     }
   ],
   "principleId": "meet-the-pieces.the-pawn"

@@ -164,8 +164,14 @@ export function Board({
                         fontFamily: "var(--mw-font-mono)",
                         fontSize: "9px",
                         fontWeight: 700,
-                        color: isLight ? "var(--mw-sq-dark)" : "var(--mw-sq-light)",
-                        opacity: 0.7,
+                        // Highlighted/last-move backgrounds aren't part of the
+                        // light/dark checkerboard pair, so a label colored
+                        // relative to *that* pair can land near-invisible on
+                        // them (e.g. a light label on the light warning-bg
+                        // highlight) — use the theme's ink color instead,
+                        // which contrasts with every square background.
+                        color: isHighlighted || wasLastMove ? "var(--mw-text)" : isLight ? "var(--mw-sq-dark)" : "var(--mw-sq-light)",
+                        opacity: isHighlighted || wasLastMove ? 0.85 : 0.7,
                       }}
                     >
                       {8 - rowIndex}
@@ -181,8 +187,8 @@ export function Board({
                         fontFamily: "var(--mw-font-mono)",
                         fontSize: "9px",
                         fontWeight: 700,
-                        color: isLight ? "var(--mw-sq-dark)" : "var(--mw-sq-light)",
-                        opacity: 0.7,
+                        color: isHighlighted || wasLastMove ? "var(--mw-text)" : isLight ? "var(--mw-sq-dark)" : "var(--mw-sq-light)",
+                        opacity: isHighlighted || wasLastMove ? 0.85 : 0.7,
                       }}
                     >
                       {FILES[colIndex]}

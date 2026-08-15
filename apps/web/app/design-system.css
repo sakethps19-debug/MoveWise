@@ -450,6 +450,32 @@
 }
 
 /* ---------- Lesson experience ---------- */
+.mw-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-2);
+  margin: var(--mw-space-2) 0;
+}
+.mw-order-item {
+  font-family: var(--mw-font-body);
+  font-size: 15px;
+  text-align: left;
+  background: var(--mw-surface);
+  color: var(--mw-text);
+  border: 1px solid var(--mw-border);
+  border-radius: var(--mw-radius-sm);
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: border-color var(--mw-motion-fast), background var(--mw-motion-fast);
+}
+.mw-order-item:hover:not(:disabled) {
+  border-color: var(--mw-moss);
+}
+.mw-order-item:disabled {
+  background: var(--mw-surface-2);
+  color: var(--mw-text-dim);
+  cursor: default;
+}
 .mw-hint-text {
   font-size: 13.5px;
   font-style: italic;

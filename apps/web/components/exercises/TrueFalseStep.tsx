@@ -25,12 +25,14 @@ export function TrueFalseStep({
 
   return (
     <>
-      <p>{step.prompt}</p>
-      <div style={{ display: "flex", gap: 8 }}>
+      <p className="movewise-exercise-prompt">{step.prompt}</p>
+      <div style={{ display: "flex", gap: "var(--mw-space-2)" }}>
         {[true, false].map((value) => (
           <button
             key={String(value)}
             type="button"
+            className="mw-order-item"
+            style={{ flex: 1, textAlign: "center" }}
             disabled={status === "correct"}
             onClick={() => handlePick(value)}
           >
@@ -38,7 +40,14 @@ export function TrueFalseStep({
           </button>
         ))}
       </div>
-      <StepFooter status={status} feedback={feedback} xp={STEP_XP} isLastStep={isLastStep} onAdvance={onAdvance} />
+      <StepFooter
+        status={status}
+        feedback={feedback}
+        successExplanation={step.successExplanation}
+        xp={STEP_XP}
+        isLastStep={isLastStep}
+        onAdvance={onAdvance}
+      />
     </>
   );
 }

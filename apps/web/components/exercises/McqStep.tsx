@@ -25,15 +25,28 @@ export function McqStep({
 
   return (
     <>
-      <p>{step.prompt}</p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <p className="movewise-exercise-prompt">{step.prompt}</p>
+      <div className="mw-order-list">
         {step.options.map((option, index) => (
-          <button key={option} type="button" disabled={status === "correct"} onClick={() => handlePick(index)}>
+          <button
+            key={option}
+            type="button"
+            className="mw-order-item"
+            disabled={status === "correct"}
+            onClick={() => handlePick(index)}
+          >
             {option}
           </button>
         ))}
       </div>
-      <StepFooter status={status} feedback={feedback} xp={STEP_XP} isLastStep={isLastStep} onAdvance={onAdvance} />
+      <StepFooter
+        status={status}
+        feedback={feedback}
+        successExplanation={step.successExplanation}
+        xp={STEP_XP}
+        isLastStep={isLastStep}
+        onAdvance={onAdvance}
+      />
     </>
   );
 }

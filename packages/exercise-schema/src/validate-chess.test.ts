@@ -136,7 +136,7 @@ describe("order-steps", () => {
   it("accepts a correctOrder that's a real permutation of the items", () => {
     const issues = validateLesson(
       makeLesson([
-        { id: "s", type: "order-steps", items: ["a", "b", "c"], correctOrder: [2, 0, 1] },
+        { id: "s", type: "order-steps", prompt: "test prompt", items: ["a", "b", "c"], correctOrder: [2, 0, 1] },
       ]),
     );
     expect(issues).toEqual([]);
@@ -144,14 +144,18 @@ describe("order-steps", () => {
 
   it("flags a correctOrder whose length doesn't match the item count", () => {
     const issues = validateLesson(
-      makeLesson([{ id: "s", type: "order-steps", items: ["a", "b", "c"], correctOrder: [0, 1] }]),
+      makeLesson([
+        { id: "s", type: "order-steps", prompt: "test prompt", items: ["a", "b", "c"], correctOrder: [0, 1] },
+      ]),
     );
     expect(issues[0]!.message).toMatch(/correctOrder has 2 entries but there are 3 items/);
   });
 
   it("flags a correctOrder that repeats an index instead of permuting", () => {
     const issues = validateLesson(
-      makeLesson([{ id: "s", type: "order-steps", items: ["a", "b", "c"], correctOrder: [0, 0, 2] }]),
+      makeLesson([
+        { id: "s", type: "order-steps", prompt: "test prompt", items: ["a", "b", "c"], correctOrder: [0, 0, 2] },
+      ]),
     );
     expect(issues[0]!.message).toMatch(/must be a permutation/);
   });

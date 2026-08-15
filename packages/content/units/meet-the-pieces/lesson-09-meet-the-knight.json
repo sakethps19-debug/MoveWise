@@ -34,6 +34,13 @@
     },
     {
       "id": "step-2",
+      "type": "explain",
+      "text": "Watch this closely: every square directly next to the knight is blocked by a pawn — yet it can still leap out to f6. No other piece could move at all here. The knight is the only piece that ignores what's in its way.",
+      "boardFen": "7k/8/8/3ppp2/3pNp2/3ppp2/8/K7 w - - 0 1",
+      "highlights": ["f6"]
+    },
+    {
+      "id": "step-3",
       "type": "move-piece",
       "prompt": "Move the knight in an L-shape to any of its eight possible landing squares.",
       "fen": "7k/8/8/8/4N3/8/8/K7 w - - 0 1",
@@ -74,16 +81,18 @@
       ],
       "feedback": {
         "default": "That's not an L-shape — two squares one way, then one square to the side."
-      }
+      },
+      "successExplanation": "That's a legal knight move — an L-shape lands correctly no matter what's on the squares in between."
     },
     {
-      "id": "step-3",
+      "id": "step-4",
       "type": "true-false",
       "prompt": "A knight can jump over pieces that are in its way.",
       "correct": true,
       "feedback": {
         "default": "The knight is the only piece that can hop over anything in between."
-      }
+      },
+      "successExplanation": "Right — you just saw it: every neighboring square was blocked, and the knight still reached f6."
     }
   ],
   "principleId": "meet-the-pieces.the-knight"

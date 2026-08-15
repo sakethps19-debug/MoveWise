@@ -4,7 +4,8 @@
   "unitId": "meet-the-pieces",
   "title": "Meet the king",
   "objectives": [
-    "Understand the king moves one square in any direction"
+    "Understand the king moves one square in any direction",
+    "Understand the king can never move to a square an enemy piece attacks"
   ],
   "prerequisites": [
     "meet-the-pieces.07-meet-the-queen"
@@ -19,7 +20,7 @@
     {
       "id": "step-1",
       "type": "explain",
-      "text": "The king moves just one square in any direction — straight or diagonal. He's the piece you must always protect.",
+      "text": "The king moves just one square in any direction — straight or diagonal. He's the piece you must always protect, which comes with a strict rule: the king can never move to a square an enemy piece attacks, even if nothing is there yet.",
       "boardFen": "8/8/8/8/4K3/8/8/8 w - - 0 1",
       "highlights": [
         "d3",
@@ -74,7 +75,37 @@
       ],
       "feedback": {
         "default": "The king can only move one square at a time — not further."
-      }
+      },
+      "successExplanation": "That's a legal king move — one square, onto a square nothing attacks."
+    },
+    {
+      "id": "step-3",
+      "type": "capture",
+      "prompt": "Capture the undefended black pawn with your king.",
+      "fen": "7k/8/8/3p4/4K3/8/8/8 w - - 0 1",
+      "expectedMoves": [
+        "e4d5"
+      ],
+      "hints": [
+        { "level": 1, "text": "The king captures the same way it moves — one square, in any direction." },
+        { "level": 2, "text": "The pawn is one square diagonally from your king.", "highlightSquares": ["d5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "e4", "arrowTo": "d5" },
+        { "level": 4, "text": "The king captures on d5 — one diagonal step." }
+      ],
+      "feedback": {
+        "default": "The king can capture like any other piece — move exactly one square onto the enemy piece. But only if nothing else attacks that square."
+      },
+      "successExplanation": "Kxd5 captures the pawn. The king can capture a piece one square away, as long as no other enemy piece defends that square — capturing into an attacked square is never legal."
+    },
+    {
+      "id": "step-4",
+      "type": "true-false",
+      "prompt": "The king can move to a square right next to the enemy king.",
+      "correct": false,
+      "feedback": {
+        "default": "Two kings can never stand next to each other — that square would always be attacked by the enemy king, which the king-can't-move-into-check rule forbids."
+      },
+      "successExplanation": "Right — it's the same rule as any attacked square: the king can never move somewhere an enemy piece (including the other king) attacks."
     }
   ],
   "principleId": "meet-the-pieces.the-king"

@@ -25,8 +25,29 @@
     },
     {
       "id": "step-2",
+      "type": "explain",
+      "text": "Every square has a name, so players can talk about the board without pointing at it. Files are lettered a to h, left to right from White's side. This whole highlighted column is the e-file.",
+      "boardFen": "8/8/8/8/8/8/8/8 w - - 0 1",
+      "highlights": ["e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8"]
+    },
+    {
+      "id": "step-3",
+      "type": "explain",
+      "text": "Ranks are numbered 1 to 8, starting from White's side of the board. This whole highlighted row is the 4th rank.",
+      "boardFen": "8/8/8/8/8/8/8/8 w - - 0 1",
+      "highlights": ["a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4"]
+    },
+    {
+      "id": "step-4",
+      "type": "explain",
+      "text": "A square's name combines its file letter and its rank number. The e-file and the 4th rank meet at exactly one square: e4.",
+      "boardFen": "8/8/8/8/8/8/8/8 w - - 0 1",
+      "highlights": ["e4"]
+    },
+    {
+      "id": "step-5",
       "type": "select-square",
-      "prompt": "Select the e4 square: count the 5th file from the left, then the 4th rank from the bottom.",
+      "prompt": "Tap the e-file and 4th-rank intersection — the e4 square.",
       "fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
       "correctSquares": [
         "e4"
@@ -34,11 +55,11 @@
       "hints": [
         {
           "level": 1,
-          "text": "Find the square where the 5th column from the left meets the 4th row from the bottom."
+          "text": "Find the square where the e-file meets the 4th rank."
         },
         {
           "level": 2,
-          "text": "Count files left to right, then ranks bottom to top.",
+          "text": "Here's the e-file and the 4th rank — find where they cross.",
           "highlightSquares": [
             "e1",
             "a4"
@@ -56,11 +77,16 @@
         }
       ],
       "feedback": {
+        "d4": "Close, but that's d4 — one file to the left. Count again from a to e.",
+        "f4": "Close, but that's f4 — one file to the right. Count again from a to e.",
+        "e3": "Close, but that's e3 — one rank too low. Count again from 1 to 4.",
+        "e5": "Close, but that's e5 — one rank too high. Count again from 1 to 4.",
         "default": "Not quite — count the files from the left first, then the ranks from the bottom."
-      }
+      },
+      "successExplanation": "That's e4 — the e-file and the 4th rank cross exactly there."
     },
     {
-      "id": "step-3",
+      "id": "step-6",
       "type": "mcq",
       "prompt": "Which of these describes a 'rank'?",
       "options": [
@@ -69,7 +95,13 @@
         "A single square",
         "A type of piece"
       ],
-      "correctIndex": 1
+      "correctIndex": 1,
+      "feedback": {
+        "0": "That's a file, not a rank — files are the columns, lettered a to h.",
+        "2": "A single square is named by combining a file and a rank, like e4 — it isn't a rank on its own.",
+        "3": "Pieces (king, queen, rook, and so on) are separate from the board's own file/rank naming system."
+      },
+      "successExplanation": "Right — a rank is a row running across the board, numbered 1 to 8."
     }
   ],
   "principleId": "meet-the-pieces.board-basics"

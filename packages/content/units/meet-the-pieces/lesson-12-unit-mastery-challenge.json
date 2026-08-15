@@ -12,13 +12,15 @@
   "xpReward": 30,
   "masteryTags": [
     "board-orientation",
+    "square-identification",
     "rook-movement",
     "bishop-movement",
     "queen-movement",
     "king-movement",
     "knight-movement",
     "pawn-movement",
-    "captures"
+    "captures",
+    "piece-values"
   ],
   "difficulty": 2,
   "estimatedDurationSec": 300,
@@ -26,20 +28,41 @@
     {
       "id": "step-1",
       "type": "explain",
-      "text": "Let's put it all together. This challenge mixes every piece you've met so far — take your time on each move."
+      "text": "Let's put it all together. This challenge mixes every piece you've met so far, on fresh positions — take your time on each move."
     },
     {
       "id": "step-2",
+      "type": "select-square",
+      "prompt": "Tap the g6 square — the g-file and 6th rank.",
+      "fen": "k7/8/8/8/8/8/8/7K w - - 0 1",
+      "correctSquares": ["g6"],
+      "hints": [
+        { "level": 1, "text": "Find the square where the g-file meets the 6th rank." },
+        { "level": 2, "text": "Here's the g-file and the 6th rank — find where they cross.", "highlightSquares": ["g1", "a6"] },
+        { "level": 3, "text": "This is the square.", "arrowFrom": "g1", "arrowTo": "g6" },
+        { "level": 4, "text": "That square is g6 — file g, rank 6." }
+      ],
+      "feedback": {
+        "f6": "Close, but that's f6 — one file to the left. Count again from a to g.",
+        "h6": "Close, but that's h6 — one file to the right. Count again from a to g.",
+        "g5": "Close, but that's g5 — one rank too low. Count again from 1 to 6.",
+        "g7": "Close, but that's g7 — one rank too high. Count again from 1 to 6.",
+        "default": "Not quite — count the files from the left first, then the ranks from the bottom."
+      },
+      "successExplanation": "That's g6 — the g-file and the 6th rank cross exactly there."
+    },
+    {
+      "id": "step-3",
       "type": "move-piece",
       "prompt": "Move the rook in a straight line to any legal square.",
-      "fen": "7k/8/8/8/4R3/8/8/K7 w - - 0 1",
+      "fen": "4k3/8/8/1R6/8/8/8/6K1 w - - 0 1",
       "expectedMoves": [
-        "e4a4"
+        "b5b1"
       ],
       "altValid": [
-        "e4h4",
-        "e4e1",
-        "e4e8"
+        "b5a5",
+        "b5h5",
+        "b5b8"
       ],
       "hints": [
         {
@@ -50,95 +73,115 @@
           "level": 2,
           "text": "Any straight-line direction is fine.",
           "highlightSquares": [
-            "e4"
+            "b5"
           ]
         },
         {
           "level": 3,
           "text": "Try this one.",
-          "arrowFrom": "e4",
-          "arrowTo": "a4"
+          "arrowFrom": "b5",
+          "arrowTo": "b1"
         },
         {
           "level": 4,
-          "text": "The rook slides from e4 to a4."
+          "text": "The rook slides from b5 to b1."
         }
       ],
       "feedback": {
         "default": "Remember: the rook only moves in straight lines, never diagonally."
-      }
+      },
+      "successExplanation": "That's a legal rook move — straight along the b-file, with nothing in the way."
     },
     {
-      "id": "step-3",
+      "id": "step-4",
       "type": "capture",
-      "prompt": "Capture the black pawn with your bishop.",
+      "prompt": "Capture the black pawn on d5 with your bishop.",
       "fen": "7k/8/8/3p4/4B3/8/8/K7 w - - 0 1",
       "expectedMoves": [
         "e4d5"
       ],
-      "feedback": {
-        "default": "The bishop moves diagonally — slide it onto the pawn's square to capture."
-      }
-    },
-    {
-      "id": "step-4",
-      "type": "find-legal-move",
-      "prompt": "Find any legal move for the knight.",
-      "fen": "7k/8/8/8/4N3/8/8/K7 w - - 0 1",
-      "validMoves": [
-        "e4f6",
-        "e4d6",
-        "e4c5",
-        "e4c3",
-        "e4d2",
-        "e4f2",
-        "e4g3",
-        "e4g5"
+      "hints": [
+        { "level": 1, "text": "The bishop captures the way it moves — diagonally, landing on the enemy piece's square." },
+        { "level": 2, "text": "The pawn is one square diagonally from your bishop.", "highlightSquares": ["d5"] },
+        { "level": 3, "text": "Move the bishop here to capture.", "arrowFrom": "e4", "arrowTo": "d5" },
+        { "level": 4, "text": "The bishop captures on d5 — one diagonal step from e4." }
       ],
       "feedback": {
-        "default": "Knights move in an L-shape: two squares one way, one square to the side."
-      }
+        "default": "The bishop moves diagonally — slide it onto the pawn's square to capture."
+      },
+      "successExplanation": "Bxd5 captures the pawn. The bishop moves diagonally from e4 to d5, landing exactly on the pawn's square."
     },
     {
       "id": "step-5",
-      "type": "capture",
-      "prompt": "Capture the black pawn with your pawn.",
-      "fen": "7k/8/8/3p4/4P3/8/8/K7 w - - 0 1",
-      "expectedMoves": [
-        "e4d5"
-      ],
+      "type": "true-false",
+      "prompt": "A bishop can move through its own pawn if there's no other legal way to reach its target.",
+      "correct": false,
       "feedback": {
-        "default": "A pawn captures diagonally, one square ahead — not straight forward."
-      }
+        "default": "No piece except the knight can move through another piece, friendly or enemy. If a bishop's own pawn blocks every diagonal, the bishop simply has no legal move that direction."
+      },
+      "successExplanation": "Right — only the knight can jump over pieces. Every other piece, including the bishop, is blocked by anything in its path, friend or foe."
     },
     {
       "id": "step-6",
-      "type": "mcq",
-      "prompt": "Which piece can jump over other pieces?",
-      "options": [
-        "Rook",
-        "Bishop",
-        "Knight",
-        "Queen"
+      "type": "find-legal-move",
+      "prompt": "Find any legal move for the knight.",
+      "fen": "7k/8/8/8/8/2N5/8/K7 w - - 0 1",
+      "validMoves": [
+        "c3a2",
+        "c3a4",
+        "c3b1",
+        "c3b5",
+        "c3d1",
+        "c3d5",
+        "c3e2",
+        "c3e4"
       ],
-      "correctIndex": 2
+      "hints": [
+        { "level": 1, "text": "Knights move in an L-shape: two squares one way, one square to the side." },
+        { "level": 2, "text": "Any of the eight L-shaped landing squares works.", "highlightSquares": ["c3"] },
+        { "level": 3, "text": "Try this one.", "arrowFrom": "c3", "arrowTo": "d5" },
+        { "level": 4, "text": "The knight can hop from c3 to d5 — two up, one across." }
+      ],
+      "feedback": {
+        "default": "Knights move in an L-shape: two squares one way, one square to the side."
+      },
+      "successExplanation": "That's a legal knight move — the L-shaped jump works no matter what's between the two squares."
     },
     {
       "id": "step-7",
+      "type": "capture",
+      "prompt": "Capture the black pawn on f5 with your pawn.",
+      "fen": "7k/8/8/5p2/6P1/8/8/K7 w - - 0 1",
+      "expectedMoves": [
+        "g4f5"
+      ],
+      "hints": [
+        { "level": 1, "text": "A pawn captures diagonally, one square ahead — never straight forward." },
+        { "level": 2, "text": "The black pawn is one square diagonally ahead of yours.", "highlightSquares": ["f5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "g4", "arrowTo": "f5" },
+        { "level": 4, "text": "Your pawn captures on f5 — diagonally forward, one square." }
+      ],
+      "feedback": {
+        "default": "A pawn captures diagonally, one square ahead — not straight forward."
+      },
+      "successExplanation": "gxf5 captures the pawn. Pawns move straight but capture diagonally — this is the one case where that difference matters."
+    },
+    {
+      "id": "step-8",
       "type": "move-piece",
       "prompt": "Move the king one square in any direction.",
-      "fen": "7k/8/8/8/4K3/8/8/8 w - - 0 1",
+      "fen": "7k/8/8/2K5/8/8/8/8 w - - 0 1",
       "expectedMoves": [
-        "e4d4"
+        "c5b5"
       ],
       "altValid": [
-        "e4d3",
-        "e4d5",
-        "e4e3",
-        "e4e5",
-        "e4f3",
-        "e4f4",
-        "e4f5"
+        "c5b4",
+        "c5b6",
+        "c5c4",
+        "c5c6",
+        "c5d4",
+        "c5d5",
+        "c5d6"
       ],
       "hints": [
         {
@@ -149,28 +192,47 @@
           "level": 2,
           "text": "Any neighboring square works.",
           "highlightSquares": [
-            "e4"
+            "c5"
           ]
         },
         {
           "level": 3,
           "text": "Try this one.",
-          "arrowFrom": "e4",
-          "arrowTo": "d4"
+          "arrowFrom": "c5",
+          "arrowTo": "b5"
         },
         {
           "level": 4,
-          "text": "The king steps from e4 to d4."
+          "text": "The king steps from c5 to b5."
         }
       ],
       "feedback": {
         "default": "The king can only move one square at a time."
-      }
+      },
+      "successExplanation": "That's a legal king move — one square, and the destination isn't attacked by anything."
     },
     {
-      "id": "step-8",
+      "id": "step-9",
+      "type": "mcq",
+      "prompt": "Which is worth more?",
+      "options": [
+        "A bishop",
+        "A rook",
+        "A pawn",
+        "They're all worth the same"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "0": "A bishop is worth about 3 points — less than a rook's 5.",
+        "2": "A pawn is worth about 1 point — the least of any piece.",
+        "3": "Piece values differ a lot — a pawn (about 1) and a queen (about 9) aren't close."
+      },
+      "successExplanation": "Right — a rook (about 5) is worth more than a bishop (about 3)."
+    },
+    {
+      "id": "step-10",
       "type": "review",
-      "summary": "You've met every piece: how it moves, how it captures, and where it gets blocked. Next up: the rules that govern the whole game — check, checkmate, and more."
+      "summary": "You've met every piece: how it moves, how it captures, and where it gets blocked — plus how to read any square by its file and rank, and roughly how much each piece is worth. Next up: the rules that govern the whole game — check, checkmate, and more."
     }
   ],
   "kind": "mastery-challenge"
