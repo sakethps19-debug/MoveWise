@@ -14,6 +14,13 @@
   --mw-brass-ink: #8a6a2b;
   --mw-rosewood: #8b3a3a;
   --mw-sky: #3e5c76;
+  /* Text color for anything sitting directly on an accent-colored fill
+     (a moss/error button, an active segmented control). Light theme's
+     accents are dark enough for white text; dark theme deliberately
+     lightens them for visibility against a dark ground, which flips
+     the text that needs to sit on them — verified against WCAG AA
+     (4.5:1) for every accent color actually used this way. */
+  --mw-on-accent: #ffffff;
 
   /* neutrals — warm-biased, not pure grey */
   --mw-bg: #f7f1e4;
@@ -84,6 +91,11 @@
     --mw-brass-ink: #f1dcaa;
     --mw-rosewood: #d98080;
     --mw-sky: #8fb3d1;
+    /* Dark theme's accents are deliberately lightened for visibility
+       against a dark ground, so the text sitting on them needs to flip
+       dark too — --mw-surface is already a verified-dark tone here
+       (6.7:1+ against --mw-moss), reused rather than a new color. */
+    --mw-on-accent: var(--mw-surface);
 
     --mw-bg: #1c1912;
     --mw-surface: #262117;
@@ -125,6 +137,7 @@
   --mw-moss-ink: #cfe4bf;
   --mw-brass: #d8b165;
   --mw-brass-ink: #f1dcaa;
+  --mw-on-accent: var(--mw-surface);
   --mw-rosewood: #d98080;
   --mw-sky: #8fb3d1;
 
