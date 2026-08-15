@@ -243,8 +243,11 @@
   color: var(--mw-moss-ink);
 }
 .mw-nav-item--disabled {
+  /* Signaled by the "Soon" badge and lack of hover affordance, not by
+     dimming — opacity on top of --mw-text-dim drops well below the
+     4.5:1 contrast floor (verified via axe-core), so disabled-ness
+     can't be conveyed by fading text color/opacity here. */
   cursor: default;
-  opacity: 0.6;
 }
 .mw-nav-item--disabled:hover {
   background: transparent;
@@ -314,7 +317,9 @@
   color: var(--mw-moss-ink);
 }
 .mw-nav-bottom-item--disabled {
-  opacity: 0.45;
+  /* No opacity dimming here either (see .mw-nav-item--disabled) —
+     it isn't a link (no href, no tap response), which is itself the
+     disabled signal; the icon/label keep full-contrast text-dim. */
 }
 
 /* ---------- Learn & Play home ---------- */

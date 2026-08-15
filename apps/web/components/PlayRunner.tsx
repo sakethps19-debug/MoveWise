@@ -210,7 +210,7 @@ export function PlayRunner() {
           <div className={`mw-player-card${engineTurn ? " mw-player-card--active" : ""}`}>
             <span className="mw-player-card-name">Stockfish</span>
             <span className="mw-player-card-detail">{SKILL_LEVELS.find((l) => l.value === skill)?.label}</span>
-            <div className="mw-captured-row" aria-label="Pieces Stockfish has captured">
+            <div className="mw-captured-row" role="group" aria-label="Pieces Stockfish has captured">
               {capturedByEngine.map((symbol, i) => (
                 <img key={i} src={`/pieces/${playerColor}${symbol}.svg`} alt={pieceNameOf(symbol)} className="mw-captured-piece" />
               ))}
@@ -229,7 +229,7 @@ export function PlayRunner() {
           <div className={`mw-player-card${playerTurn ? " mw-player-card--active" : ""}`}>
             <span className="mw-player-card-name">You</span>
             <span className="mw-player-card-detail">{playerColor === "w" ? "White" : "Black"}</span>
-            <div className="mw-captured-row" aria-label="Pieces you've captured">
+            <div className="mw-captured-row" role="group" aria-label="Pieces you've captured">
               {capturedByPlayer.map((symbol, i) => (
                 <img key={i} src={`/pieces/${engineColor}${symbol}.svg`} alt={pieceNameOf(symbol)} className="mw-captured-piece" />
               ))}
