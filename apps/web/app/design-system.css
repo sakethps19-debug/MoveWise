@@ -606,6 +606,8 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  max-width: 100%;
 }
 .mw-play-control-group--actions {
   flex-direction: row;
@@ -622,9 +624,10 @@
 }
 .mw-segmented {
   display: inline-flex;
+  max-width: 100%;
   border: 1px solid var(--mw-border);
   border-radius: var(--mw-radius-sm);
-  overflow: hidden;
+  overflow-x: auto;
 }
 .mw-segmented-option {
   font-family: var(--mw-font-body);
@@ -635,6 +638,7 @@
   border-right: 1px solid var(--mw-border);
   padding: 8px 12px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .mw-segmented-option:last-child { border-right: none; }
 .mw-segmented-option:hover { background: var(--mw-surface-2); }
