@@ -6,6 +6,7 @@ import { getSession } from "../lib/auth";
 import { logoutAction } from "./actions";
 import { LearningPath } from "../components/LearningPath";
 import { Nav } from "../components/Nav";
+import { DevResetControl } from "../components/DevResetControl";
 import type { MasteryStatus } from "../lib/masteryModel";
 
 const UNITS = [
@@ -63,6 +64,8 @@ export default async function HomePage({
             </div>
           )}
         </div>
+
+        {process.env.NODE_ENV === "development" && <DevResetControl isGuest={!user} />}
 
         {locked && (
           <p role="alert" className="mw-feedback mw-feedback--error" style={{ marginBottom: "var(--mw-space-5)" }}>

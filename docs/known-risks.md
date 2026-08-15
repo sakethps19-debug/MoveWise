@@ -31,8 +31,120 @@ rather than repeating it.
   `docs/testing-strategy.md`'s coverage table).
 - **Star tiers (0/1-2/3+ mistakes) are an initial guess**, not user-tested
   — see ADR-0004.
+- **`pnpm lint` cannot currently run non-interactively.** `next lint` has
+  no committed ESLint config in this repo and prompts for one on first
+  run (Strict/Base/Cancel) — piping a selection into stdin doesn't
+  satisfy its raw-terminal prompt, so it can't complete in a non-TTY
+  environment (this sandbox, and presumably CI too, though `.github/
+  workflows/ci.yml` doesn't invoke `pnpm lint` at all, which is
+  consistent with this never having been runnable in automation).
+  Pre-existing, not introduced this pass — confirmed by checking the
+  workflow file and git history for any `.eslintrc*`/`eslint.config.*`
+  before assuming it was newly broken. Fixing it means choosing and
+  committing an ESLint config, a real decision for whoever owns this
+  repo's tooling, not something to pick unilaterally mid-feature-work.
 
 ## Resolved this session, kept here for the record
+
+- **Board-loading flash, feedback design, lesson-progression states, and
+  Play & Learn's information architecture** — a product-review pass
+  across six areas:
+  - **Board stabilization**: preloaded all 12 piece SVGs
+    (`app/layout.tsx`'s `<link rel="preload">` tags) so the starting
+    position never visibly assembles piece-by-piece on a cold cache — no
+    entrance animation exists to begin with, and `prefers-reduced-motion`
+    already collapses the feedback/star animations that do (verified,
+    not just read from CSS). Added `e2e/board-regression.spec.ts` (12
+    tests at the three required device widths: 1440×900, 1024×768,
+    390×844) asserting 64 equal 1:1 squares, exactly 32 fully-decoded
+    starting pieces sized 82–90% of their square, no page-level
+    horizontal overflow, and no piece-count growth between first paint
+    and network-idle — on top of the existing `chessboard-geometry.spec.ts`.
+  - **Touch targets**: `.mw-btn`, `.mw-order-item`, `.mw-segmented-option`,
+    `.mw-icon-btn`, `.mw-nav-item`, and `.mw-lesson-exit` all now have an
+    explicit 44px minimum (several were ~32–40px) — real WCAG 2.5.5
+    findings, not a redesign. The chessboard's own squares are the one
+    accepted exception: an 8-wide board on a 390px phone is inherently
+    ~44px/square at best, and enlarging the board to guarantee more would
+    break the "board stays within the viewport" requirement instead.
+  - **Feedback design**: `StepFooter.tsx` now shows a correct answer's
+    explanation *and* its XP together (previously one or the other), plus
+    a filled circular icon on both correct/incorrect banners. Fixed a
+    real contrast bug: light-mode `--mw-warning-ink` measured 4.05:1
+    against its own background, under the 4.5:1 AA floor for text that
+    size (`--mw-badge--warning`); now 5.71:1.
+  - **Reference lesson**: `meet-the-pieces.01-welcome` rebuilt onto the
+    full template (objective → explanation → guided exercise → independent
+    exercise → mistake correction → recap → completion/XP) — a second,
+    hint-free `select-square` step and a `true-false` step were added
+    alongside the original guided one, plus a `review` recap step. Every
+    correct/incorrect path has a specific, misconception-level
+    explanation (e.g. "That's Black's queen — she stands right next to
+    the king, same as on White's side," not "Try again"). Updated every
+    E2E spec that drove this lesson's old 3-step shape (`lessons.spec.ts`,
+    `accessibility.spec.ts`, `auth.spec.ts`, `account.spec.ts`,
+    `learning-path.spec.ts` — 8 call sites) to the new 6-step one and its
+    new XP total (15 → 30, since `xpReward` also went 10 → 15).
+  - **Progression states**: extended the learning path from 3 states
+    (locked/available/completed) to 5 (+ in-progress, + mastered) without
+    touching the gating logic those three already correctly drove —
+    `LearningPath.tsx` layers "in-progress" (`lib/lessonProgressUI.ts`, a
+    client-only "started" signal, never gates anything) and "mastered"
+    (a completed lesson's own 3-star performance — a lesson-level
+    distinction from `MasteryStatus`'s unrelated concept-level `mastered`
+    state, which stays Phase-C-only as before) on top of the existing
+    three. Locked rows now show *why* ("Unlocks after 'X'" /
+    "Unlocks once 'Y' is proficient"), not just a lock icon. Added a
+    development-only progress-reset control (`DevResetControl.tsx`,
+    `devResetProgressAction` in `app/actions.ts`) guarded twice — the
+    component only renders under a server-side `NODE_ENV === "development"`
+    check in `app/page.tsx` (dead-code-eliminated from a production
+    build), and the Server Action itself independently re-checks
+    `NODE_ENV`, since an action is a real callable endpoint regardless of
+    what the client renders.
+  - **Learning-path visuals**: added a local (not yet server-tracked)
+    daily-goal/streak strip (`lib/streak.ts`, `DailyGoalStrip.tsx`), a
+    "Review needed" section surfacing principles whose concept mastery
+    has regressed to `"struggling"` (real signal already computed by
+    `lib/masteryModel.ts`, not new data), and a "Chapter complete" badge
+    once every lesson in a unit is done.
+  - **Play & Learn hierarchy**: relabeled the page's own copy and
+    structure into the explicit "1. Play a game / 2. Review the game /
+    3. Recommended lessons" sequence the brief asked for, replacing a
+    bare "Soon" badge. Built the typed data model for real game review
+    (`lib/gameAnalysis.ts`'s `MoveAnalysis`/`GameReview`, matching
+    `packages/engine`'s existing `EngineAnalysis.score` shape so a real
+    implementation can slot in later) and a clearly-labeled demo
+    (`GameReviewDemo.tsx`, a "DEMO" badge plus explicit "not a real
+    engine review of the game you just played" copy) built from fixed,
+    hand-authored sample moves — deliberately *not* derived from the
+    game the learner just played, since faking evals from their real
+    moves would look more like genuine analysis, not less. Recommended
+    lessons in the demo link to real, existing lesson ids. The file's own
+    doc comment lists the concrete remaining integration work (persist
+    `Game` rows, call `engine.bestMove` before/after each real ply,
+    classify from real eval swings, map mistakes via
+    `docs/concept-taxonomy.md`) — none of it built this pass.
+
+  Verified: `pnpm typecheck`/`test`/`validate:content`/`build` all pass;
+  the full E2E suite (98 tests, including 2 new files —
+  `board-regression.spec.ts`, `dev-tools.spec.ts` — and additions to
+  `play-mode.spec.ts`) passes against real local Postgres; manually
+  driven with Playwright through signup → lesson completion → reload →
+  persistence → next-lesson-unlock → locked-lesson block → dark mode →
+  Play & Learn's full demo-review flow, with console errors monitored
+  live (one real one found and fixed: no `favicon.ico`/app icon existed
+  at all, now `app/icon.svg`). Screenshots taken at 1440×900, 1024×768,
+  and 390×844 in both themes.
+
+  Not done, and not claimed as done: no visual-design rewrite of the
+  learning path beyond the additions above (the existing "clean course
+  outline" direction, `docs/design/visual-directions.md`'s Direction A,
+  was kept rather than replaced); no unit-specific E2E coverage for the
+  `check-and-checkmate`/`basic-tactics` progression states (they share
+  the exact same unit-agnostic code path already covered against
+  `meet-the-pieces`); `pnpm lint` still can't run in this environment
+  (see the entry above — pre-existing, not new).
 
 - **`check-and-checkmate` and `basic-tactics` were still the flat
   `Unit → Lesson` shape** (ADR-0008 Phase A): both units now have a

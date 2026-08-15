@@ -10,6 +10,12 @@ test("a fresh guest and a fresh account both see later lessons locked", async ({
   // lib/guestProgress.ts) instead of always showing everything open —
   // there'd be no point tracking guest completions otherwise.
   await page.goto("/");
+  // Guest locking depends on an effect reading localStorage after mount
+  // (LearningPath.tsx) — wait for at least one lock icon to actually
+  // render instead of counting synchronously right after navigation,
+  // which raced the effect and could observe the pre-hydration "nothing
+  // locked yet" frame.
+  await expect(page.getByText("🔒").first()).toBeVisible();
   const guestLockCount = await page.getByText("🔒").count();
   expect(guestLockCount).toBeGreaterThan(0);
 
@@ -21,12 +27,19 @@ test("a fresh guest and a fresh account both see later lessons locked", async ({
   await page.click("button[type=submit]");
   await page.waitForURL("/");
 
+  await expect(page.getByText("🔒").first()).toBeVisible();
   const lockCount = await page.getByText("🔒").count();
   expect(lockCount).toBeGreaterThan(0);
   // The entire second unit is locked via its lesson's own prerequisite
-  // chain into the first unit's mastery-challenge lesson.
-  const checkmateBasicsRow = page.getByText("What is check?");
-  await expect(checkmateBasicsRow.locator("..")).toContainText("🔒");
+  // chain into the first unit's mastery-challenge lesson. Filtered by the
+  // row's own title element (not hasText on the whole row) — a locked
+  // row's new "Unlocks after ..." subtitle (Phase 4) can itself quote
+  // another lesson's title as substring text, which would otherwise match
+  // more than one row.
+  const checkmateBasicsRow = page
+    .locator(".mw-lesson-node")
+    .filter({ has: page.locator(".mw-lesson-node-title", { hasText: "What is check?" }) });
+  await expect(checkmateBasicsRow).toContainText("🔒");
 });
 
 test("guest progress persists locally, unlocks the next lesson, and migrates into a new account on signup", async ({
@@ -36,7 +49,12 @@ test("guest progress persists locally, unlocks the next lesson, and migrates int
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
   await page.locator('[aria-label*="e1,"]').click();
-  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "False" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Complete unit" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -44,7 +62,7 @@ test("guest progress persists locally, unlocks the next lesson, and migrates int
   // next lesson (whose only prerequisite is this one) is now unlocked.
   // (`exact: true` avoids also matching the "Continue learning" callout,
   // whose accessible name includes the same lesson title.)
-  const welcomeRow = page.getByText("Welcome to the chessboard").locator("..");
+  const welcomeRow = page.locator(".mw-lesson-node", { hasText: "Welcome to the chessboard" });
   await expect(welcomeRow.locator("span[aria-label='3 of 3 stars']")).toBeVisible();
   const nextRow = page.getByRole("link", { name: "Ranks, files and squares", exact: true });
   await expect(nextRow).not.toContainText("🔒");
@@ -60,7 +78,7 @@ test("guest progress persists locally, unlocks the next lesson, and migrates int
   // The guest completion migrated into the new account: same star
   // rating, same lesson unlocked, now backed by the DB instead of
   // localStorage.
-  const welcomeRowSignedIn = page.getByText("Welcome to the chessboard").locator("..");
+  const welcomeRowSignedIn = page.locator(".mw-lesson-node", { hasText: "Welcome to the chessboard" });
   await expect(welcomeRowSignedIn.locator("span[aria-label='3 of 3 stars']")).toBeVisible();
   const nextRowSignedIn = page.getByRole("link", { name: "Ranks, files and squares", exact: true });
   await expect(nextRowSignedIn).not.toContainText("🔒");
@@ -81,12 +99,17 @@ test("a perfect first run earns 3 stars; a run with mistakes earns fewer", async
   await page.locator('[aria-label*="a1,"]').click(); // wrong
   await page.locator('[aria-label*="a2,"]').click(); // wrong again
   await page.locator('[aria-label*="e1,"]').click(); // correct
-  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "False" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Complete unit" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
   // 2 mistakes -> 2 filled stars, not 3 (see docs/adr/0004 for the tiering rule)
-  const lessonRow = page.getByText("Welcome to the chessboard").locator("..");
+  const lessonRow = page.locator(".mw-lesson-node", { hasText: "Welcome to the chessboard" });
   await expect(lessonRow).toContainText("★★");
   await expect(lessonRow.locator("span[aria-label='2 of 3 stars']")).toBeVisible();
 });
@@ -131,7 +154,12 @@ test("meet-the-pieces shows principle groupings with a mastery badge (ADR-0008)"
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
   await page.locator('[aria-label*="e1,"]').click();
-  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "False" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Complete unit" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -163,7 +191,12 @@ test("completing a principle's lessons sloppily doesn't unlock the next principl
   await page.locator('[aria-label*="a1,"]').click();
   await page.locator('[aria-label*="a2,"]').click();
   await page.locator('[aria-label*="e1,"]').click();
-  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "False" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Complete unit" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -207,7 +240,12 @@ test("strong performance in a principle unlocks the next one (ADR-0008)", async 
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
   await page.locator('[aria-label*="e1,"]').click();
-  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "False" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Complete unit" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -246,11 +284,16 @@ test("a zero-mistake run that used a hint doesn't earn 3 stars", async ({ page }
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Hint 1" }).click();
   await page.locator('[aria-label*="e1,"]').click(); // correct, zero wrong clicks
-  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "False" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Complete unit" }).click();
   await expect(page.getByText(/hint used/)).toBeVisible();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
-  const lessonRow = page.getByText("Welcome to the chessboard").locator("..");
+  const lessonRow = page.locator(".mw-lesson-node", { hasText: "Welcome to the chessboard" });
   await expect(lessonRow.locator("span[aria-label='2 of 3 stars']")).toBeVisible();
 });

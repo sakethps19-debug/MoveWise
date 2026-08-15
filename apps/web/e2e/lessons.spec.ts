@@ -1,20 +1,34 @@
 import { test, expect } from "@playwright/test";
 
-test("explain and select-square steps: click through Welcome to the chessboard, reach the completion screen", async ({
+test("explain, select-square, and true-false steps: click through Welcome to the chessboard, reach the completion screen", async ({
   page,
 }) => {
   await page.goto("/learn/meet-the-pieces.01-welcome");
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
 
-  // step-3: select-square, correctSquares=['e1'] (the white king) — this is
-  // also the lesson's last step, so "Finish lesson" ends the lesson.
+  // step-3: select-square (guided, with hints), correctSquares=['e1'] (the white king).
   await page.locator('[aria-label*="e1,"]').click();
   await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
-  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await expect(page.getByText("White's king begins on e1, between the queen and the bishop.")).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // step-4: select-square (independent, no hints), correctSquares=['e8'] (the black king).
+  await page.locator('[aria-label*="e8,"]').click();
+  await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // step-5: true-false (mastery check), correct=false.
+  await page.getByRole("button", { name: "False" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // step-6: review (recap) — this is the lesson's last step.
+  await expect(page.getByText("You can now read the board")).toBeVisible();
+  await page.getByRole("button", { name: "Complete unit" }).click();
 
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
-  await expect(page.getByText("+15 XP")).toBeVisible(); // 2×5 XP steps + 5 XP lesson reward
+  await expect(page.getByText("+30 XP")).toBeVisible(); // 3×5 XP steps + 15 XP lesson reward
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await expect(page).toHaveURL("/");
 });

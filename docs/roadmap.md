@@ -94,8 +94,17 @@ two followed the same pattern.
 
 ## Phase B — Play & Learn foundation (ADR-0008)
 
-Not started. Blocked on Phase A's `Concept` taxonomy existing (move
-analysis needs concept IDs to tag instructive moments with).
+No longer blocked (Phase A's `Concept` taxonomy now covers all three
+curated units), but not functionally started either — what exists is
+architecture, not analysis: `apps/web/lib/gameAnalysis.ts`'s typed
+`MoveAnalysis`/`GameReview` model (matching `packages/engine`'s existing
+`EngineAnalysis.score` shape) and a clearly-labeled demo UI
+(`GameReviewDemo.tsx`) built from fixed sample data, wired into a real
+"1. Play / 2. Review / 3. Recommendations" hierarchy on the Play & Learn
+page. None of it reads a real game's moves or calls the engine for
+post-game analysis — see that file's own "remaining integration work"
+comment for the concrete list, superseding the bullets below where they
+overlap.
 
 - Persist completed Stockfish games (`Game`, ADR-0008) — Play mode is
   currently freeform/stateless, this is the first real change to it.

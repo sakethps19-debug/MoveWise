@@ -7,12 +7,12 @@
     "Identify the board's orientation and the two sides"
   ],
   "prerequisites": [],
-  "xpReward": 10,
+  "xpReward": 15,
   "masteryTags": [
     "board-orientation"
   ],
   "difficulty": 1,
-  "estimatedDurationSec": 90,
+  "estimatedDurationSec": 180,
   "steps": [
     {
       "id": "step-1",
@@ -23,8 +23,9 @@
     {
       "id": "step-2",
       "type": "explain",
-      "text": "Each player controls one side: White pieces and Black pieces. White always moves first.",
-      "boardFen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+      "text": "Each player controls one side: White pieces and Black pieces. White always moves first. Notice how the two sides mirror each other — every piece on White's back row has a matching piece straight across on Black's back row.",
+      "boardFen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "highlights": ["e1", "e8"]
     },
     {
       "id": "step-3",
@@ -61,7 +62,38 @@
       "feedback": {
         "d1": "That's the queen's starting square — she stands right next to the king.",
         "default": "That's not the king's starting square. Look for the tallest piece with a small cross."
-      }
+      },
+      "successExplanation": "White's king begins on e1, between the queen and the bishop."
+    },
+    {
+      "id": "step-4",
+      "type": "select-square",
+      "prompt": "Now find Black's king on your own, without hints.",
+      "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+      "correctSquares": [
+        "e8"
+      ],
+      "hints": [],
+      "feedback": {
+        "d8": "That's Black's queen — she stands right next to the king, same as on White's side.",
+        "default": "Not quite. Remember how the two sides mirror each other: find White's king on e1, then look at the square directly across the board from it."
+      },
+      "successExplanation": "Black's king begins on e8 — directly across the board from White's king on e1, since the two sides mirror each other."
+    },
+    {
+      "id": "step-5",
+      "type": "true-false",
+      "prompt": "True or false: which side moves first can change from game to game.",
+      "correct": false,
+      "feedback": {
+        "default": "Actually, it's always White who moves first — every single game, no exceptions. Players can agree on who plays White, but once that's settled, White always takes the opening move."
+      },
+      "successExplanation": "Right — White always moves first. That never changes, no matter who's playing or which game it is."
+    },
+    {
+      "id": "step-6",
+      "type": "review",
+      "summary": "You can now read the board: 64 squares, two mirrored sides, White at the bottom and moving first. White's king starts on e1, Black's king starts on e8. Next: naming every square by its file and rank, so you can talk about any move precisely."
     }
   ],
   "principleId": "meet-the-pieces.board-basics"

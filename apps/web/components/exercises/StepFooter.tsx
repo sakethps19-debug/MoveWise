@@ -23,8 +23,13 @@ export function StepFooter({
   if (status === "incorrect" && feedback) {
     return (
       <p role="alert" className="mw-feedback mw-feedback--error">
-        <strong>Not quite. </strong>
-        {feedback}
+        <span aria-hidden="true" className="mw-feedback-icon">
+          ✕
+        </span>
+        <span>
+          <strong>Not quite. </strong>
+          {feedback}
+        </span>
       </p>
     );
   }
@@ -32,8 +37,15 @@ export function StepFooter({
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-3)" }}>
         <p role="status" className="mw-feedback mw-feedback--success">
-          <strong>Correct! </strong>
-          {successExplanation ?? `+${xp} XP`}
+          <span aria-hidden="true" className="mw-feedback-icon">
+            ✓
+          </span>
+          <span>
+            <strong>Correct! </strong>
+            {successExplanation}
+            {successExplanation ? " " : ""}
+            <span className="mw-feedback-xp">+{xp} XP</span>
+          </span>
         </p>
         <Button onClick={onAdvance} fullWidth>
           {isLastStep ? "Finish lesson" : "Continue"}

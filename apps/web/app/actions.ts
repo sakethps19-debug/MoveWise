@@ -193,6 +193,31 @@ export async function deleteAccountAction(_prevState: FormState, formData: FormD
   redirect("/");
 }
 
+/**
+ * Phase 4's "clearly isolated development-only progress reset mechanism."
+ * Guarded here, server-side, not just by the calling UI being hidden in
+ * production (components/DevResetControl.tsx already only renders under
+ * `process.env.NODE_ENV === "development"`) — a Server Action is its own
+ * callable endpoint regardless of what the client renders, so the actual
+ * safety boundary has to live in the action itself. Only ever deletes the
+ * signed-in caller's own rows (never another user's, never guest
+ * localStorage server-side) — same blast radius as the self-service
+ * account deletion above, just without deleting the account itself.
+ */
+export async function devResetProgressAction(): Promise<{ error?: string }> {
+  if (process.env.NODE_ENV !== "development") {
+    return { error: "Not available outside development." };
+  }
+  const user = await getSession();
+  if (!user) return { error: "You must be signed in." };
+
+  await prisma.exerciseAttempt.deleteMany({ where: { userId: user.id } });
+  await prisma.userConceptMastery.deleteMany({ where: { userId: user.id } });
+  await prisma.lessonCompletion.deleteMany({ where: { userId: user.id } });
+  revalidatePath("/");
+  return {};
+}
+
 export async function completeLessonAction(
   lessonId: string,
   xpEarned: number,

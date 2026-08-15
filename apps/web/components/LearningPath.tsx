@@ -6,10 +6,12 @@ import type { Lesson, Principle } from "@movewise/exercise-schema";
 import { starsForPerformance } from "../lib/mastery";
 import { PROFICIENT_STATUSES, type MasteryStatus } from "../lib/masteryModel";
 import { clearGuestProgress, readGuestProgress } from "../lib/guestProgress";
+import { readStartedLessons } from "../lib/lessonProgressUI";
 import { Stars } from "./ui/Stars";
 import { MasteryBadge } from "./ui/MasteryBadge";
 import { ProgressBar } from "./ui/ProgressBar";
 import { UnitMotif } from "./UnitMotif";
+import { DailyGoalStrip } from "./ui/DailyGoalStrip";
 
 export interface UnitWithLessons {
   id: string;
@@ -19,7 +21,21 @@ export interface UnitWithLessons {
   principles: Principle[];
 }
 
-type LessonStatus = "locked" | "available" | "completed";
+/**
+ * Five-state progression model (Phase 4). "locked"/"available"/"completed"
+ * are the real, server-verifiable states everything else (gating,
+ * `nextUp`) is computed against — see `statusOf` below, unchanged in
+ * meaning from before this pass. "in-progress" and "mastered" are display
+ * refinements layered on top, computed in the render loop from data
+ * `statusOf` doesn't need: "in-progress" from the client-only "started"
+ * signal (lib/lessonProgressUI.ts, never gates anything), "mastered" from
+ * a completed lesson's own 3-star performance — a *lesson-level*
+ * distinction, not to be confused with `MasteryStatus`'s "mastered"
+ * concept-level state (masteryModel.ts), which is Phase C/gameApplication-
+ * Score territory and not reachable yet.
+ */
+type LessonStatus = "locked" | "available" | "in-progress" | "completed" | "mastered";
+type CoreStatus = "locked" | "available" | "completed";
 
 /**
  * Mirrors the server-side gate in app/learn/[lessonId]/page.tsx exactly —
@@ -34,7 +50,7 @@ function statusOf(
   principlesById: Map<string, Principle>,
   principlesInOrder: Principle[],
   conceptMastery: Map<string, MasteryStatus> | null,
-): LessonStatus {
+): CoreStatus {
   if (completedIds === null) return "available"; // guest: no progress tracked, nothing to lock against
   if (completedIds.has(lesson.id)) return "completed";
   if (!lesson.prerequisites.every((p) => completedIds.has(p))) return "locked";
@@ -52,6 +68,35 @@ function statusOf(
   }
 
   return "available";
+}
+
+/**
+ * What a locked lesson needs before it opens — shown on the row itself
+ * (Phase 4: "clearly show what is required to unlock a lesson"), not just
+ * as a banner after a bounced direct-URL attempt.
+ */
+function unlockReason(
+  lesson: Lesson,
+  completedIds: Set<string> | null,
+  lessonsById: Map<string, Lesson>,
+  principlesById: Map<string, Principle>,
+  principlesInOrder: Principle[],
+): string | null {
+  if (completedIds === null) return null; // guest: no per-row reason, matches statusOf's "everything open" treatment
+  const missingPrereq = lesson.prerequisites.find((p) => !completedIds.has(p));
+  if (missingPrereq) {
+    const title = lessonsById.get(missingPrereq)?.title ?? missingPrereq;
+    return `Unlocks after "${title}"`;
+  }
+  if (lesson.principleId) {
+    const principle = principlesById.get(lesson.principleId);
+    if (principle && principle.subLessonIds[0] === lesson.id) {
+      const index = principlesInOrder.findIndex((p) => p.id === principle.id);
+      const previous = index > 0 ? principlesInOrder[index - 1] : undefined;
+      if (previous) return `Unlocks once "${previous.title}" is proficient`;
+    }
+  }
+  return null;
 }
 
 /**
@@ -82,6 +127,14 @@ export function LearningPath({
     string,
     { xpEarned: number; mistakes: number; hintsUsed: number }
   > | null>(null);
+  // "In progress" (Phase 4) is a client-only UI signal (lib/lessonProgressUI.ts)
+  // — read after mount, same reasoning as guestCompletions below: it must
+  // match the server's first paint (nothing "in progress" yet) to avoid a
+  // hydration mismatch.
+  const [startedIds, setStartedIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    setStartedIds(readStartedLessons());
+  }, []);
 
   // Server-rendered `completions` is only non-null for a signed-in user.
   // For a guest, fall back to whatever this browser has recorded locally
@@ -106,6 +159,7 @@ export function LearningPath({
   const effectiveConceptMastery = completedIds === null ? null : conceptMastery;
 
   const allLessons = units.flatMap((u) => u.lessons);
+  const allLessonsById = new Map(allLessons.map((l) => [l.id, l]));
   const allPrinciplesById = new Map(units.flatMap((u) => u.principles).map((p) => [p.id, p]));
   const statusFor = (lesson: Lesson) =>
     statusOf(
@@ -115,10 +169,63 @@ export function LearningPath({
       units.find((u) => u.id === lesson.unitId)?.principles ?? [],
       effectiveConceptMastery,
     );
+  const unlockReasonFor = (lesson: Lesson) =>
+    unlockReason(
+      lesson,
+      completedIds,
+      allLessonsById,
+      allPrinciplesById,
+      units.find((u) => u.id === lesson.unitId)?.principles ?? [],
+    );
+  // Layers "in-progress" and "mastered" onto the three core, gating-
+  // relevant statuses — see the LessonStatus/CoreStatus doc comment above.
+  const displayStatusFor = (lesson: Lesson): LessonStatus => {
+    const core = statusFor(lesson);
+    if (core === "available" && startedIds.has(lesson.id)) return "in-progress";
+    if (core === "completed") {
+      const record = effectiveCompletions?.get(lesson.id);
+      if (record && starsForPerformance(record.mistakes, record.hintsUsed) === 3) return "mastered";
+    }
+    return core;
+  };
   const nextUp = allLessons.find((l) => statusFor(l) === "available");
+
+  // Phase 5's "review-needed section": principles whose concept has
+  // regressed to "struggling" per lib/masteryModel.ts — real signal
+  // already computed from ExerciseAttempt history, not a placeholder.
+  // Signed-in only, same reasoning as everywhere else conceptMastery is
+  // used: guests have no server-tracked mastery to flag.
+  const needsReview =
+    effectiveConceptMastery === null
+      ? []
+      : units
+          .flatMap((u) => u.principles.map((p) => ({ unit: u, principle: p })))
+          .filter(({ principle }) => effectiveConceptMastery.get(principle.conceptId) === "struggling");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-6)" }}>
+      <DailyGoalStrip />
+
+      {needsReview.length > 0 && (
+        <div className="mw-review-needed">
+          <h2 className="mw-review-needed-title">Review needed</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-2)" }}>
+            {needsReview.map(({ unit, principle }) => {
+              const firstLesson = unit.lessons.find((l) => l.id === principle.subLessonIds[0]);
+              if (!firstLesson) return null;
+              return (
+                <Link key={principle.id} href={`/learn/${firstLesson.id}`} className="mw-review-needed-item">
+                  <span className="mw-review-needed-item-title">{principle.title}</span>
+                  <span className="mw-review-needed-item-detail">
+                    A few recent attempts went wrong — a quick revisit will help this stick.
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {nextUp && (
         <Link href={`/learn/${nextUp.id}`} className="mw-continue-card">
           <div className="mw-continue-eyebrow">
@@ -155,6 +262,8 @@ export function LearningPath({
         const ungrouped = unit.lessons.filter((l) => !groupedLessonIds.has(l.id));
         if (ungrouped.length > 0) groups.push({ heading: null, lessons: ungrouped });
 
+        const unitComplete = unit.lessons.length > 0 && completedInUnit === unit.lessons.length;
+
         return (
           <section key={unit.id}>
             <div className="mw-unit-header">
@@ -162,9 +271,13 @@ export function LearningPath({
                 <UnitMotif unitId={unit.id} />
               </span>
               <h2 className="mw-unit-title">{unit.title}</h2>
-              <span className="mw-unit-count">
-                {completedInUnit} / {unit.lessons.length}
-              </span>
+              {unitComplete ? (
+                <span className="mw-badge mw-badge--success">Chapter complete</span>
+              ) : (
+                <span className="mw-unit-count">
+                  {completedInUnit} / {unit.lessons.length}
+                </span>
+              )}
             </div>
             <div className="mw-unit-progress">
               <ProgressBar value={completedInUnit} max={unit.lessons.length} label={`${unit.title} progress`} />
@@ -185,22 +298,40 @@ export function LearningPath({
                   )}
                   <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-2)" }}>
                     {group.lessons.map((lesson) => {
-                      const status = statusFor(lesson);
+                      const coreStatus = statusFor(lesson);
+                      const status = displayStatusFor(lesson);
                       const record = effectiveCompletions?.get(lesson.id);
+                      const reason = coreStatus === "locked" ? unlockReasonFor(lesson) : null;
+
+                      const icon =
+                        status === "locked"
+                          ? "🔒"
+                          : status === "in-progress"
+                            ? "◐"
+                            : status === "mastered"
+                              ? "✓"
+                              : status === "completed"
+                                ? "✓"
+                                : "▶";
 
                       const row = (
                         <div className={`mw-lesson-node mw-lesson-node--${status}`}>
                           <span className="mw-lesson-node-icon" aria-hidden="true">
-                            {status === "locked" ? "🔒" : status === "completed" ? "✓" : "▶"}
+                            {icon}
                           </span>
-                          <span className="mw-lesson-node-title">{lesson.title}</span>
-                          {status === "completed" && record && (
+                          <span className="mw-lesson-node-body">
+                            <span className="mw-lesson-node-title">{lesson.title}</span>
+                            {reason && <span className="mw-lesson-node-reason">{reason}</span>}
+                            {status === "in-progress" && <span className="mw-lesson-node-reason">In progress</span>}
+                          </span>
+                          {status === "mastered" && <span className="mw-badge mw-badge--success">Mastered</span>}
+                          {(status === "completed" || status === "mastered") && record && (
                             <Stars count={starsForPerformance(record.mistakes, record.hintsUsed)} />
                           )}
                         </div>
                       );
 
-                      return status === "locked" ? (
+                      return coreStatus === "locked" ? (
                         <div key={lesson.id} aria-disabled="true">
                           {row}
                         </div>
