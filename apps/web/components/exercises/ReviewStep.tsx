@@ -1,14 +1,17 @@
 "use client";
 
 import type { ReviewStep as ReviewStepData } from "@movewise/exercise-schema";
+import { Button } from "../ui/Button";
 
 export function ReviewStep({ step, onAdvance }: { step: ReviewStepData; onAdvance: () => void }) {
   return (
     <>
-      <p>{step.summary}</p>
-      <button type="button" onClick={onAdvance}>
+      <div className="mw-review-card">
+        <p className="mw-review-summary">{step.summary}</p>
+      </div>
+      <Button onClick={onAdvance} fullWidth>
         Complete unit
-      </button>
+      </Button>
     </>
   );
 }

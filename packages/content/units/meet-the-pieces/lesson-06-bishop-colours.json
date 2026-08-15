@@ -30,7 +30,8 @@
       "correct": false,
       "feedback": {
         "default": "Diagonal moves always keep a bishop on the same colour square for the entire game."
-      }
+      },
+      "successExplanation": "Right — a bishop's whole diagonal world is fixed by which colour square it started on."
     },
     {
       "id": "step-3",
@@ -42,7 +43,26 @@
       ],
       "feedback": {
         "default": "The bishop can slide diagonally right up to and capture the pawn on c6 — but it can't go past it."
-      }
+      },
+      "successExplanation": "Bxc6 captures the pawn. The bishop stops exactly where the first piece in its path sits."
+    },
+    {
+      "id": "step-4",
+      "type": "capture",
+      "prompt": "Capture the knight with your bishop.",
+      "fen": "7k/8/8/5P2/4B3/8/8/Kn6 w - - 0 1",
+      "expectedMoves": [
+        "e4b1"
+      ],
+      "feedback": {
+        "default": "Look along the bishop's open diagonal — it can't cross its own pawn on f5, but the other diagonal is completely clear."
+      },
+      "successExplanation": "Bxb1 captures the knight. The e4-b1 diagonal was completely clear, even though the bishop's own pawn blocks the diagonal toward f5."
+    },
+    {
+      "id": "step-5",
+      "type": "review",
+      "summary": "Bishops move and capture diagonally, any distance, but always stay on one square colour for the whole game and stop dead at the first piece — friend or foe — in their path."
     }
   ],
   "principleId": "meet-the-pieces.the-bishop"

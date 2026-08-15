@@ -38,7 +38,8 @@
       ],
       "feedback": {
         "default": "The rook is blocked by its own pawn on c4 in one direction, and can only reach d4 by capturing the black rook there."
-      }
+      },
+      "successExplanation": "Rxd4 is the only legal move — the pawn on c4 blocks the other direction, so capturing the rook on d4 is forced."
     },
     {
       "id": "step-3",
@@ -47,7 +48,26 @@
       "correct": false,
       "feedback": {
         "default": "The rook can never jump over any piece, friendly or enemy."
-      }
+      },
+      "successExplanation": "Right — a blocked rook has to stop or capture right there. It never has the option to jump."
+    },
+    {
+      "id": "step-4",
+      "type": "capture",
+      "prompt": "Capture the bishop with your rook.",
+      "fen": "7k/8/8/8/2P1R1b1/8/8/K7 w - - 0 1",
+      "expectedMoves": [
+        "e4g4"
+      ],
+      "feedback": {
+        "default": "Look for the rook's one enemy target along its rank — the path there needs to be clear, and the rook can't cross its own pawn on c4 to reach anything the other way."
+      },
+      "successExplanation": "Rxg4 captures the bishop. The path along the 4th rank to g4 was completely clear, so the rook could slide the whole way and capture."
+    },
+    {
+      "id": "step-5",
+      "type": "review",
+      "summary": "You've mastered the rook: it moves and captures in straight lines, any distance, but stops dead at the first piece — friend or foe — in its path."
     }
   ],
   "principleId": "meet-the-pieces.the-rook"

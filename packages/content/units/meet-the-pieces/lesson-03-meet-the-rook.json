@@ -76,7 +76,8 @@
       ],
       "feedback": {
         "default": "The rook can't move diagonally. Keep it on the same rank or file."
-      }
+      },
+      "successExplanation": "That's a legal rook move — straight along the e-file, with nothing in the way."
     },
     {
       "id": "step-3",
@@ -112,7 +113,8 @@
       ],
       "feedback": {
         "default": "The rook can't jump over the pawn — it has to stop when something blocks its path, or capture it if that something is an enemy piece."
-      }
+      },
+      "successExplanation": "Rxd4 captures the pawn. The rook slides along the rank and stops exactly on the first piece in its path."
     }
   ],
   "principleId": "meet-the-pieces.the-rook"

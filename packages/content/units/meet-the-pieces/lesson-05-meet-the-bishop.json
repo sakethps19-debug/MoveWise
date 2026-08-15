@@ -75,7 +75,8 @@
       ],
       "feedback": {
         "default": "The bishop only moves diagonally — not up, down, or sideways."
-      }
+      },
+      "successExplanation": "That's a legal bishop move — sliding all the way along one diagonal, with nothing in the way."
     }
   ],
   "principleId": "meet-the-pieces.the-bishop"
