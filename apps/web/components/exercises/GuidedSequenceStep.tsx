@@ -63,17 +63,19 @@ export function GuidedSequenceStep({
       <p id={promptId} className="movewise-exercise-prompt">
         {step.prompt}
       </p>
-      <p style={{ opacity: 0.7 }}>
+      <p className="mw-hint-text">
         Move {Math.min(index + 1, step.playerMoves.length)} of {step.playerMoves.length}.
       </p>
-      <Board
-        fen={fen}
-        selected={selected}
-        legalTargets={selected ? legalTargetsFrom(fen, selected) : []}
-        onSquareClick={handleClick}
-        interactive={status === "active"}
-        describedBy={promptId}
-      />
+      <div style={{ display: "flex", justifyContent: "center", margin: "var(--mw-space-2) 0" }}>
+        <Board
+          fen={fen}
+          selected={selected}
+          legalTargets={selected ? legalTargetsFrom(fen, selected) : []}
+          onSquareClick={handleClick}
+          interactive={status === "active"}
+          describedBy={promptId}
+        />
+      </div>
       <StepFooter status={status} feedback={feedback} xp={STEP_XP} isLastStep={isLastStep} onAdvance={onAdvance} />
     </>
   );

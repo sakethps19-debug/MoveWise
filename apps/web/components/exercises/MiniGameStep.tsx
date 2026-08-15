@@ -5,6 +5,7 @@ import type { MiniGameStep as MiniGameStepData } from "@movewise/exercise-schema
 import { gameStatus, isGameOver, legalTargetsFrom, parseUci, tryMove, type Square } from "@movewise/chess-rules";
 import { sideToMove, type EngineHandle } from "@movewise/engine";
 import { Board } from "../Board";
+import { Button } from "../ui/Button";
 import { STEP_XP, type ExerciseHandlers } from "./types";
 
 /**
@@ -76,23 +77,25 @@ export function MiniGameStep({
       <p id={`${step.id}-prompt`} className="movewise-exercise-prompt">
         <strong>Objective:</strong> {step.objective}
       </p>
-      <p style={{ opacity: 0.7 }}>{step.winCondition}</p>
+      <p className="mw-hint-text">{step.winCondition}</p>
       {engineError && (
-        <p role="alert" style={{ color: "#b3261e" }}>
+        <p role="alert" className="mw-feedback mw-feedback--error">
           {engineError}
         </p>
       )}
       {!engineError && (
         <>
-          <Board
-            fen={fen}
-            selected={selected}
-            legalTargets={selected ? legalTargetsFrom(fen, selected) : []}
-            onSquareClick={handleClick}
-            interactive={engineReady && !thinking && status === "active" && sideToMove(fen) === playerColor}
-            describedBy={`${step.id}-prompt`}
-          />
-          <p role="status">
+          <div style={{ display: "flex", justifyContent: "center", margin: "var(--mw-space-2) 0" }}>
+            <Board
+              fen={fen}
+              selected={selected}
+              legalTargets={selected ? legalTargetsFrom(fen, selected) : []}
+              onSquareClick={handleClick}
+              interactive={engineReady && !thinking && status === "active" && sideToMove(fen) === playerColor}
+              describedBy={`${step.id}-prompt`}
+            />
+          </div>
+          <p role="status" className={`mw-feedback ${status === "correct" ? "mw-feedback--success" : "mw-feedback--neutral"}`}>
             {!engineReady
               ? "Loading Stockfish…"
               : status === "correct"
@@ -104,9 +107,9 @@ export function MiniGameStep({
         </>
       )}
       {status === "correct" && (
-        <button type="button" onClick={onAdvance}>
+        <Button onClick={onAdvance} fullWidth>
           {isLastStep ? "Finish lesson" : "Continue"}
-        </button>
+        </Button>
       )}
     </>
   );
