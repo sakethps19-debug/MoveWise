@@ -112,6 +112,117 @@ test("a signed-in learner can't bypass locked-lesson sequencing via direct URL",
   await expect(banner).toContainText("locked");
 });
 
+test("meet-the-pieces shows principle groupings with a mastery badge (ADR-0008)", async ({ page }) => {
+  const email = uniqueEmail("principle-groups");
+  await page.goto("/signup");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", "password123");
+  await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+
+  // The learning path groups meet-the-pieces' lessons under principle
+  // headings ("Board basics", "The rook", ...) instead of a flat list —
+  // no badge yet since nothing's been attempted.
+  await expect(page.getByRole("heading", { name: "Board basics" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "The rook" })).toBeVisible();
+
+  await page.goto("/learn/meet-the-pieces.01-welcome");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e1,"]').click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("link", { name: "Back to learning path" }).click();
+  await page.waitForURL("/");
+
+  // A perfect single attempt is enough evidence for "Proficient" per
+  // lib/masteryModel.ts, and it shows up next to the principle heading.
+  const boardBasicsHeading = page.getByRole("heading", { name: "Board basics" });
+  await expect(boardBasicsHeading.locator("..")).toContainText("Proficient");
+});
+
+test("completing a principle's lessons sloppily doesn't unlock the next principle (ADR-0008)", async ({ page }) => {
+  // Real requirement from review: "lesson completion alone must not
+  // unlock the next principle." meet-the-pieces.03-meet-the-rook is the
+  // first sub-lesson of the "the-rook" principle; its own lesson-level
+  // prerequisite (lesson-02 completed) is satisfied here, but
+  // board-orientation mastery never reaches "proficient" because of the
+  // wrong clicks below — so it must still be locked.
+  const email = uniqueEmail("proficiency-locked");
+  await page.goto("/signup");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", "password123");
+  await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+
+  // Lesson 1: two wrong clicks before the correct one.
+  await page.goto("/learn/meet-the-pieces.01-welcome");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="a1,"]').click();
+  await page.locator('[aria-label*="a2,"]').click();
+  await page.locator('[aria-label*="e1,"]').click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("link", { name: "Back to learning path" }).click();
+  await page.waitForURL("/");
+
+  // Lesson 2: completed cleanly — enough that lesson-03's own
+  // prerequisite chain is satisfied, but not enough to pull aggregate
+  // board-orientation accuracy up to "proficient".
+  await page.goto("/learn/meet-the-pieces.02-ranks-files-squares");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e4,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "A row running across the board" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("link", { name: "Back to learning path" }).click();
+  await page.waitForURL("/");
+
+  // meet-the-pieces.03-meet-the-rook is fully unlocked by the old
+  // lesson-completion check, but must still be blocked by the new
+  // principle-proficiency check.
+  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await page.waitForURL(/\/\?locked=/);
+  const banner = page.getByRole("alert").filter({ hasText: "locked" });
+  await expect(banner).toContainText("Meet the rook");
+  await expect(banner).toContainText("Board basics");
+});
+
+test("strong performance in a principle unlocks the next one (ADR-0008)", async ({ page }) => {
+  const email = uniqueEmail("proficiency-unlocked");
+  await page.goto("/signup");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", "password123");
+  await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+
+  // Both "Board basics" lessons, correct on the first try — pushes
+  // board-orientation mastery to "proficient".
+  await page.goto("/learn/meet-the-pieces.01-welcome");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e1,"]').click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("link", { name: "Back to learning path" }).click();
+  await page.waitForURL("/");
+
+  await page.goto("/learn/meet-the-pieces.02-ranks-files-squares");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e4,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "A row running across the board" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("link", { name: "Back to learning path" }).click();
+  await page.waitForURL("/");
+
+  // Now the-rook's first sub-lesson should actually render, not redirect.
+  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await expect(page).toHaveURL("/learn/meet-the-pieces.03-meet-the-rook");
+  await expect(page.getByText("Meet the rook", { exact: true })).toBeVisible();
+});
+
 test("a zero-mistake run that used a hint doesn't earn 3 stars", async ({ page }) => {
   // Real defect found in review: stars were computed from mistakes only,
   // so a run with zero wrong clicks but a revealed hint (even the

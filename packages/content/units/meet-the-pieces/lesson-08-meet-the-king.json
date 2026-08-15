@@ -3,10 +3,16 @@
   "version": 1,
   "unitId": "meet-the-pieces",
   "title": "Meet the king",
-  "objectives": ["Understand the king moves one square in any direction"],
-  "prerequisites": ["meet-the-pieces.07-meet-the-queen"],
+  "objectives": [
+    "Understand the king moves one square in any direction"
+  ],
+  "prerequisites": [
+    "meet-the-pieces.07-meet-the-queen"
+  ],
   "xpReward": 15,
-  "masteryTags": ["king-movement"],
+  "masteryTags": [
+    "king-movement"
+  ],
   "difficulty": 1,
   "estimatedDurationSec": 120,
   "steps": [
@@ -15,22 +21,61 @@
       "type": "explain",
       "text": "The king moves just one square in any direction — straight or diagonal. He's the piece you must always protect.",
       "boardFen": "8/8/8/8/4K3/8/8/8 w - - 0 1",
-      "highlights": ["d3", "d4", "d5", "e3", "e5", "f3", "f4", "f5"]
+      "highlights": [
+        "d3",
+        "d4",
+        "d5",
+        "e3",
+        "e5",
+        "f3",
+        "f4",
+        "f5"
+      ]
     },
     {
       "id": "step-2",
       "type": "move-piece",
       "prompt": "Move the king exactly one square in any direction.",
       "fen": "7k/8/8/8/4K3/8/8/8 w - - 0 1",
-      "expectedMoves": ["e4e5"],
-      "altValid": ["e4d3", "e4d4", "e4d5", "e4e3", "e4f3", "e4f4", "e4f5"],
-      "hints": [
-        { "level": 1, "text": "Move the king exactly one square, any direction." },
-        { "level": 2, "text": "Any of the eight neighboring squares works.", "highlightSquares": ["e4"] },
-        { "level": 3, "text": "Try this one.", "arrowFrom": "e4", "arrowTo": "e5" },
-        { "level": 4, "text": "The king steps from e4 to e5." }
+      "expectedMoves": [
+        "e4e5"
       ],
-      "feedback": { "default": "The king can only move one square at a time — not further." }
+      "altValid": [
+        "e4d3",
+        "e4d4",
+        "e4d5",
+        "e4e3",
+        "e4f3",
+        "e4f4",
+        "e4f5"
+      ],
+      "hints": [
+        {
+          "level": 1,
+          "text": "Move the king exactly one square, any direction."
+        },
+        {
+          "level": 2,
+          "text": "Any of the eight neighboring squares works.",
+          "highlightSquares": [
+            "e4"
+          ]
+        },
+        {
+          "level": 3,
+          "text": "Try this one.",
+          "arrowFrom": "e4",
+          "arrowTo": "e5"
+        },
+        {
+          "level": 4,
+          "text": "The king steps from e4 to e5."
+        }
+      ],
+      "feedback": {
+        "default": "The king can only move one square at a time — not further."
+      }
     }
-  ]
+  ],
+  "principleId": "meet-the-pieces.the-king"
 }

@@ -3,10 +3,16 @@
   "version": 1,
   "unitId": "meet-the-pieces",
   "title": "Meet the knight",
-  "objectives": ["Understand the knight's L-shaped move and that it can jump over pieces"],
-  "prerequisites": ["meet-the-pieces.08-meet-the-king"],
+  "objectives": [
+    "Understand the knight's L-shaped move and that it can jump over pieces"
+  ],
+  "prerequisites": [
+    "meet-the-pieces.08-meet-the-king"
+  ],
   "xpReward": 15,
-  "masteryTags": ["knight-movement"],
+  "masteryTags": [
+    "knight-movement"
+  ],
   "difficulty": 2,
   "estimatedDurationSec": 180,
   "steps": [
@@ -15,29 +21,70 @@
       "type": "explain",
       "text": "The knight moves in an L-shape: two squares in one direction, then one square to the side. It's the only piece that can jump over other pieces.",
       "boardFen": "8/8/8/8/4N3/8/8/8 w - - 0 1",
-      "highlights": ["d2", "f2", "c3", "g3", "c5", "g5", "d6", "f6"]
+      "highlights": [
+        "d2",
+        "f2",
+        "c3",
+        "g3",
+        "c5",
+        "g5",
+        "d6",
+        "f6"
+      ]
     },
     {
       "id": "step-2",
       "type": "move-piece",
       "prompt": "Move the knight in an L-shape to any of its eight possible landing squares.",
       "fen": "7k/8/8/8/4N3/8/8/K7 w - - 0 1",
-      "expectedMoves": ["e4f6"],
-      "altValid": ["e4d6", "e4c5", "e4c3", "e4d2", "e4f2", "e4g3", "e4g5"],
-      "hints": [
-        { "level": 1, "text": "Move two squares one way, then one square to the side." },
-        { "level": 2, "text": "There are eight possible landing squares from here.", "highlightSquares": ["e4"] },
-        { "level": 3, "text": "Try this L-shape.", "arrowFrom": "e4", "arrowTo": "f6" },
-        { "level": 4, "text": "The knight hops from e4 to f6." }
+      "expectedMoves": [
+        "e4f6"
       ],
-      "feedback": { "default": "That's not an L-shape — two squares one way, then one square to the side." }
+      "altValid": [
+        "e4d6",
+        "e4c5",
+        "e4c3",
+        "e4d2",
+        "e4f2",
+        "e4g3",
+        "e4g5"
+      ],
+      "hints": [
+        {
+          "level": 1,
+          "text": "Move two squares one way, then one square to the side."
+        },
+        {
+          "level": 2,
+          "text": "There are eight possible landing squares from here.",
+          "highlightSquares": [
+            "e4"
+          ]
+        },
+        {
+          "level": 3,
+          "text": "Try this L-shape.",
+          "arrowFrom": "e4",
+          "arrowTo": "f6"
+        },
+        {
+          "level": 4,
+          "text": "The knight hops from e4 to f6."
+        }
+      ],
+      "feedback": {
+        "default": "That's not an L-shape — two squares one way, then one square to the side."
+      }
     },
     {
       "id": "step-3",
       "type": "true-false",
       "prompt": "A knight can jump over pieces that are in its way.",
       "correct": true,
-      "feedback": { "default": "The knight is the only piece that can hop over anything in between." }
+      "feedback": {
+        "default": "The knight is the only piece that can hop over anything in between."
+      }
     }
-  ]
+  ],
+  "principleId": "meet-the-pieces.the-knight"
 }

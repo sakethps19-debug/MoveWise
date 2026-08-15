@@ -48,7 +48,8 @@ beyond "every signed-in action is already server-persisted."
 
 ## Phase A — Learn & Play foundation (ADR-0008)
 
-Not started, except the first bullet.
+Mostly done for `meet-the-pieces`, the one unit this phase's own
+priority says to restructure fully before touching the other two.
 
 - ~~Correct the existing lesson-engine defects.~~ **Done** — ADR-0007
   (required prompts on every board exercise, stale-hint clearing,
@@ -56,19 +57,34 @@ Not started, except the first bullet.
   guided recovery). This was a prerequisite for everything else in this
   phase, per the review's own instruction not to build a taxonomy and
   mastery system on top of a lesson engine with known defects.
-- Create the `Principle → SubLesson → Puzzle → MasteryChallenge`
-  hierarchy (ADR-0008) and migrate `masteryTags` into real `Concept`
-  rows (`docs/concept-taxonomy.md`) — schema and data migration, not a
-  content rewrite (`SubLesson` = today's `Lesson`, unchanged).
-- Restructure the one existing beginner unit (`meet-the-pieces`) into
-  this hierarchy fully before touching the other two units or authoring
-  new content, per the request's own priority.
-- Implement concept-level mastery (`UserConceptMastery`, the 9-state
-  model in `docs/learner-model.md`) and controlled unlocking — puzzle
-  accuracy, hint usage, and mastery-challenge result, not lesson
-  completion alone.
-- Implement the struggling-learner remediation flow
-  (`docs/learner-model.md`) and a per-unit placement assessment.
+- ~~Create the `Principle → SubLesson → ... → MasteryChallenge`
+  hierarchy and migrate `masteryTags` into real `Concept` entries.~~
+  **Done for `meet-the-pieces`** — `packages/content/concepts.json` (19
+  concepts, migrated from the existing tags) and
+  `packages/content/principles/meet-the-pieces.json` (7 principles,
+  cross-referentially validated by `pnpm validate:content`). The other
+  two units (`check-and-checkmate`, `basic-tactics`) haven't been
+  restructured yet — deliberately, per this phase's own stated priority.
+  **`Puzzle` is not built** — no puzzle content authored this pass, so
+  every principle's `puzzleIds` is empty; puzzle-pool accuracy isn't
+  part of the unlock signal yet (see below).
+- ~~Implement concept-level mastery and controlled unlocking.~~ **Done,
+  with an honest scope cut**: `UserConceptMastery`/`ExerciseAttempt`
+  (real Postgres tables) and `lib/masteryModel.ts`'s
+  `computeMasteryStatus` implement 5 of the 9 states reachable from
+  exercise-attempt evidence alone (`not-started`, `learning`,
+  `proficient`, `struggling`, `recovered`). Unlocking a principle's
+  first sub-lesson now requires the *previous* principle's concept to be
+  proficient — not just its lessons completed — enforced server-side on
+  the lesson route and mirrored in the learning-path UI so a locked
+  lesson never shows as available. `practising`/`ready-for-assessment`
+  (need the `Puzzle` pool above) and `mastered`/`revision-due` (need
+  Phase B's `gameApplicationScore` and Phase C's spaced repetition) are
+  correctly *not* reachable yet — not an oversight, see
+  `lib/masteryModel.ts`'s own comment.
+- **Not done**: the struggling-learner remediation flow beyond
+  ADR-0007's per-exercise recovery (a concept-level reteach cycle, per
+  `docs/learner-model.md`), and a per-unit placement assessment.
 
 ## Phase B — Play & Learn foundation (ADR-0008)
 

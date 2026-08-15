@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseLesson } from "./index";
+import { parseLesson, parsePrinciple, parseConcept, parsePuzzle } from "./index";
 
 /**
  * Regression coverage for the missing-prompt defect found in the
@@ -63,4 +63,72 @@ describe("board-interaction steps require a non-empty prompt", () => {
       ).not.toThrow();
     });
   }
+});
+
+describe("ADR-0008 content-hierarchy schemas (Principle, Concept, Puzzle)", () => {
+  it("parses a valid Principle", () => {
+    expect(() =>
+      parsePrinciple({
+        id: "test-unit.a-principle",
+        unitId: "test-unit",
+        title: "A principle",
+        conceptId: "a-concept",
+        order: 0,
+        subLessonIds: ["test-unit.01-a"],
+        puzzleIds: [],
+      }),
+    ).not.toThrow();
+  });
+
+  it("rejects a Principle with no sub-lessons", () => {
+    expect(() =>
+      parsePrinciple({
+        id: "test-unit.a-principle",
+        unitId: "test-unit",
+        title: "A principle",
+        conceptId: "a-concept",
+        order: 0,
+        subLessonIds: [],
+        puzzleIds: [],
+      }),
+    ).toThrow();
+  });
+
+  it("parses a valid Concept", () => {
+    expect(() =>
+      parseConcept({ id: "rook-movement", name: "Rook movement", description: "How the rook moves and captures." }),
+    ).not.toThrow();
+  });
+
+  it("rejects a Concept with an empty description", () => {
+    expect(() => parseConcept({ id: "rook-movement", name: "Rook movement", description: "" })).toThrow();
+  });
+
+  it("parses a valid Puzzle", () => {
+    expect(() =>
+      parsePuzzle({
+        id: "test-unit.puzzle-1",
+        conceptIds: ["rook-movement"],
+        fen: "7k/8/8/8/4R3/8/8/K7 w - - 0 1",
+        prompt: "Find the rook's best move.",
+        correctMoves: ["e4e8"],
+        difficulty: 1,
+        feedback: { default: "Not quite." },
+      }),
+    ).not.toThrow();
+  });
+
+  it("rejects a Puzzle with no correct moves declared", () => {
+    expect(() =>
+      parsePuzzle({
+        id: "test-unit.puzzle-1",
+        conceptIds: ["rook-movement"],
+        fen: "7k/8/8/8/4R3/8/8/K7 w - - 0 1",
+        prompt: "Find the rook's best move.",
+        correctMoves: [],
+        difficulty: 1,
+        feedback: { default: "Not quite." },
+      }),
+    ).toThrow();
+  });
 });

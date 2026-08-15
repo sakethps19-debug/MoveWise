@@ -1,0 +1,65 @@
+[
+  {
+    "id": "meet-the-pieces.board-basics",
+    "unitId": "meet-the-pieces",
+    "title": "Board basics",
+    "conceptId": "board-orientation",
+    "order": 0,
+    "subLessonIds": ["meet-the-pieces.01-welcome", "meet-the-pieces.02-ranks-files-squares"],
+    "puzzleIds": []
+  },
+  {
+    "id": "meet-the-pieces.the-rook",
+    "unitId": "meet-the-pieces",
+    "title": "The rook",
+    "conceptId": "rook-movement",
+    "order": 1,
+    "subLessonIds": ["meet-the-pieces.03-meet-the-rook", "meet-the-pieces.04-rook-captures"],
+    "puzzleIds": []
+  },
+  {
+    "id": "meet-the-pieces.the-bishop",
+    "unitId": "meet-the-pieces",
+    "title": "The bishop",
+    "conceptId": "bishop-movement",
+    "order": 2,
+    "subLessonIds": ["meet-the-pieces.05-meet-the-bishop", "meet-the-pieces.06-bishop-colours"],
+    "puzzleIds": []
+  },
+  {
+    "id": "meet-the-pieces.the-queen",
+    "unitId": "meet-the-pieces",
+    "title": "The queen",
+    "conceptId": "queen-movement",
+    "order": 3,
+    "subLessonIds": ["meet-the-pieces.07-meet-the-queen"],
+    "puzzleIds": []
+  },
+  {
+    "id": "meet-the-pieces.the-king",
+    "unitId": "meet-the-pieces",
+    "title": "The king",
+    "conceptId": "king-movement",
+    "order": 4,
+    "subLessonIds": ["meet-the-pieces.08-meet-the-king"],
+    "puzzleIds": []
+  },
+  {
+    "id": "meet-the-pieces.the-knight",
+    "unitId": "meet-the-pieces",
+    "title": "The knight",
+    "conceptId": "knight-movement",
+    "order": 5,
+    "subLessonIds": ["meet-the-pieces.09-meet-the-knight"],
+    "puzzleIds": []
+  },
+  {
+    "id": "meet-the-pieces.the-pawn",
+    "unitId": "meet-the-pieces",
+    "title": "The pawn",
+    "conceptId": "pawn-movement",
+    "order": 6,
+    "subLessonIds": ["meet-the-pieces.10-meet-the-pawn", "meet-the-pieces.11-capturing-piece-values"],
+    "puzzleIds": []
+  }
+]

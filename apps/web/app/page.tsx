@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { prisma } from "@movewise/db";
 import { loadUnitLessons } from "../lib/lessons";
+import { loadUnitPrinciples } from "../lib/principles";
 import { getSession } from "../lib/auth";
 import { logoutAction } from "./actions";
 import { LearningPath } from "../components/LearningPath";
+import type { MasteryStatus } from "../lib/masteryModel";
 
 const UNITS = [
   { id: "meet-the-pieces", title: "Meet the Pieces" },
@@ -14,20 +16,29 @@ const UNITS = [
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ locked?: string; needs?: string }>;
+  searchParams: Promise<{ locked?: string; needs?: string; needsProficiency?: string }>;
 }) {
-  const { locked, needs } = await searchParams;
-  const units = UNITS.map((unit) => ({ ...unit, lessons: loadUnitLessons(unit.id) }));
+  const { locked, needs, needsProficiency } = await searchParams;
+  const units = UNITS.map((unit) => ({
+    ...unit,
+    lessons: loadUnitLessons(unit.id),
+    principles: loadUnitPrinciples(unit.id),
+  }));
   const user = await getSession();
 
   let totalXp = 0;
   let completions: Map<string, { xpEarned: number; mistakes: number; hintsUsed: number }> | null = null;
+  let conceptMastery: Map<string, MasteryStatus> | null = null;
   if (user) {
-    const rows = await prisma.lessonCompletion.findMany({ where: { userId: user.id } });
+    const [rows, masteryRows] = await Promise.all([
+      prisma.lessonCompletion.findMany({ where: { userId: user.id } }),
+      prisma.userConceptMastery.findMany({ where: { userId: user.id } }),
+    ]);
     totalXp = rows.reduce((sum, c) => sum + c.xpEarned, 0);
     completions = new Map(
       rows.map((c) => [c.lessonId, { xpEarned: c.xpEarned, mistakes: c.mistakes, hintsUsed: c.hintsUsed }]),
     );
+    conceptMastery = new Map(masteryRows.map((m) => [m.conceptId, m.status as MasteryStatus]));
   }
 
   return (
@@ -60,13 +71,15 @@ export default async function HomePage({
 
       {locked && (
         <p role="alert" style={{ background: "#fff4d6", padding: 12, borderRadius: 8 }}>
-          {needs
-            ? `"${locked}" is locked until you complete "${needs}" first.`
-            : `"${locked}" is locked until you complete its prerequisites first.`}
+          {needsProficiency
+            ? `"${locked}" is locked until your performance on "${needsProficiency}" is strong enough — completing the lessons isn't quite enough on its own. Try its exercises again for a stronger result.`
+            : needs
+              ? `"${locked}" is locked until you complete "${needs}" first.`
+              : `"${locked}" is locked until you complete its prerequisites first.`}
         </p>
       )}
 
-      <LearningPath units={units} completions={completions} />
+      <LearningPath units={units} completions={completions} conceptMastery={conceptMastery} />
     </main>
   );
 }

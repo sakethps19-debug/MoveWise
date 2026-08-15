@@ -17,9 +17,16 @@ import { MiniGameStep } from "./exercises/MiniGameStep";
 import { ReviewStep } from "./exercises/ReviewStep";
 import type { StepStatus } from "./exercises/types";
 
+/** One row per exercise attempt — see ADR-0008/docs/learner-model.md and packages/db's ExerciseAttempt model. */
+export interface AttemptRecord {
+  stepId: string;
+  correct: boolean;
+  wrongAnswerKey: string | null;
+}
+
 interface LessonRunnerProps {
   lesson: Lesson;
-  onComplete?: (xpEarned: number, mistakes: number, hintsUsed: number) => void;
+  onComplete?: (xpEarned: number, mistakes: number, hintsUsed: number, attempts: AttemptRecord[]) => void;
   /** True when there's no signed-in session — persists this completion to localStorage instead of the DB. */
   isGuest?: boolean;
 }
@@ -52,6 +59,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
   const [xpEarned, setXpEarned] = useState(0);
   const [mistakes, setMistakes] = useState(0);
   const [hintsUsed, setHintsUsed] = useState(0);
+  const [attempts, setAttempts] = useState<AttemptRecord[]>([]);
   const [recovering, setRecovering] = useState(false);
   const [finished, setFinished] = useState<{ xp: number; mistakes: number; hintsUsed: number } | null>(null);
 
@@ -75,7 +83,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
     setFeedback(null);
     if (isLastStep) {
       const totalXp = xpEarned + lesson.xpReward;
-      onComplete?.(totalXp, mistakes, hintsUsed);
+      onComplete?.(totalXp, mistakes, hintsUsed, attempts);
       if (isGuest) recordGuestCompletion(lesson.id, totalXp, mistakes, hintsUsed);
       setFinished({ xp: totalXp, mistakes, hintsUsed });
     } else {
@@ -87,9 +95,11 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
     setStatus("correct");
     setFeedback(null);
     setXpEarned((v) => v + xp);
+    setAttempts((a) => [...a, { stepId: step.id, correct: true, wrongAnswerKey: null }]);
   }
 
   function handleIncorrect(key: string) {
+    setAttempts((a) => [...a, { stepId: step.id, correct: false, wrongAnswerKey: key }]);
     const newMistakes = mistakes + 1;
     setMistakes(newMistakes);
     if (START_HEARTS - newMistakes <= 0) {

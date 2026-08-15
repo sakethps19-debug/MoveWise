@@ -3,10 +3,19 @@
   "version": 1,
   "unitId": "meet-the-pieces",
   "title": "Rook captures and blocked paths",
-  "objectives": ["Recognize that a rook stops at the first piece in its path", "Capture with a rook"],
-  "prerequisites": ["meet-the-pieces.03-meet-the-rook"],
+  "objectives": [
+    "Recognize that a rook stops at the first piece in its path",
+    "Capture with a rook"
+  ],
+  "prerequisites": [
+    "meet-the-pieces.03-meet-the-rook"
+  ],
   "xpReward": 15,
-  "masteryTags": ["rook-movement", "captures", "blocked-paths"],
+  "masteryTags": [
+    "rook-movement",
+    "captures",
+    "blocked-paths"
+  ],
   "difficulty": 1,
   "estimatedDurationSec": 150,
   "steps": [
@@ -15,14 +24,18 @@
       "type": "explain",
       "text": "A rook can't jump over pieces. If a friendly piece is in the way, the rook must stop before it. If an enemy piece is in the way, the rook can capture it — but then it must stop there.",
       "boardFen": "8/8/8/8/3pR3/8/8/8 w - - 0 1",
-      "highlights": ["d4"]
+      "highlights": [
+        "d4"
+      ]
     },
     {
       "id": "step-2",
       "type": "find-legal-move",
       "prompt": "Find the rook's one legal move — it's blocked in one direction and can capture in the other.",
       "fen": "7k/8/8/8/2PrR3/8/8/K7 w - - 0 1",
-      "validMoves": ["e4d4"],
+      "validMoves": [
+        "e4d4"
+      ],
       "feedback": {
         "default": "The rook is blocked by its own pawn on c4 in one direction, and can only reach d4 by capturing the black rook there."
       }
@@ -32,7 +45,10 @@
       "type": "true-false",
       "prompt": "A rook can jump over a piece if it really needs to reach the other side.",
       "correct": false,
-      "feedback": { "default": "The rook can never jump over any piece, friendly or enemy." }
+      "feedback": {
+        "default": "The rook can never jump over any piece, friendly or enemy."
+      }
     }
-  ]
+  ],
+  "principleId": "meet-the-pieces.the-rook"
 }

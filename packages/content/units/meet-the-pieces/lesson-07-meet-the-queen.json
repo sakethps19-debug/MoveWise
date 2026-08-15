@@ -3,10 +3,16 @@
   "version": 1,
   "unitId": "meet-the-pieces",
   "title": "Meet the queen",
-  "objectives": ["Understand the queen combines rook and bishop movement"],
-  "prerequisites": ["meet-the-pieces.06-bishop-colours"],
+  "objectives": [
+    "Understand the queen combines rook and bishop movement"
+  ],
+  "prerequisites": [
+    "meet-the-pieces.06-bishop-colours"
+  ],
   "xpReward": 15,
-  "masteryTags": ["queen-movement"],
+  "masteryTags": [
+    "queen-movement"
+  ],
   "difficulty": 1,
   "estimatedDurationSec": 150,
   "steps": [
@@ -15,22 +21,62 @@
       "type": "explain",
       "text": "The queen is the most powerful piece. She moves like a rook and a bishop combined — straight lines and diagonals, any distance.",
       "boardFen": "8/8/8/8/4Q3/8/8/8 w - - 0 1",
-      "highlights": ["e8", "e1", "a4", "h4", "a8", "h1", "b1", "h7"]
+      "highlights": [
+        "e8",
+        "e1",
+        "a4",
+        "h4",
+        "a8",
+        "h1",
+        "b1",
+        "h7"
+      ]
     },
     {
       "id": "step-2",
       "type": "move-piece",
       "prompt": "Move the queen along any straight line or diagonal, as far as it can go.",
       "fen": "7k/8/8/8/4Q3/8/8/K7 w - - 0 1",
-      "expectedMoves": ["e4e8"],
-      "altValid": ["e4a4", "e4h4", "e4e1", "e4a8", "e4h1", "e4h7", "e4b1", "e4c2"],
-      "hints": [
-        { "level": 1, "text": "The queen can move in any straight or diagonal direction — pick one and go as far as possible." },
-        { "level": 2, "text": "Straight lines and diagonals are both open to her.", "highlightSquares": ["e4"] },
-        { "level": 3, "text": "Here's one option.", "arrowFrom": "e4", "arrowTo": "e8" },
-        { "level": 4, "text": "The queen can slide straight up from e4 to e8." }
+      "expectedMoves": [
+        "e4e8"
       ],
-      "feedback": { "default": "The queen moves in straight lines or diagonals only — not like a knight." }
+      "altValid": [
+        "e4a4",
+        "e4h4",
+        "e4e1",
+        "e4a8",
+        "e4h1",
+        "e4h7",
+        "e4b1",
+        "e4c2"
+      ],
+      "hints": [
+        {
+          "level": 1,
+          "text": "The queen can move in any straight or diagonal direction — pick one and go as far as possible."
+        },
+        {
+          "level": 2,
+          "text": "Straight lines and diagonals are both open to her.",
+          "highlightSquares": [
+            "e4"
+          ]
+        },
+        {
+          "level": 3,
+          "text": "Here's one option.",
+          "arrowFrom": "e4",
+          "arrowTo": "e8"
+        },
+        {
+          "level": 4,
+          "text": "The queen can slide straight up from e4 to e8."
+        }
+      ],
+      "feedback": {
+        "default": "The queen moves in straight lines or diagonals only — not like a knight."
+      }
     }
-  ]
+  ],
+  "principleId": "meet-the-pieces.the-queen"
 }

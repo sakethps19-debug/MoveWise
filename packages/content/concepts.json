@@ -1,0 +1,119 @@
+[
+  {
+    "id": "board-orientation",
+    "name": "Board orientation",
+    "description": "Recognizing the board's layout and which side is which.",
+    "unitId": "meet-the-pieces"
+  },
+  {
+    "id": "square-identification",
+    "name": "Square identification",
+    "description": "Reading a square's file and rank without needing to memorize notation.",
+    "parentId": "board-orientation",
+    "unitId": "meet-the-pieces"
+  },
+  {
+    "id": "rook-movement",
+    "name": "Rook movement",
+    "description": "The rook moves in straight lines, any distance, until blocked.",
+    "unitId": "meet-the-pieces"
+  },
+  {
+    "id": "bishop-movement",
+    "name": "Bishop movement",
+    "description": "The bishop moves diagonally, any distance, until blocked, and stays on one square colour for the whole game.",
+    "unitId": "meet-the-pieces"
+  },
+  {
+    "id": "queen-movement",
+    "name": "Queen movement",
+    "description": "The queen combines rook and bishop movement.",
+    "unitId": "meet-the-pieces"
+  },
+  {
+    "id": "king-movement",
+    "name": "King movement",
+    "description": "The king moves one square in any direction.",
+    "unitId": "meet-the-pieces"
+  },
+  {
+    "id": "knight-movement",
+    "name": "Knight movement",
+    "description": "The knight moves in an L-shape and is the only piece that can jump over others.",
+    "unitId": "meet-the-pieces"
+  },
+  {
+    "id": "pawn-movement",
+    "name": "Pawn movement",
+    "description": "Pawns move forward but capture diagonally, with a two-square option on their first move.",
+    "unitId": "meet-the-pieces"
+  },
+  {
+    "id": "captures",
+    "name": "Captures",
+    "description": "Removing an opponent's piece by moving onto its square, following the capturing piece's own movement rules.",
+    "unitId": "meet-the-pieces"
+  },
+  {
+    "id": "blocked-paths",
+    "name": "Blocked paths",
+    "description": "A sliding piece (rook, bishop, queen) stops at the first piece in its path; it can capture an enemy piece there but never jumps over anything.",
+    "unitId": "meet-the-pieces"
+  },
+  {
+    "id": "piece-values",
+    "name": "Piece values",
+    "description": "The rough relative value of each piece, used to judge whether a trade is favourable.",
+    "unitId": "meet-the-pieces"
+  },
+  {
+    "id": "check",
+    "name": "Check",
+    "description": "Recognizing when a king is under direct attack and must escape immediately.",
+    "unitId": "check-and-checkmate"
+  },
+  {
+    "id": "checkmate",
+    "name": "Checkmate",
+    "description": "Check with no way out — the game ends immediately.",
+    "unitId": "check-and-checkmate"
+  },
+  {
+    "id": "decision-making",
+    "name": "Decision-making under check",
+    "description": "A reliable order (capture, block, move) for finding the best response to check.",
+    "unitId": "check-and-checkmate"
+  },
+  {
+    "id": "tactics",
+    "name": "Tactics",
+    "description": "Forcing sequences that win material or deliver checkmate.",
+    "unitId": "basic-tactics"
+  },
+  {
+    "id": "fork",
+    "name": "Forks",
+    "description": "One piece attacking two enemy targets at once.",
+    "parentId": "tactics",
+    "unitId": "basic-tactics"
+  },
+  {
+    "id": "knight-fork",
+    "name": "Knight forks",
+    "description": "A fork delivered by a knight, exploiting its L-shaped jump to attack two unrelated squares from one spot.",
+    "parentId": "fork",
+    "unitId": "basic-tactics"
+  },
+  {
+    "id": "knight",
+    "name": "The knight",
+    "description": "General knight-piece familiarity — distinct from knight-movement (meet-the-pieces' piece-rules lesson) and knight-fork (the tactic); tags content that's simply about the knight as a piece.",
+    "unitId": "basic-tactics"
+  },
+  {
+    "id": "preview",
+    "name": "Step-type preview",
+    "description": "Tags the non-curated demo lesson exercising newly-added exercise-step types — not real curriculum content, see packages/content/units/step-type-preview.",
+    "unitId": "step-type-preview"
+  }
+]

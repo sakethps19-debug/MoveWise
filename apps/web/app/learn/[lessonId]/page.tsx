@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@movewise/db";
 import { loadLesson } from "../../../lib/lessons";
+import { loadUnitPrinciples, findPreviousPrinciple } from "../../../lib/principles";
+import { PROFICIENT_STATUSES, type MasteryStatus } from "../../../lib/masteryModel";
 import { LessonRunner } from "../../../components/LessonRunner";
 import { completeLessonAction } from "../../actions";
 import { getSession } from "../../../lib/auth";
@@ -32,6 +34,31 @@ export default async function LessonPage({
       const missingLesson = loadLesson(missingId);
       const needs = encodeURIComponent(missingLesson?.title ?? missingId);
       redirect(`/?locked=${encodeURIComponent(lesson.title)}&needs=${needs}`);
+    }
+  }
+
+  // ADR-0008's controlled unlocking: lesson completion alone must not
+  // unlock the next principle. Only gate entry at a principle's *first*
+  // sub-lesson — sequencing within a principle is already handled by the
+  // prerequisites check above. Guests get no server-side gate here for
+  // the same reason as the prerequisites check (no session to track
+  // concept mastery against).
+  if (user && lesson.principleId) {
+    const principles = loadUnitPrinciples(lesson.unitId);
+    const principle = principles.find((p) => p.id === lesson.principleId);
+    if (principle && principle.subLessonIds[0] === lesson.id) {
+      const previous = findPreviousPrinciple(principle);
+      if (previous) {
+        const mastery = await prisma.userConceptMastery.findUnique({
+          where: { userId_conceptId: { userId: user.id, conceptId: previous.conceptId } },
+        });
+        const status = mastery?.status as MasteryStatus | undefined;
+        if (!status || !PROFICIENT_STATUSES.has(status)) {
+          redirect(
+            `/?locked=${encodeURIComponent(lesson.title)}&needsProficiency=${encodeURIComponent(previous.title)}`,
+          );
+        }
+      }
     }
   }
 

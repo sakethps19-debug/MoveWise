@@ -6,7 +6,9 @@
   "objectives": [
     "Demonstrate correct movement, capture, and blocking rules for every piece introduced in this unit"
   ],
-  "prerequisites": ["meet-the-pieces.11-capturing-piece-values"],
+  "prerequisites": [
+    "meet-the-pieces.11-capturing-piece-values"
+  ],
   "xpReward": 30,
   "masteryTags": [
     "board-orientation",
@@ -31,45 +33,94 @@
       "type": "move-piece",
       "prompt": "Move the rook in a straight line to any legal square.",
       "fen": "7k/8/8/8/4R3/8/8/K7 w - - 0 1",
-      "expectedMoves": ["e4a4"],
-      "altValid": ["e4h4", "e4e1", "e4e8"],
-      "hints": [
-        { "level": 1, "text": "Move the rook in a straight line." },
-        { "level": 2, "text": "Any straight-line direction is fine.", "highlightSquares": ["e4"] },
-        { "level": 3, "text": "Try this one.", "arrowFrom": "e4", "arrowTo": "a4" },
-        { "level": 4, "text": "The rook slides from e4 to a4." }
+      "expectedMoves": [
+        "e4a4"
       ],
-      "feedback": { "default": "Remember: the rook only moves in straight lines, never diagonally." }
+      "altValid": [
+        "e4h4",
+        "e4e1",
+        "e4e8"
+      ],
+      "hints": [
+        {
+          "level": 1,
+          "text": "Move the rook in a straight line."
+        },
+        {
+          "level": 2,
+          "text": "Any straight-line direction is fine.",
+          "highlightSquares": [
+            "e4"
+          ]
+        },
+        {
+          "level": 3,
+          "text": "Try this one.",
+          "arrowFrom": "e4",
+          "arrowTo": "a4"
+        },
+        {
+          "level": 4,
+          "text": "The rook slides from e4 to a4."
+        }
+      ],
+      "feedback": {
+        "default": "Remember: the rook only moves in straight lines, never diagonally."
+      }
     },
     {
       "id": "step-3",
       "type": "capture",
       "prompt": "Capture the black pawn with your bishop.",
       "fen": "7k/8/8/3p4/4B3/8/8/K7 w - - 0 1",
-      "expectedMoves": ["e4d5"],
-      "feedback": { "default": "The bishop moves diagonally — slide it onto the pawn's square to capture." }
+      "expectedMoves": [
+        "e4d5"
+      ],
+      "feedback": {
+        "default": "The bishop moves diagonally — slide it onto the pawn's square to capture."
+      }
     },
     {
       "id": "step-4",
       "type": "find-legal-move",
       "prompt": "Find any legal move for the knight.",
       "fen": "7k/8/8/8/4N3/8/8/K7 w - - 0 1",
-      "validMoves": ["e4f6", "e4d6", "e4c5", "e4c3", "e4d2", "e4f2", "e4g3", "e4g5"],
-      "feedback": { "default": "Knights move in an L-shape: two squares one way, one square to the side." }
+      "validMoves": [
+        "e4f6",
+        "e4d6",
+        "e4c5",
+        "e4c3",
+        "e4d2",
+        "e4f2",
+        "e4g3",
+        "e4g5"
+      ],
+      "feedback": {
+        "default": "Knights move in an L-shape: two squares one way, one square to the side."
+      }
     },
     {
       "id": "step-5",
       "type": "capture",
       "prompt": "Capture the black pawn with your pawn.",
       "fen": "7k/8/8/3p4/4P3/8/8/K7 w - - 0 1",
-      "expectedMoves": ["e4d5"],
-      "feedback": { "default": "A pawn captures diagonally, one square ahead — not straight forward." }
+      "expectedMoves": [
+        "e4d5"
+      ],
+      "feedback": {
+        "default": "A pawn captures diagonally, one square ahead — not straight forward."
+      }
     },
     {
       "id": "step-6",
       "type": "mcq",
       "prompt": "Which piece can jump over other pieces?",
-      "options": ["Rook", "Bishop", "Knight", "Queen"],
+      "options": [
+        "Rook",
+        "Bishop",
+        "Knight",
+        "Queen"
+      ],
       "correctIndex": 2
     },
     {
@@ -77,20 +128,50 @@
       "type": "move-piece",
       "prompt": "Move the king one square in any direction.",
       "fen": "7k/8/8/8/4K3/8/8/8 w - - 0 1",
-      "expectedMoves": ["e4d4"],
-      "altValid": ["e4d3", "e4d5", "e4e3", "e4e5", "e4f3", "e4f4", "e4f5"],
-      "hints": [
-        { "level": 1, "text": "The king moves just one square, any direction." },
-        { "level": 2, "text": "Any neighboring square works.", "highlightSquares": ["e4"] },
-        { "level": 3, "text": "Try this one.", "arrowFrom": "e4", "arrowTo": "d4" },
-        { "level": 4, "text": "The king steps from e4 to d4." }
+      "expectedMoves": [
+        "e4d4"
       ],
-      "feedback": { "default": "The king can only move one square at a time." }
+      "altValid": [
+        "e4d3",
+        "e4d5",
+        "e4e3",
+        "e4e5",
+        "e4f3",
+        "e4f4",
+        "e4f5"
+      ],
+      "hints": [
+        {
+          "level": 1,
+          "text": "The king moves just one square, any direction."
+        },
+        {
+          "level": 2,
+          "text": "Any neighboring square works.",
+          "highlightSquares": [
+            "e4"
+          ]
+        },
+        {
+          "level": 3,
+          "text": "Try this one.",
+          "arrowFrom": "e4",
+          "arrowTo": "d4"
+        },
+        {
+          "level": 4,
+          "text": "The king steps from e4 to d4."
+        }
+      ],
+      "feedback": {
+        "default": "The king can only move one square at a time."
+      }
     },
     {
       "id": "step-8",
       "type": "review",
       "summary": "You've met every piece: how it moves, how it captures, and where it gets blocked. Next up: the rules that govern the whole game — check, checkmate, and more."
     }
-  ]
+  ],
+  "kind": "mastery-challenge"
 }

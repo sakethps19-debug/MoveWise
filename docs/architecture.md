@@ -19,19 +19,25 @@ apart) — it's a consequence of how the packages were built one at a time
 across this project's history, not a deliberate up-front design exercise,
 but it satisfies the requirement regardless.
 
-## Information architecture (target, ADR-0008 — not built)
+## Information architecture (ADR-0008 — built for `meet-the-pieces` only)
 
-Everything below this section describes what's actually built today: a
-flat `Unit → Lesson → Step[]` hierarchy. ADR-0008 specifies a deeper
-one — `Course → Level → Unit → Principle → SubLesson`, plus a new
-pooled `Puzzle` content type and a `Concept` taxonomy every teaching
-and diagnostic surface references (`docs/concept-taxonomy.md`). The
-key continuity point: `SubLesson` **is** today's `Lesson` shape,
-unchanged — the existing `packages/exercise-schema` schema, all 8
-exercise-step-type renderers, and everything ADR-0007 just fixed
-(required prompts, hearts recovery, real stars) carry forward without
-rework. What's new is a `Principle` grouping layer above it and a
-`Puzzle` type beside it. See ADR-0008 for the full proposed schema and
+ADR-0008 specifies `Course → Level → Unit → Principle → SubLesson`, plus
+a pooled `Puzzle` content type and a `Concept` taxonomy every teaching
+and diagnostic surface references (`docs/concept-taxonomy.md`). Built so
+far: `Concept` (`packages/content/concepts.json`) and `Principle`
+(`packages/content/principles/meet-the-pieces.json`) for the one unit
+Phase A's own priority says to restructure first —
+`check-and-checkmate` and `basic-tactics` are still the flat
+`Unit → Lesson → Step[]` shape (both content-valid either way; a lesson
+without a `principleId` is simply ungrouped). `Puzzle` isn't built at
+all yet — no puzzle content exists, so every principle's `puzzleIds` is
+empty. `Course`/`Level` remain unmodeled, content or database, at
+today's volume — see ADR-0008's own reasoning. The key continuity
+point: `SubLesson` **is** today's `Lesson` shape, unchanged — the
+existing `packages/exercise-schema` schema, all 8 exercise-step-type
+renderers, and everything ADR-0007 fixed (required prompts, hearts
+recovery, real stars) carry forward without rework. See ADR-0008 for the
+full proposed schema and
 why `Course`/`Level` don't need real tables yet at today's content
 volume.
 
@@ -87,18 +93,17 @@ database is behind it). Schema changes go through real tracked migrations
 (`prisma/migrations/`, applied via `prisma migrate deploy` in
 `predev`/`prebuild` — see ADR-0005), not `prisma db push`.
 
-Four models today: `User`, `Session`, `LessonCompletion` (with
-`hintsUsed` as of ADR-0007), and `RateLimitHit` (one row per
-login/signup attempt, backing `apps/web/lib/rate-limit.ts` — see
-`docs/known-risks.md` for why an earlier in-memory version wasn't good
-enough once a serverless deploy target was concrete rather than
-theoretical). The ~25-entity model the brief's Section 12 describes
-(course/lesson versioning, concept mastery, XP transactions,
-achievements, revision schedules, saved games, audit logs) doesn't
-exist yet — ADR-0008 is now the concrete proposed schema for most of
-it (`Concept`, `UserConceptMastery`, `ExerciseAttempt`, `Principle`,
-`Puzzle`, `Game`, `GameAnalysis`, `MoveAnalysis`, `StudyPlan`), phased
-across Phase A/B/C (`docs/roadmap.md`) rather than one migration —
+Six models today: `User`, `Session`, `LessonCompletion` (with
+`hintsUsed` as of ADR-0007), `RateLimitHit` (one row per login/signup
+attempt, backing `apps/web/lib/rate-limit.ts` — see `docs/known-risks.md`
+for why an earlier in-memory version wasn't good enough once a
+serverless deploy target was concrete rather than theoretical), and —
+new, ADR-0008 Phase A — `UserConceptMastery` and `ExerciseAttempt`
+(`conceptId` is a plain string, not a foreign key — see
+`docs/concept-taxonomy.md`'s correction note on why `Concept` is
+content, not a database model). The rest of ADR-0008's proposed schema
+(`Game`, `GameAnalysis`, `MoveAnalysis`, `StudyPlan` — Phase B/C) doesn't
+exist yet, phased in (`docs/roadmap.md`) rather than one migration —
 still additive to this schema, not a redesign, since nothing built so
 far assumes a fixed shape beyond these four tables.
 

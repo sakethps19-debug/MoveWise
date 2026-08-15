@@ -15,7 +15,12 @@
   content happening to trip them. Several fixtures are the exact FEN/move
   data from real, already-validated lessons in `packages/content`, not
   invented positions, so a "this should pass" assertion is checked
-  against data independently known to be correct.
+  against data independently known to be correct. `apps/web` also has a
+  unit suite now (`vitest.config.ts`, scoped to `**/*.test.ts` so it
+  never picks up the separate Playwright `e2e/` suite) — currently
+  `lib/masteryModel.test.ts`, 8 tests directly exercising the
+  concept-mastery state transitions (not-started/learning/proficient/
+  struggling/recovered) without needing a real database.
 - **Content validation** (`pnpm validate:content`) — see
   `docs/architecture.md` for what the two layers (Zod schema,
   chess-legality) check. This is closest to what the brief's Section 19
@@ -58,19 +63,20 @@
 
 - **No load/performance testing.**
 
-## Acceptance criteria for the two-mode architecture (ADR-0008) — not built, this is the test plan
+## Acceptance criteria for the two-mode architecture (ADR-0008) — test plan, most still not built
 
-None of this exists yet — ADR-0008 is a design, not an implementation.
-Written now, alongside the design, so each acceptance criterion has a
+Written alongside the design, so each acceptance criterion has a
 concrete verification plan from the start rather than being retrofitted
 once Phase A/B/C code exists (same reasoning as `docs/learner-model.md`
-being written before Phase 3 started).
+being written before Phase 3 started). Rows 1 and 3 are now real,
+passing tests (`meet-the-pieces` only) — updated below to reflect what
+was actually built, not the original plan.
 
 | # | Criterion | Verified by | Phase |
 |---|---|---|---|
-| 1 | A learner can study one principle through multiple sub-lessons | E2E: navigate a `Principle`'s full sub-lesson sequence in order, assert each is reachable only after the prior one completes (extends the existing prerequisite-enforcement pattern from ADR-0007's `learning-path.spec.ts`) | A |
-| 2 | The learner receives puzzles specifically assessing that principle | E2E: after completing all sub-lessons in a `Principle`, assert the served `Puzzle`s are all tagged with that principle's `conceptId`; unit test: puzzle-selection query never returns a puzzle from an unrelated concept | A |
-| 3 | The next principle unlocks only after defined proficiency | E2E: attempt to reach a locked principle's sub-lesson by direct URL (mirrors ADR-0007's existing direct-URL-bypass test) with puzzle accuracy below threshold — assert still locked; then meet the real unlock criteria (puzzle accuracy + mastery-challenge pass, not lesson completion alone) and assert it unlocks | A |
+| 1 | A learner can study one principle through multiple sub-lessons | **Done for `meet-the-pieces`** — `e2e/learning-path.spec.ts`'s "shows principle groupings with a mastery badge" test; sub-lesson sequencing within a principle reuses ADR-0007's existing per-lesson `prerequisites` check, unchanged | A |
+| 2 | The learner receives puzzles specifically assessing that principle | **Not built** — no `Puzzle` content authored this pass; every principle's `puzzleIds` is empty. Plan unchanged: E2E asserting served puzzles are all tagged with the principle's `conceptId` | A |
+| 3 | The next principle unlocks only after defined proficiency | **Done for `meet-the-pieces`** — `e2e/learning-path.spec.ts`'s "completing a principle's lessons sloppily doesn't unlock the next principle" and "strong performance ... unlocks the next one" tests drive this against real `UserConceptMastery` data, not a mock. Proficiency signal today is exercise-attempt accuracy only (`lib/masteryModel.ts`) — puzzle accuracy and a per-principle mastery-challenge result aren't part of it yet, since neither exists | A |
 | 4 | A completed game receives accurate move-by-move classification | Unit tests against known, pre-analyzed real games (same "verify against independently-known-correct data" pattern `validate-chess.test.ts` already uses for lesson positions) — fixed positions with an established correct classification (a textbook blunder, a forced mate, a known best-alternative), not invented | B |
 | 5 | Important mistakes receive understandable explanations | Unit test: every `MoveAnalysis` row classified `mistake`/`blunder`/`inaccuracy` has a non-empty `explanation`; E2E: the post-game review UI renders the move, classification, best alternative, and board highlight together for at least one instructive moment | B |
 | 6 | Mistakes map to the correct curriculum concepts | Unit tests against `docs/concept-taxonomy.md`'s mapping table directly — e.g. a synthetic game with a premature-queen-development pattern must classify to `queen-development-timing`, not a neighboring concept | B |

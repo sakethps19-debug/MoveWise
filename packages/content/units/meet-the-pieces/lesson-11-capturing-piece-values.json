@@ -7,9 +7,14 @@
     "Understand that capturing means removing an opponent's piece by moving onto its square",
     "Know the rough relative value of each piece"
   ],
-  "prerequisites": ["meet-the-pieces.10-meet-the-pawn"],
+  "prerequisites": [
+    "meet-the-pieces.10-meet-the-pawn"
+  ],
   "xpReward": 20,
-  "masteryTags": ["captures", "piece-values"],
+  "masteryTags": [
+    "captures",
+    "piece-values"
+  ],
   "difficulty": 2,
   "estimatedDurationSec": 180,
   "steps": [
@@ -18,7 +23,9 @@
       "type": "explain",
       "text": "To capture, move your piece onto the square an enemy piece occupies, following that piece's own movement rules. The enemy piece is removed from the board.",
       "boardFen": "8/8/8/3n4/4Q3/8/8/8 w - - 0 1",
-      "highlights": ["d5"]
+      "highlights": [
+        "d5"
+      ]
     },
     {
       "id": "step-2",
@@ -31,7 +38,9 @@
       "type": "capture",
       "prompt": "Capture the black knight with your queen.",
       "fen": "7k/8/8/3n4/4Q3/8/8/K7 w - - 0 1",
-      "expectedMoves": ["e4d5"],
+      "expectedMoves": [
+        "e4d5"
+      ],
       "feedback": {
         "default": "Move the queen onto the square the knight occupies to capture it."
       }
@@ -40,8 +49,14 @@
       "id": "step-4",
       "type": "mcq",
       "prompt": "Which trade is roughly equal in value?",
-      "options": ["Trading your queen for a pawn", "Trading your knight for a rook", "Trading your bishop for a knight", "Trading your rook for a pawn"],
+      "options": [
+        "Trading your queen for a pawn",
+        "Trading your knight for a rook",
+        "Trading your bishop for a knight",
+        "Trading your rook for a pawn"
+      ],
       "correctIndex": 2
     }
-  ]
+  ],
+  "principleId": "meet-the-pieces.the-pawn"
 }

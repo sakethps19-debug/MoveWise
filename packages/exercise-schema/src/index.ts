@@ -151,6 +151,58 @@ export const LessonSchema = z.object({
   masteryTags: z.array(z.string().min(1)).min(1),
   difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   estimatedDurationSec: z.number().int().min(30),
+  /** Which Principle this sub-lesson belongs to, if any — see ADR-0008. Absent for ungrouped lessons (all content predating the principle hierarchy). */
+  principleId: z.string().min(1).optional(),
+  /** "mastery-challenge" marks a lesson as the mastery gate for its principle/unit, per ADR-0008 — absent means "sub-lesson". */
+  kind: z.enum(["sub-lesson", "mastery-challenge"]).optional(),
+});
+
+/**
+ * ADR-0008's content-hierarchy layer: Principle groups several
+ * SubLessons (= Lesson, unchanged shape above) and a puzzle pool under
+ * one taught idea. Content, not a database model — see
+ * docs/concept-taxonomy.md's correction note on why.
+ */
+export const PrincipleSchema = z.object({
+  id: z.string().min(1),
+  unitId: z.string().min(1),
+  title: z.string().min(1),
+  conceptId: z.string().min(1),
+  order: z.number().int().min(0),
+  subLessonIds: z.array(z.string().min(1)).min(1),
+  puzzleIds: z.array(z.string().min(1)).default([]),
+  masteryChallengeLessonId: z.string().min(1).optional(),
+});
+
+/**
+ * ADR-0008's Concept taxonomy entry — content, not a database model.
+ * `masteryTags`/`conceptIds` elsewhere reference `Concept.id` strings;
+ * this is where the human-readable name/description/hierarchy for that
+ * id lives.
+ */
+export const ConceptSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string().min(1),
+  parentId: z.string().min(1).optional(),
+  unitId: z.string().min(1).optional(),
+});
+
+/**
+ * A pooled, concept-tagged single-position exercise — ADR-0008's Puzzle
+ * type. Distinct from a single-step Lesson because puzzles need to be
+ * servable outside a fixed lesson sequence (a principle's puzzle pool,
+ * later the shared Practice pool).
+ */
+export const PuzzleSchema = z.object({
+  id: z.string().min(1),
+  conceptIds: z.array(z.string().min(1)).min(1),
+  fen: z.string().min(1),
+  prompt: z.string().min(1),
+  correctMoves: z.array(z.string().min(1)).min(1),
+  difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  feedback: FeedbackMapSchema,
+  sourceGameId: z.string().min(1).optional(),
 });
 
 export type Hint = z.infer<typeof HintSchema>;
@@ -170,6 +222,22 @@ export type GuidedSequenceStep = z.infer<typeof GuidedSequenceStepSchema>;
 export type MiniGameStep = z.infer<typeof MiniGameStepSchema>;
 export type ReviewStep = z.infer<typeof ReviewStepSchema>;
 
+export type Principle = z.infer<typeof PrincipleSchema>;
+export type Concept = z.infer<typeof ConceptSchema>;
+export type Puzzle = z.infer<typeof PuzzleSchema>;
+
 export function parseLesson(data: unknown): Lesson {
   return LessonSchema.parse(data);
+}
+
+export function parsePrinciple(data: unknown): Principle {
+  return PrincipleSchema.parse(data);
+}
+
+export function parseConcept(data: unknown): Concept {
+  return ConceptSchema.parse(data);
+}
+
+export function parsePuzzle(data: unknown): Puzzle {
+  return PuzzleSchema.parse(data);
 }

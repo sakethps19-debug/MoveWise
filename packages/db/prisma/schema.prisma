@@ -13,8 +13,10 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  sessions    Session[]
-  completions LessonCompletion[]
+  sessions          Session[]
+  completions       LessonCompletion[]
+  conceptMasteries  UserConceptMastery[]
+  exerciseAttempts  ExerciseAttempt[]
 }
 
 /// Opaque database-backed session tokens (not JWTs) — the cookie holds
@@ -49,6 +51,70 @@ model LessonCompletion {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
+}
+
+/// ADR-0008's learner model, per (user, concept). `conceptId` is a plain
+/// string referencing packages/content/concepts.json's `id` — concepts
+/// are authored content, not a database table (see
+/// docs/concept-taxonomy.md's correction note), so there's no foreign
+/// key here, the same way LessonCompletion.lessonId already references
+/// a JSON file's id with no Lesson table backing it.
+model UserConceptMastery {
+  id        String   @id @default(cuid())
+  userId    String
+  conceptId String
+  /// One of the 9 states in docs/learner-model.md: not-started, learning,
+  /// practising, ready-for-assessment, proficient, mastered,
+  /// revision-due, struggling, recovered. Stored as a plain string (like
+  /// LessonCompletion had no enum before it either) so the state list can
+  /// grow without a migration; validity is enforced at the application
+  /// layer (apps/web/lib/masteryModel.ts), not the database.
+  status               String
+  /// Derived from ExerciseAttempt accuracy/hint-usage — see
+  /// docs/learner-model.md's "Two evidence sources" section. 0-1 scale.
+  exerciseConfidence   Float     @default(0)
+  /// Derived from Play & Learn MoveAnalysis (Phase B, not built yet) —
+  /// stays 0 until Phase B exists. `mastered` requires both scores, not
+  /// exerciseConfidence alone; see docs/learner-model.md.
+  gameApplicationScore Float     @default(0)
+  lastPracticedAt      DateTime?
+  nextRevisionDueAt    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, conceptId])
+  @@index([userId])
+}
+
+/// One row per exercise attempt (not just per lesson completion) — the
+/// per-attempt detail LessonCompletion's mistakes/hintsUsed counts are
+/// aggregated from and then thrown away today. See docs/learner-model.md
+/// — this is the concrete first implementation step that document
+/// flagged as the raw material already existing (LessonRunner's
+/// handleIncorrect(key) already receives everything here, it just wasn't
+/// persisted).
+model ExerciseAttempt {
+  id             String   @id @default(cuid())
+  userId         String
+  lessonId       String
+  stepId         String
+  /// The lesson's masteryTags at attempt time — which concepts this
+  /// attempt is evidence for. Denormalized onto the attempt (not looked
+  /// up from the lesson later) so historical attempts stay meaningful
+  /// even if a lesson's tags are recurated later.
+  conceptIds     String[]
+  correct        Boolean
+  /// The feedback-map key that was hit on a wrong answer (e.g.
+  /// "knight-jumps-over") — null for a correct attempt. Raw material for
+  /// RecurringMistakePattern (docs/learner-model.md), not built this pass.
+  wrongAnswerKey String?
+  hintLevelUsed  Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, lessonId])
+  @@index([userId, createdAt])
 }
 
 /// Backs apps/web/lib/rate-limit.ts's sliding-window limiter. One row per

@@ -34,6 +34,20 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **Lesson completion alone unlocked the next principle** (ADR-0008
+  Phase A): `meet-the-pieces` is now restructured into 7 principles with
+  a real `Concept` taxonomy (`packages/content/concepts.json`,
+  `packages/content/principles/meet-the-pieces.json`), and a principle's
+  first sub-lesson now requires the *previous* principle's concept to be
+  `proficient` in a new `UserConceptMastery` table — not just its lessons
+  present in `LessonCompletion` — enforced server-side and mirrored in
+  the learning-path UI. Every exercise attempt (not just lesson-level
+  aggregates) is now persisted (`ExerciseAttempt`), the concrete first
+  step `docs/learner-model.md` had flagged as not yet built. Deliberately
+  incomplete, not an oversight: only 5 of the 9 mastery states are
+  reachable without a `Puzzle` pool or Play & Learn game data (neither
+  exists yet), and `check-and-checkmate`/`basic-tactics` haven't been
+  restructured into principles yet. See `docs/roadmap.md`'s Phase A.
 - **Interactive exercises had no visible instruction** — every
   board-interaction step type (`select-square`, `move-piece`, `capture`,
   `find-legal-move`, `find-check`/`find-checkmate`, `guided-sequence`)

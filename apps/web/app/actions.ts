@@ -6,6 +6,9 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@movewise/db";
 import { createSession, destroySession, getSession, hashPassword, verifyPassword } from "../lib/auth";
 import { checkRateLimit, formatRetryAfter } from "../lib/rate-limit";
+import { loadLesson } from "../lib/lessons";
+import { computeMasteryStatus, type MasteryStatus } from "../lib/masteryModel";
+import type { AttemptRecord } from "../components/LessonRunner";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -195,6 +198,7 @@ export async function completeLessonAction(
   xpEarned: number,
   mistakes: number,
   hintsUsed: number,
+  attempts: AttemptRecord[],
 ): Promise<void> {
   const user = await getSession();
   if (!user) return; // guest: XP is session-local only, nothing to persist
@@ -212,5 +216,57 @@ export async function completeLessonAction(
     update: { xpEarned, mistakes: bestMistakes, hintsUsed: bestHintsUsed },
     create: { userId: user.id, lessonId, xpEarned, mistakes, hintsUsed },
   });
+
+  await recordAttemptsAndUpdateMastery(user.id, lessonId, attempts);
   revalidatePath("/");
+}
+
+/**
+ * ADR-0008 / docs/learner-model.md's concrete first implementation step:
+ * persist every attempt (not just the lesson-level aggregate), then
+ * recompute UserConceptMastery for every concept this lesson teaches
+ * from the learner's full attempt history on that concept — not just
+ * this one lesson's attempts, so a concept taught across multiple
+ * lessons (or revisited later) accumulates one real signal, not one per
+ * lesson.
+ */
+async function recordAttemptsAndUpdateMastery(userId: string, lessonId: string, attempts: AttemptRecord[]): Promise<void> {
+  if (attempts.length === 0) return;
+  const lesson = loadLesson(lessonId);
+  if (!lesson) return; // shouldn't happen — the lesson was just completed — but never let a lookup miss crash the completion flow
+
+  const conceptIds = lesson.masteryTags;
+
+  await prisma.exerciseAttempt.createMany({
+    data: attempts.map((a) => ({
+      userId,
+      lessonId,
+      stepId: a.stepId,
+      conceptIds,
+      correct: a.correct,
+      wrongAnswerKey: a.wrongAnswerKey,
+    })),
+  });
+
+  for (const conceptId of conceptIds) {
+    const [existingMastery, history] = await Promise.all([
+      prisma.userConceptMastery.findUnique({ where: { userId_conceptId: { userId, conceptId } } }),
+      prisma.exerciseAttempt.findMany({
+        where: { userId, conceptIds: { has: conceptId } },
+        orderBy: { createdAt: "asc" },
+        select: { correct: true },
+      }),
+    ]);
+
+    const { status, exerciseConfidence } = computeMasteryStatus(
+      (existingMastery?.status as MasteryStatus | undefined) ?? null,
+      history,
+    );
+
+    await prisma.userConceptMastery.upsert({
+      where: { userId_conceptId: { userId, conceptId } },
+      update: { status, exerciseConfidence, lastPracticedAt: new Date() },
+      create: { userId, conceptId, status, exerciseConfidence, lastPracticedAt: new Date() },
+    });
+  }
 }
