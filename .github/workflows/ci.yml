@@ -31,13 +31,21 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # packages/db's own typecheck imports its generated Prisma client
+      # (packages/db/src/generated/), which doesn't exist until `prisma
+      # generate` runs — normally triggered by apps/web's predev/prebuild,
+      # but `pnpm typecheck` below runs standalone `tsc` per package and
+      # never goes through that chain. Generate it explicitly, first.
+      - run: npx prisma generate
+        working-directory: packages/db
+
       - run: pnpm typecheck
 
       - run: pnpm test
 
       - run: pnpm validate:content
 
-      - name: Build apps/web (includes prisma generate/db push via predev/prebuild)
+      - name: Build apps/web (also runs prisma generate/db push again, via predev/prebuild)
         run: pnpm run build
 
   e2e:
