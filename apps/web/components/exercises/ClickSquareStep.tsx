@@ -25,7 +25,7 @@ export function ClickSquareStep({
   const [hintLevel, setHintLevel] = useState(0);
 
   // No stale hint highlight/arrow/text once the step is answered correctly.
-  const activeHint = status !== "correct" && "hints" in step ? step.hints.find((h) => h.level === hintLevel) : undefined;
+  const activeHint = status !== "correct" ? step.hints?.find((h) => h.level === hintLevel) : undefined;
   const highlightSquares =
     activeHint && "highlightSquares" in activeHint ? (activeHint.highlightSquares as Square[]) : [];
   const activeArrow =
@@ -56,8 +56,15 @@ export function ClickSquareStep({
           describedBy={promptId}
         />
       </div>
-      <StepFooter status={status} feedback={feedback} xp={STEP_XP} isLastStep={isLastStep} onAdvance={onAdvance} />
-      {status !== "correct" && "hints" in step && (
+      <StepFooter
+        status={status}
+        feedback={feedback}
+        successExplanation={step.successExplanation}
+        xp={STEP_XP}
+        isLastStep={isLastStep}
+        onAdvance={onAdvance}
+      />
+      {status !== "correct" && step.hints && step.hints.length > 0 && (
         <Button
           variant="ghost"
           fullWidth

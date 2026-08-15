@@ -179,6 +179,12 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
         </span>
       </div>
 
+      {stepIndex === 0 && !recovering && (
+        <p className="mw-lesson-objective">
+          <strong>By the end of this lesson, you&apos;ll be able to</strong> {lesson.objectives[0]}
+        </p>
+      )}
+
       {recovering ? (
         <div role="status" className="mw-recovery">
           <h2>Let&apos;s review before continuing</h2>

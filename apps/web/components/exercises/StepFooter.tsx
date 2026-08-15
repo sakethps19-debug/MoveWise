@@ -7,12 +7,15 @@ import type { StepStatus } from "./types";
 export function StepFooter({
   status,
   feedback,
+  successExplanation,
   xp,
   isLastStep,
   onAdvance,
 }: {
   status: StepStatus;
   feedback: string | null;
+  /** Why the correct answer is correct — shown alongside the XP banner so "Correct!" is never the whole explanation. */
+  successExplanation?: string;
   xp: number;
   isLastStep: boolean;
   onAdvance: () => void;
@@ -29,7 +32,8 @@ export function StepFooter({
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-3)" }}>
         <p role="status" className="mw-feedback mw-feedback--success">
-          <strong>Correct!</strong> +{xp} XP
+          <strong>Correct! </strong>
+          {successExplanation ?? `+${xp} XP`}
         </p>
         <Button onClick={onAdvance} fullWidth>
           {isLastStep ? "Finish lesson" : "Continue"}

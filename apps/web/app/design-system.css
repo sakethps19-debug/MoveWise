@@ -486,6 +486,20 @@
   color: var(--mw-text-dim);
   font-size: 12.5px;
 }
+.mw-lesson-objective {
+  font-family: var(--mw-font-display);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--mw-text);
+  background: var(--mw-surface-2);
+  border-left: 3px solid var(--mw-moss);
+  border-radius: var(--mw-radius-sm);
+  padding: 10px 14px;
+  margin: 0 0 var(--mw-space-4);
+}
+.mw-lesson-objective strong {
+  color: var(--mw-moss-ink, var(--mw-moss));
+}
 .mw-recovery {
   display: flex;
   flex-direction: column;

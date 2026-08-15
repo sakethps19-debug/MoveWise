@@ -47,6 +47,9 @@ export const SelectSquareStepSchema = BaseStep.extend({
   correctSquares: z.array(SquareSchema).min(1),
   hints: z.array(HintSchema),
   feedback: FeedbackMapSchema,
+  /** Shown on a correct answer — explains WHY it's correct, not just that it is. */
+  successExplanation: z.string().min(1).optional(),
+  accessibleName: z.string().min(1).optional(),
 });
 
 export const MovePieceStepSchema = BaseStep.extend({
@@ -57,6 +60,8 @@ export const MovePieceStepSchema = BaseStep.extend({
   altValid: z.array(z.string()).default([]),
   hints: z.array(HintSchema),
   feedback: FeedbackMapSchema,
+  successExplanation: z.string().min(1).optional(),
+  accessibleName: z.string().min(1).optional(),
 });
 
 export const CaptureStepSchema = BaseStep.extend({
@@ -64,7 +69,10 @@ export const CaptureStepSchema = BaseStep.extend({
   prompt: z.string().min(1),
   fen: z.string().min(1),
   expectedMoves: z.array(z.string().min(1)).min(1),
+  hints: z.array(HintSchema).optional(),
   feedback: FeedbackMapSchema,
+  successExplanation: z.string().min(1).optional(),
+  accessibleName: z.string().min(1).optional(),
 });
 
 export const FindLegalMoveStepSchema = BaseStep.extend({
@@ -72,7 +80,10 @@ export const FindLegalMoveStepSchema = BaseStep.extend({
   prompt: z.string().min(1),
   fen: z.string().min(1),
   validMoves: z.array(z.string().min(1)).min(1),
+  hints: z.array(HintSchema).optional(),
   feedback: FeedbackMapSchema,
+  successExplanation: z.string().min(1).optional(),
+  accessibleName: z.string().min(1).optional(),
 });
 
 export const McqStepSchema = BaseStep.extend({
@@ -81,6 +92,7 @@ export const McqStepSchema = BaseStep.extend({
   options: z.array(z.string().min(1)).min(2),
   correctIndex: z.number().int().min(0),
   feedback: FeedbackMapSchema.optional(),
+  successExplanation: z.string().min(1).optional(),
 });
 
 export const TrueFalseStepSchema = BaseStep.extend({
@@ -88,6 +100,7 @@ export const TrueFalseStepSchema = BaseStep.extend({
   prompt: z.string().min(1),
   correct: z.boolean(),
   feedback: FeedbackMapSchema.optional(),
+  successExplanation: z.string().min(1).optional(),
 });
 
 export const OrderStepsStepSchema = BaseStep.extend({
@@ -101,7 +114,10 @@ export const FindCheckStepSchema = BaseStep.extend({
   prompt: z.string().min(1),
   fen: z.string().min(1),
   correctSquares: z.array(SquareSchema).min(1),
+  hints: z.array(HintSchema).optional(),
   feedback: FeedbackMapSchema,
+  successExplanation: z.string().min(1).optional(),
+  accessibleName: z.string().min(1).optional(),
 });
 
 export const GuidedSequenceStepSchema = BaseStep.extend({
