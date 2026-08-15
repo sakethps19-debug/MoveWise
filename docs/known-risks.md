@@ -25,10 +25,6 @@ rather than repeating it.
   meaningful to measure.
 - **No role/permission system.** Every account is implicitly a "learner" —
   fine today, blocking for an authoring portal (brief Section 14).
-- **Guest progress isn't persisted anywhere**, including localStorage —
-  a guest who completes lessons loses that progress on tab close, with no
-  migration path into a later-created account (brief Section 13 asks for
-  exactly this migration flow; it doesn't exist).
 
 ## Lower priority / accepted for now
 
@@ -47,6 +43,26 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **Guest progress isn't persisted anywhere**: `lib/guestProgress.ts`
+  writes completions to `localStorage` for signed-out learners
+  (best-effort — silently no-ops if storage is unavailable, e.g. private
+  browsing), and `LearningPath` now reads it back so guests get the same
+  prerequisite-based locking and star display as signed-in users, instead
+  of the old "everything unlocked, nothing remembered" guest view. On
+  signup or login, that local progress is sent as a hidden form field and
+  folded into the account server-side (`migrateGuestProgress` in
+  `app/actions.ts`) in the same request that creates the session — validated
+  and range-clamped there, since it's client-controlled input, and merged
+  with the same best-mistakes rule as a repeat signed-in completion so it
+  can never downgrade progress the account already has. Applies to login
+  as well as signup: signing into an *existing* account from a browser
+  with local guest progress carries it in too, on the same "this device's
+  progress is mine" assumption most products with guest modes make.
+  Verified: the E2E suite's guest-locking test needed updating for the
+  new (deliberately different, more useful) guest-locking behavior — a
+  fresh guest with zero completions now sees the same locked/unlocked
+  state as a fresh account, not everything open — plus a new test driving
+  the full guest-completes-a-lesson → signs up → sees it migrated flow.
 - **No dependency scanning**: `.github/dependabot.yml` now watches both
   the npm ecosystem (root `package.json`/`pnpm-lock.yaml`, which
   Dependabot resolves across the whole pnpm workspace — no per-package
@@ -64,16 +80,18 @@ rather than repeating it.
   the Postgres/hosting migration in `docs/roadmap.md`'s open decisions,
   for the same reason SQLite is dev-only for now (ADR-0002) — not worth
   building before that migration's infrastructure exists. Verified: full
-  E2E suite (14/14) still passes with the limiter active, plus a direct
-  read of the new code.
+  E2E suite (14/14 at the time this landed) still passes with the
+  limiter active, plus a direct read of the new code.
 - **No E2E suite was committed to the repo**: `apps/web/e2e/` now has 8
-  real `@playwright/test` specs (14 tests) covering lesson flows across
-  all 13 exercise-step types, the retry-bug fix, hearts, mastery stars,
-  learning-path locking, auth, and Play mode — promoted from this
-  session's scratch verification scripts, and wired into CI as a second
-  job (`e2e`, browsers installed fresh each run). Writing this suite
-  immediately surfaced a real bug (see below) that ad hoc scratch-script
-  testing had never caught, which is exactly the point of committing it.
+  real `@playwright/test` specs (14 tests at the time this landed — see
+  `docs/testing-strategy.md` for the current count) covering lesson
+  flows across all 13 exercise-step types, the retry-bug fix, hearts,
+  mastery stars, learning-path locking, auth, and Play mode — promoted
+  from this session's scratch verification scripts, and wired into CI as
+  a second job (`e2e`, browsers installed fresh each run). Writing this
+  suite immediately surfaced a real bug (see below) that ad hoc
+  scratch-script testing had never caught, which is exactly the point of
+  committing it.
 - **Missing lesson-completion feedback**: clicking "Finish lesson" called
   the persistence action but showed nothing and navigated nowhere — a
   real gap against the brief's explicit "completion feedback" and "lesson

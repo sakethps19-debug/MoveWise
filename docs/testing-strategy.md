@@ -23,13 +23,15 @@
   every commit that touches `apps/web`) — not "tests" exactly, but part
   of the same verification gate.
 - **E2E suite** (`@playwright/test`, `apps/web/e2e/`, run via
-  `pnpm --filter @movewise/web test:e2e`) — 8 spec files, 14 tests,
+  `pnpm --filter @movewise/web test:e2e`) — 8 spec files, 15 tests,
   covering lesson flows across all 13 exercise-step types, the
   retry-after-wrong-answer fix, hearts (including flooring at zero
-  without lockout), mastery-star tiering, learning-path locking, the
-  full auth flow (signup, the under-13 gate, duplicate email, wrong
-  password, logout, XP persistence across re-login), and Play mode as
-  both colors. Runs in CI as a dedicated job (browsers installed fresh
+  without lockout), mastery-star tiering, learning-path locking (now
+  including guest locking against localStorage, and migration of a
+  guest's local progress into a new account on signup), the full auth
+  flow (signup, the under-13 gate, duplicate email, wrong password,
+  logout, XP persistence across re-login), and Play mode as both colors.
+  Runs in CI as a dedicated job (browsers installed fresh
   each run — this sandbox's pre-installed Chromium is only used for
   local runs here, via a config check that's a no-op on a real CI
   runner). Uses a shared SQLite `dev.db`, so `workers: 1` — tests aren't

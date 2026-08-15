@@ -12,7 +12,9 @@ A pnpm-workspace TypeScript monorepo:
   learning path: locked/available/completed lessons with mastery stars),
   lesson runner covering all 13 exercise-step types the schema defines,
   Play mode (freeform games against an embedded Stockfish), and
-  email/password accounts with progress that persists.
+  email/password accounts with progress that persists. Guests get the
+  same locking/stars via `localStorage`, migrated into an account on
+  signup or login.
 - **`packages/chess-rules`** — the only module allowed to import `chess.js`
   directly; everything else goes through its typed interface.
 - **`packages/engine`** — typed UCI wrapper around a Stockfish Worker.
@@ -40,7 +42,7 @@ pnpm --filter @movewise/web dev   # predev auto-generates the Prisma client,
                                    # Stockfish engine asset — no manual setup
 open http://localhost:3000
 
-pnpm --filter @movewise/web test:e2e   # 14 Playwright tests; auto-starts the dev server
+pnpm --filter @movewise/web test:e2e   # 15 Playwright tests; auto-starts the dev server
 ```
 
 Copy `apps/web/.env.example` to `apps/web/.env.local` and

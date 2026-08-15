@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Lesson } from "@movewise/exercise-schema";
 import { useStockfishEngine } from "../lib/useStockfishEngine";
 import { starsForMistakes } from "../lib/mastery";
+import { recordGuestCompletion } from "../lib/guestProgress";
 import { ExplainStep } from "./exercises/ExplainStep";
 import { ClickSquareStep } from "./exercises/ClickSquareStep";
 import { MoveStep } from "./exercises/MoveStep";
@@ -19,6 +20,8 @@ import type { StepStatus } from "./exercises/types";
 interface LessonRunnerProps {
   lesson: Lesson;
   onComplete?: (xpEarned: number, mistakes: number) => void;
+  /** True when there's no signed-in session — persists this completion to localStorage instead of the DB. */
+  isGuest?: boolean;
 }
 
 const START_HEARTS = 5;
@@ -35,7 +38,7 @@ const START_HEARTS = 5;
  * this is a beginner-focused learning product; a hard block on wrong
  * answers would be punitive, not supportive, for the audience it's for.
  */
-export function LessonRunner({ lesson, onComplete }: LessonRunnerProps) {
+export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [status, setStatus] = useState<StepStatus>("active");
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -56,6 +59,7 @@ export function LessonRunner({ lesson, onComplete }: LessonRunnerProps) {
     if (isLastStep) {
       const totalXp = xpEarned + lesson.xpReward;
       onComplete?.(totalXp, mistakes);
+      if (isGuest) recordGuestCompletion(lesson.id, totalXp, mistakes);
       setFinished({ xp: totalXp, mistakes });
     } else {
       setStepIndex((i) => i + 1);

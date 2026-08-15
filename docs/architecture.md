@@ -35,9 +35,16 @@ but it satisfies the requirement regardless.
    logic reused unchanged from `packages/chess-rules`.
 4. On lesson completion, `onComplete` — a Server Action
    (`completeLessonAction`) bound with the lesson ID via `.bind(null,
-   lesson.id)` in the page component — persists XP and mistake count if
-   the learner is signed in; guests get no persistence (by design, not by
-   accident — see `docs/roadmap.md` on guest-progress being unbuilt).
+   lesson.id)` in the page component — persists XP and mistake count to
+   the DB if the learner is signed in. Guests (`isGuest`, from
+   `getSession()` in the page component) instead call
+   `recordGuestCompletion` (`lib/guestProgress.ts`), which writes to
+   `localStorage` — best-effort, silently no-op if storage is unavailable.
+   `LearningPath` reads that back for a guest's home-page view (locking,
+   stars), and on signup/login the browser's guest progress is sent as a
+   hidden form field and folded into the account server-side
+   (`migrateGuestProgress` in `app/actions.ts`), using the same
+   best-mistakes merge as a repeat signed-in completion.
 
 ## Data flow: Play mode / mini-game steps
 

@@ -28,6 +28,58 @@ async function clientIp(): Promise<string> {
   return forwardedFor?.split(",")[0]?.trim() || "unknown";
 }
 
+const MAX_GUEST_LESSONS = 200; // generous headroom over the current ~16 lessons
+
+/**
+ * Folds this browser's locally-stored guest progress (see
+ * lib/guestProgress.ts) into the account that just signed up or signed
+ * in — sent as a hidden form field so it lands in the same request that
+ * creates the session, no separate round trip. Applies to both signup
+ * and login: a guest who then signs into an *existing* account is
+ * treated the same as one who just created it, since either way "this
+ * browser's local progress" is the intent to carry it in. Uses the same
+ * best-mistakes merge as completeLessonAction, so it can never downgrade
+ * progress the account already has.
+ *
+ * Untrusted client input, so shape/type/range checked before any write —
+ * this is form data an attacker fully controls, not app-generated state.
+ */
+async function migrateGuestProgress(userId: string, formData: FormData): Promise<void> {
+  const raw = formData.get("guestProgress");
+  if (typeof raw !== "string" || !raw) return;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return;
+  }
+  if (typeof parsed !== "object" || parsed === null) return;
+
+  const entries = Object.entries(parsed as Record<string, unknown>).slice(0, MAX_GUEST_LESSONS);
+
+  for (const [lessonId, value] of entries) {
+    if (!lessonId || typeof value !== "object" || value === null) continue;
+    const { xpEarned, mistakes } = value as { xpEarned?: unknown; mistakes?: unknown };
+    if (typeof xpEarned !== "number" || typeof mistakes !== "number") continue;
+    if (!Number.isFinite(xpEarned) || !Number.isFinite(mistakes)) continue;
+
+    const clampedXp = Math.max(0, Math.min(10_000, Math.round(xpEarned)));
+    const clampedMistakes = Math.max(0, Math.min(10_000, Math.round(mistakes)));
+
+    const existing = await prisma.lessonCompletion.findUnique({
+      where: { userId_lessonId: { userId, lessonId } },
+    });
+    const bestMistakes = existing ? Math.min(existing.mistakes, clampedMistakes) : clampedMistakes;
+
+    await prisma.lessonCompletion.upsert({
+      where: { userId_lessonId: { userId, lessonId } },
+      update: { xpEarned: clampedXp, mistakes: bestMistakes },
+      create: { userId, lessonId, xpEarned: clampedXp, mistakes: bestMistakes },
+    });
+  }
+}
+
 export interface FormState {
   error?: string;
 }
@@ -72,6 +124,7 @@ export async function signupAction(_prevState: FormState, formData: FormData): P
   const passwordHash = await hashPassword(password);
   const user = await prisma.user.create({ data: { email, passwordHash } });
   await createSession(user.id);
+  await migrateGuestProgress(user.id, formData);
   redirect("/");
 }
 
@@ -96,6 +149,7 @@ export async function loginAction(_prevState: FormState, formData: FormData): Pr
     return { error: "Incorrect email or password." };
   }
   await createSession(user.id);
+  await migrateGuestProgress(user.id, formData);
   redirect("/");
 }
 

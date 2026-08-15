@@ -1,6 +1,10 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Lesson } from "@movewise/exercise-schema";
 import { starsForMistakes } from "../lib/mastery";
+import { clearGuestProgress, readGuestProgress } from "../lib/guestProgress";
 
 export interface UnitWithLessons {
   id: string;
@@ -35,8 +39,9 @@ function Stars({ count }: { count: 1 | 2 | 3 }) {
  * "In progress" and "due for revision" aren't modeled — both need real
  * attempt-tracking / spaced-repetition infrastructure this pass doesn't
  * build (the product brief itself scopes spaced repetition to a later
- * phase). Guests (completedIds === null) see everything unlocked, since
- * there's no local-progress persistence yet to lock against.
+ * phase). Guests fall back to locally-persisted progress (below) —
+ * everything unlocked only until localStorage is read, mirroring the
+ * signed-in behavior instead of always showing everything open.
  */
 export function LearningPath({
   units,
@@ -45,7 +50,29 @@ export function LearningPath({
   units: UnitWithLessons[];
   completions: Map<string, { xpEarned: number; mistakes: number }> | null;
 }) {
-  const completedIds = completions ? new Set(completions.keys()) : null;
+  const [guestCompletions, setGuestCompletions] = useState<Map<
+    string,
+    { xpEarned: number; mistakes: number }
+  > | null>(null);
+
+  // Server-rendered `completions` is only non-null for a signed-in user.
+  // For a guest, fall back to whatever this browser has recorded locally
+  // (read after mount, so the first paint matches the server's guest
+  // render and avoids a hydration mismatch). Once signed in, any
+  // lingering local guest data has already been migrated into the
+  // account (see migrateGuestProgress in app/actions.ts) and is now
+  // stale, so clear it rather than let it resurface after a future
+  // logout.
+  useEffect(() => {
+    if (completions === null) {
+      setGuestCompletions(new Map(Object.entries(readGuestProgress())));
+    } else {
+      clearGuestProgress();
+    }
+  }, [completions]);
+
+  const effectiveCompletions = completions ?? guestCompletions;
+  const completedIds = effectiveCompletions ? new Set(effectiveCompletions.keys()) : null;
 
   const allLessons = units.flatMap((u) => u.lessons);
   const nextUp = allLessons.find((l) => statusOf(l, completedIds) === "available");
@@ -90,7 +117,7 @@ export function LearningPath({
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {unit.lessons.map((lesson) => {
                 const status = statusOf(lesson, completedIds);
-                const record = completions?.get(lesson.id);
+                const record = effectiveCompletions?.get(lesson.id);
 
                 const row = (
                   <div

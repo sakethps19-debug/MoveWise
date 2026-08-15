@@ -15,25 +15,24 @@ two together serve the same purpose.
 ## Phase 1 — Learning MVP
 
 Done, including the gap-filling pass that added hearts, mastery stars, the
-visual learning-path home screen, and split `LessonRunner` into per-type
-components. Two units live (15 lessons + a non-curated preview unit), all
-13 exercise-step types have real content exercising at least one of them,
-Play mode works, accounts persist progress. Local guest progress
-(brief-specified as a Phase 1 item) is **not** built — guests can use
-everything, nothing they do is saved anywhere, including localStorage; see
-`docs/known-risks.md`.
+visual learning-path home screen, split `LessonRunner` into per-type
+components, and — closing the last Phase 1 item the brief specified —
+local guest progress: guests get the same locking/stars as signed-in
+users via `localStorage` (`lib/guestProgress.ts`), migrated into an
+account on signup or login. Two units live (15 lessons + a non-curated
+preview unit), all 13 exercise-step types have real content exercising
+at least one of them, Play mode works, accounts persist progress.
 
 ## Phase 2 — Accounts and cloud progress
 
 Partially done, out of order relative to the brief's own phasing (accounts
 and persistence were built during Phase 1 gap-filling, not as a separate
-phase after it — a reasonable sequencing given no guest-first architecture
-existed to migrate away from). Done: authentication, persistence, profiles
-(minimal — email + sign-out only), security controls (partial — see
-`docs/security-checklist.md`). Not done: PostgreSQL (still SQLite —
-ADR-0002's consequences section covers the migration path), guest-progress
-migration (moot until guest-local-progress exists), streaks, real cloud
-sync semantics beyond "every signed-in action is already server-persisted."
+phase after it). Done: authentication, persistence, guest-progress
+migration, profiles (minimal — email + sign-out only), security controls
+(partial — see `docs/security-checklist.md`). Not done: PostgreSQL (still
+SQLite — ADR-0002's consequences section covers the migration path),
+streaks, real cloud sync semantics beyond "every signed-in action is
+already server-persisted."
 
 ## Phase 3 — Practice and personalization
 
