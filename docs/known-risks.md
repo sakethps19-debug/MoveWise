@@ -181,7 +181,30 @@ rather than repeating it.
   binary lookup broke under webpack bundling; switched to
   `@prisma/adapter-libsql` and added an explicit `webpack.externals`
   override (Next's built-in `serverExternalPackages` doesn't work for
-  symlinked pnpm workspace packages). See ADR-0002.
+  symlinked pnpm workspace packages). See ADR-0002. **That `externals`
+  override itself later caused a real production bug** — see the
+  "first real Vercel deploy returned a 500 on every request" entry
+  below and ADR-0006; it was removed.
+- **First real Vercel deploy returned a 500 on every request**:
+  `Error: require() of ES Module` — Vercel's serverless runtime loads
+  externalized dependencies via CommonJS `require()`, which can't load
+  `@movewise/db` (an ES Module package). The `webpack.externals`
+  override that caused this (ADR-0002) only made sense for
+  `better-sqlite3`'s native bindings, which `@prisma/adapter-pg` doesn't
+  have (ADR-0005) — the override should have been removed then, but
+  nothing forced re-examining it, and every local build/dev/CI run kept
+  passing regardless, since a plain `next start` never reproduces this
+  (confirmed directly). Fixed by removing the override and letting
+  webpack bundle `@movewise/db` normally, like every other workspace
+  package. See ADR-0006 for the full writeup — including the broader
+  lesson that a successful local build and `next start` don't prove a
+  Vercel deployment will work. Verified by rebuilding, confirming
+  `next start` still serves correctly (as expected — it never showed
+  the bug), and running a real Server Action (signup) against that
+  production server to exercise the exact import path that broke on
+  Vercel, since that's the strongest check available without direct
+  access to Vercel itself (blocked by this environment's network
+  policy).
 - **Guided-sequence validator gap**: the content validator checked
   player-move legality without ever applying the scripted opponent
   replies between them, which could produce false legality results on

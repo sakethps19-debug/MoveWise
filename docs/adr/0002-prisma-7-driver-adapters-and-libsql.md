@@ -6,6 +6,9 @@ Accepted (decided autonomously — reversible technical choice, no cost/data imp
 Postgres migration) — the driver-adapter *pattern* this ADR established
 (and its prediction, in Consequences below, of exactly this swap) still
 applies; only `@prisma/adapter-libsql` itself was replaced.
+**The `webpack.externals` workaround below was removed by ADR-0006** —
+it outlived the native-binding problem it was built for, and on Vercel
+that leftover override actively broke the app (a 500 on every request).
 
 ## Context
 Prisma 7 is a genuine breaking change from what most Prisma documentation

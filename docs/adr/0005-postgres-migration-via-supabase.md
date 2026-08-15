@@ -68,20 +68,23 @@ migrate now rather than continue deferring it.
   Supabase project's own `postgres` role for this** (or another role
   with `BYPASSRLS`), not a restricted one, so the app isn't blocked by
   the RLS policy from step 5.
-  **Direct connection vs. the pooler depends on the still-unchosen
-  deploy platform**: a long-running server (self-hosted Node, a
-  Docker/VM host) should use the direct connection (port 5432) —
-  `@prisma/adapter-pg` maintains its own long-lived pool, and adding
-  Supabase's pooler on top would just be a second layer of pooling for
-  no benefit. A serverless platform (Vercel and similar) should use
-  Supabase's pooler (Supavisor, port 6543, "Transaction" mode) instead —
-  each function invocation there can open its own short-lived `pg` pool,
-  and many concurrent invocations would exhaust Postgres's direct
-  connection limit fast. This wasn't decided wrong here; it just isn't
-  decidable yet, since no deploy platform is chosen (see below).
-- **A real deploy is still not built.** This ADR only lands the data
-  layer; there's no deploy workflow, no hosting platform chosen for the
-  Next.js app itself, no production `DATABASE_URL` wired anywhere yet.
+  **Direct connection vs. the pooler depends on the deploy platform**: a
+  long-running server (self-hosted Node, a Docker/VM host) should use
+  the direct connection (port 5432) — `@prisma/adapter-pg` maintains its
+  own long-lived pool, and adding Supabase's pooler on top would just be
+  a second layer of pooling for no benefit. A serverless platform
+  (Vercel and similar) needs one of Supabase's pooler modes instead,
+  since many concurrent function invocations would exhaust Postgres's
+  direct connection limit fast — see `docs/deployment.md` for which
+  pooler mode actually worked on Vercel (Session, port 5432, not
+  Transaction/6543 — a real IPv6-connectivity finding from the first
+  live deploy attempt, not a guess made here).
+- **A real deploy now exists** (Vercel) — see `docs/deployment.md` for
+  the full setup and three real issues that first attempt found and
+  fixed: the pooler-mode finding above, a `P3005` migration-baseline
+  issue specific to how this database's schema was first created, and a
+  webpack-bundling bug (`docs/adr/0006-remove-webpack-externals-workaround.md`)
+  that caused a 500 on every request despite the build succeeding.
 - Local dev now needs a real Postgres instance (local install, Docker, or
   pointing `.env`/`.env.local` at the Supabase project directly) instead
   of a zero-setup SQLite file. `packages/db/.env.example` documents the
