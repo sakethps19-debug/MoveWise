@@ -151,6 +151,19 @@ export type Hint = z.infer<typeof HintSchema>;
 export type ExerciseStep = z.infer<typeof ExerciseStepSchema>;
 export type Lesson = z.infer<typeof LessonSchema>;
 
+export type ExplainStep = z.infer<typeof ExplainStepSchema>;
+export type SelectSquareStep = z.infer<typeof SelectSquareStepSchema>;
+export type MovePieceStep = z.infer<typeof MovePieceStepSchema>;
+export type CaptureStep = z.infer<typeof CaptureStepSchema>;
+export type FindLegalMoveStep = z.infer<typeof FindLegalMoveStepSchema>;
+export type McqStep = z.infer<typeof McqStepSchema>;
+export type TrueFalseStep = z.infer<typeof TrueFalseStepSchema>;
+export type OrderStepsStep = z.infer<typeof OrderStepsStepSchema>;
+export type FindCheckStep = z.infer<typeof FindCheckStepSchema>;
+export type GuidedSequenceStep = z.infer<typeof GuidedSequenceStepSchema>;
+export type MiniGameStep = z.infer<typeof MiniGameStepSchema>;
+export type ReviewStep = z.infer<typeof ReviewStepSchema>;
+
 export function parseLesson(data: unknown): Lesson {
   return LessonSchema.parse(data);
 }

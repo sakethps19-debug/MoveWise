@@ -33,6 +33,10 @@ model LessonCompletion {
   userId      String
   lessonId    String
   xpEarned    Int
+  /// Wrong attempts across the whole lesson, on the completing run. Raw
+  /// fact, not a display value — star tiers are computed from this, not
+  /// stored, so the tiering rule can change without a migration.
+  mistakes    Int      @default(0)
   completedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

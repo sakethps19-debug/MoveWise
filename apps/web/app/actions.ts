@@ -69,14 +69,21 @@ export async function logoutAction(): Promise<void> {
   redirect("/");
 }
 
-export async function completeLessonAction(lessonId: string, xpEarned: number): Promise<void> {
+export async function completeLessonAction(lessonId: string, xpEarned: number, mistakes: number): Promise<void> {
   const user = await getSession();
   if (!user) return; // guest: XP is session-local only, nothing to persist
 
+  const existing = await prisma.lessonCompletion.findUnique({
+    where: { userId_lessonId: { userId: user.id, lessonId } },
+  });
+  // Keep the best (lowest-mistake) run's star rating — redoing a mastered
+  // lesson sloppily shouldn't downgrade it.
+  const bestMistakes = existing ? Math.min(existing.mistakes, mistakes) : mistakes;
+
   await prisma.lessonCompletion.upsert({
     where: { userId_lessonId: { userId: user.id, lessonId } },
-    update: { xpEarned },
-    create: { userId: user.id, lessonId, xpEarned },
+    update: { xpEarned, mistakes: bestMistakes },
+    create: { userId: user.id, lessonId, xpEarned, mistakes },
   });
   revalidatePath("/");
 }
