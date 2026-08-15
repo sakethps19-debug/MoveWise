@@ -51,7 +51,7 @@ visually, never assumed.
 
 ## Curriculum status
 
-Two of the brief's ~10 planned units exist, both fully built and verified:
+Three of the brief's ~10 planned units exist, all fully built and verified:
 
 - **Meet the Pieces** (Foundation II) — 12 lessons, matches the brief's
   Section 7 spec exactly (lesson titles, 3–5 minute scope, per-lesson
@@ -62,9 +62,17 @@ Two of the brief's ~10 planned units exist, both fully built and verified:
   capture/block/move decision heuristic — directly ties to the "learn how
   to think" promise, not just move drilling), `guided-sequence`, and
   `mini-game`.
+- **Basic Tactics** (draws from the brief's Tactics section) — 1 lesson so
+  far ("The knight fork"), the first step into pattern recognition rather
+  than piece movement or check/checkmate mechanics. Every position was
+  found and verified programmatically (a small throwaway script computing
+  real knight-attack geometry and confirming legality/check status via
+  chess.js), never hand-derived — including a deliberately plausible trap
+  move (a legal check that isn't also a fork) used as real, verified
+  misconception-specific feedback rather than an invented wrong answer.
 
-Foundation I, IV, V, Tactics, Checkmate Patterns, Strategy, Endgames, and
-Openings (Section 6 of the brief) are unbuilt.
+Foundation I, IV, and V, the rest of Tactics, Checkmate Patterns,
+Strategy, Endgames, and Openings (Section 6 of the brief) are unbuilt.
 
 ## Non-goals for the current build
 

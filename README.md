@@ -26,10 +26,11 @@ A pnpm-workspace TypeScript monorepo:
   programmatically, not hand-checked.
 - **`packages/db`** — Prisma 7 (SQLite locally, via `@prisma/adapter-libsql`)
   — `User`, `Session`, `LessonCompletion`.
-- **`packages/content`** — lesson JSON, two units so far: "Meet the Pieces"
-  (12 lessons) and "Check and Checkmate Basics" (3 lessons). All 13
-  exercise-step types the schema defines now have real curated content in
-  these two units. A `step-type-preview` unit also exists (not linked
+- **`packages/content`** — lesson JSON, three units so far: "Meet the
+  Pieces" (12 lessons), "Check and Checkmate Basics" (3 lessons), and
+  "Basic Tactics" (1 lesson — "The knight fork"). All 13 exercise-step
+  types the schema defines now have real curated content in the first two
+  units. A `step-type-preview` unit also exists (not linked
   from the UI) — a working demo of the five types added last
   (`find-check`, `find-checkmate`, `order-steps`, `guided-sequence`,
   `mini-game`), superseded as curated content once Check and Checkmate
@@ -48,7 +49,7 @@ pnpm --filter @movewise/web dev   # predev auto-generates the Prisma client,
                                    # Stockfish engine asset — no manual setup
 open http://localhost:3000
 
-pnpm --filter @movewise/web test:e2e   # 23 Playwright tests (incl. automated accessibility checks); auto-starts the dev server
+pnpm --filter @movewise/web test:e2e   # 24 Playwright tests (incl. automated accessibility checks); auto-starts the dev server
 ```
 
 Copy `apps/web/.env.example` to `apps/web/.env.local` and

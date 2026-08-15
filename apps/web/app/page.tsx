@@ -8,6 +8,7 @@ import { LearningPath } from "../components/LearningPath";
 const UNITS = [
   { id: "meet-the-pieces", title: "Meet the Pieces" },
   { id: "check-and-checkmate", title: "Check and Checkmate Basics" },
+  { id: "basic-tactics", title: "Basic Tactics" },
 ];
 
 export default async function HomePage() {

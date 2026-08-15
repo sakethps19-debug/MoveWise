@@ -19,9 +19,11 @@ visual learning-path home screen, split `LessonRunner` into per-type
 components, and — closing the last Phase 1 item the brief specified —
 local guest progress: guests get the same locking/stars as signed-in
 users via `localStorage` (`lib/guestProgress.ts`), migrated into an
-account on signup or login. Two units live (15 lessons + a non-curated
-preview unit), all 13 exercise-step types have real content exercising
-at least one of them, Play mode works, accounts persist progress.
+account on signup or login. Three units live (16 lessons + a non-curated
+preview unit — the third, "Basic Tactics," is the first step past pure
+piece-movement/check-mechanics content into pattern recognition), all 13
+exercise-step types have real content exercising at least one of them,
+Play mode works, accounts persist progress.
 
 ## Phase 2 — Accounts and cloud progress
 

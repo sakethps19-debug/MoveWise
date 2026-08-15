@@ -26,7 +26,7 @@
   every commit that touches `apps/web`) — not "tests" exactly, but part
   of the same verification gate.
 - **E2E suite** (`@playwright/test`, `apps/web/e2e/`, run via
-  `pnpm --filter @movewise/web test:e2e`) — 9 spec files, 23 tests,
+  `pnpm --filter @movewise/web test:e2e`) — 10 spec files, 24 tests,
   covering lesson flows across all 13 exercise-step types, the
   retry-after-wrong-answer fix, hearts (including flooring at zero
   without lockout), mastery-star tiering, learning-path locking (now
