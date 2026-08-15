@@ -1,0 +1,100 @@
+# Architecture
+
+## Overview
+
+pnpm workspace, TypeScript throughout. Six packages, one app:
+
+```
+apps/web             Next.js 15 App Router — the only deployable unit
+packages/chess-rules  chess.js wrapper — the only module allowed to import chess.js
+packages/engine        Stockfish Worker/UCI wrapper
+packages/exercise-schema  Zod content schema + chess-legality validator
+packages/db            Prisma 7 + SQLite (dev) via @prisma/adapter-libsql
+packages/content        lesson JSON, organized by unit
+```
+
+This mirrors the brief's Section 11 separation requirement (content /
+rendering / exercise validation / chess rules / engine / persistence kept
+apart) — it's a consequence of how the packages were built one at a time
+across this project's history, not a deliberate up-front design exercise,
+but it satisfies the requirement regardless.
+
+## Data flow: a lesson
+
+1. `apps/web/lib/lessons.ts` reads and Zod-parses a lesson JSON file into a
+   `Lesson` (Server Component, runs at request time — content isn't
+   pre-compiled or cached beyond Next's own page caching).
+2. `LessonRunner` (client component) receives it, owns step navigation and
+   shared state (XP, mistakes, hearts), and renders one of 8 exercise
+   components from `apps/web/components/exercises/` based on `step.type`,
+   keyed by `step.id` so each new step gets a fresh mount instead of manual
+   reset logic.
+3. Each exercise component calls chess-rules functions directly (`tryMove`,
+   `moveMatches`, `legalTargetsFrom`, etc.) to validate attempts — no
+   server round-trip for move legality, it's synchronous client-side chess
+   logic reused unchanged from `packages/chess-rules`.
+4. On lesson completion, `onComplete` — a Server Action
+   (`completeLessonAction`) bound with the lesson ID via `.bind(null,
+   lesson.id)` in the page component — persists XP and mistake count if
+   the learner is signed in; guests get no persistence (by design, not by
+   accident — see `docs/roadmap.md` on guest-progress being unbuilt).
+
+## Data flow: Play mode / mini-game steps
+
+`packages/engine`'s `createEngine()` spins up one Stockfish Web Worker per
+mount (`apps/web/lib/useStockfishEngine.ts`, shared between `PlayRunner`
+and `MiniGameStep` so there's one Worker-lifecycle implementation, not two).
+The Stockfish build itself (`stockfish-18-lite-single.js/.wasm`, GPLv3) is
+staged from the `stockfish` npm package into `apps/web/public/engine/` by
+`scripts/copy-engine-assets.mjs`, run via `predev`/`prebuild` — not
+committed to git, since it's fully reproducible from the pinned dependency
+(see `docs/content-licensing-register.md` for the GPL implications).
+
+## Auth and persistence
+
+See ADR-0003 for the reasoning. Mechanically: `apps/web/lib/auth.ts` owns
+password hashing (bcryptjs) and session management (random-token cookie,
+looked up against a `Session` table). `packages/db` wraps a Prisma
+`PrismaClient` constructed with a `@prisma/adapter-libsql` driver adapter
+(see ADR-0002 for why not `better-sqlite3`, and why not the schema-embedded
+`datasource.url` most Prisma docs describe — Prisma 7 changed both).
+
+Three models today: `User`, `Session`, `LessonCompletion`. The ~25-entity
+model the brief's Section 12 describes (course/lesson versioning, concept
+mastery, XP transactions, achievements, revision schedules, saved games,
+audit logs) doesn't exist — additions would be additive to this schema, not
+a redesign, since nothing built so far assumes a fixed shape beyond these
+three tables.
+
+## Content validation
+
+Two layers, both automated, both run in every verification pass (there's no
+CI yet to enforce this — see `docs/known-risks.md` — but `pnpm
+validate:content` runs it on demand):
+
+1. **Structural** — `LessonSchema` (Zod, `packages/exercise-schema`)
+   validates every lesson JSON against the 13 exercise-step-type
+   discriminated union.
+2. **Chess-legality** — `validate-chess.ts` goes further than shape: every
+   FEN is checked for legality via `chess-rules.isLegalFen`; every
+   expected/alternate move is checked as actually legal from that FEN;
+   `find-check`/`find-checkmate` steps have their `correctSquares`
+   verified against every square a real check/mate-delivering move
+   actually lands on (computed, not hand-picked); `order-steps`'
+   `correctOrder` is checked to be a genuine permutation;
+   `guided-sequence` is simulated move-by-move with forced replies
+   interleaved, so a later move is validated against the position it
+   actually occurs in, not a naively-flattened move list.
+
+This is what the brief's Section 19 "every exercise must be automatically
+validated for" list asks for, largely satisfied — see `docs/testing-strategy.md`
+for exactly which of that list's 10 criteria are and aren't covered.
+
+## Deployment
+
+None exists. Everything above runs via `pnpm dev` locally. Deploying means:
+Vercel (or self-hosted Node) for `apps/web`, a real Postgres instance
+(swapping `@prisma/adapter-libsql` for `@prisma/adapter-pg` per ADR-0002's
+consequences section — schema and app code don't change), and choosing who
+hosts/pays for the database. This is one of the open product-owner
+decisions in `docs/roadmap.md`, not an oversight.
