@@ -28,7 +28,10 @@ test("signup, duplicate email rejected, wrong password rejected, logout, XP pers
   await page.click("button[type=submit]");
   await page.waitForURL("/");
   await expect(page.getByText(email, { exact: false })).toBeVisible();
-  await expect(page.getByText("0 XP, 0 lessons completed")).toBeVisible();
+  // XP now lives in the nav rail (Nav.tsx's mw-nav-xp), not a combined
+  // "N XP, M lessons completed" line on the page body — that text was
+  // dropped when the nav rail/home page were redesigned.
+  await expect(page.getByText("0 XP", { exact: true })).toBeVisible();
 
   // duplicate email
   await page.goto("/signup");
@@ -46,12 +49,14 @@ test("signup, duplicate email rejected, wrong password rejected, logout, XP pers
   await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
-  await expect(page.getByText("15 XP, 1 lesson completed")).toBeVisible();
+  await expect(page.getByText("15 XP", { exact: true })).toBeVisible();
 
   // sign out, sign back in, XP is still there
   await page.getByRole("button", { name: "Sign out" }).click();
   await page.waitForURL("/");
-  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
+  // Both the nav rail and the guest page header render a "Sign in" link
+  // — scope to the rail to avoid a strict-mode multi-match.
+  await expect(page.locator(".mw-nav-rail").getByRole("link", { name: "Sign in" })).toBeVisible();
 
   await page.goto("/login");
   await page.fill("input[name=email]", email);
@@ -63,5 +68,5 @@ test("signup, duplicate email rejected, wrong password rejected, logout, XP pers
   await page.fill("input[name=password]", "password123");
   await page.click("button[type=submit]");
   await page.waitForURL("/");
-  await expect(page.getByText("15 XP, 1 lesson completed")).toBeVisible();
+  await expect(page.getByText("15 XP", { exact: true })).toBeVisible();
 });

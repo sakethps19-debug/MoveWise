@@ -25,7 +25,9 @@ test("exporting account data downloads a JSON file with the account's completion
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
-  await page.getByRole("link", { name: "Account" }).click();
+  // Nav.tsx's fifth item links to /account but is labeled "Profile", not
+  // "Account" — this predates that redesign.
+  await page.getByRole("link", { name: "Profile" }).click();
   const [download] = await Promise.all([
     page.waitForEvent("download"),
     page.getByRole("link", { name: "Download my data" }).click(),
@@ -67,7 +69,9 @@ test("deleting the account requires the correct password and a confirmation, the
   await page.fill("input[name=password]", password);
   await page.click("button[type=submit]");
   await page.waitForURL("/");
-  await expect(page.getByRole("link", { name: "Sign in" })).toBeVisible();
+  // Both the nav rail and the guest page header render a "Sign in" link
+  // — scope to the rail to avoid a strict-mode multi-match.
+  await expect(page.locator(".mw-nav-rail").getByRole("link", { name: "Sign in" })).toBeVisible();
 
   await page.goto("/login");
   await page.fill("input[name=email]", email);

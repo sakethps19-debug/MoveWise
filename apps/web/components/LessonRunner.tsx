@@ -167,7 +167,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-4)", maxWidth: 480, margin: "0 auto" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-4)", maxWidth: 600, margin: "0 auto" }}>
       <div className="mw-lesson-header">
         <Link href="/" className="mw-lesson-exit" aria-label="Exit lesson">
           ✕ Exit

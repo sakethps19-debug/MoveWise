@@ -74,6 +74,20 @@ export interface BoardProps {
   interactive?: boolean;
   /** id of an element (e.g. the exercise prompt) that describes what this board interaction is for. */
   describedBy?: string;
+  /**
+   * Desktop cap on the board's rendered width in px. Resolved as
+   * `min(100%, maxWidth)` against the board's own immediate container,
+   * not a viewport-relative unit — a `vw`-based cap ignores how much
+   * space a real layout (e.g. a fixed-width nav rail plus a sidebar)
+   * actually leaves available, which is exactly what let the board
+   * overflow its container at some breakpoints before this was fixed.
+   * Callers pick a value appropriate to their context
+   * (docs/design/system.md's responsive strategy): lesson mode defaults
+   * to a moderate size that still leaves room for the instruction/
+   * feedback below it; Play & Learn passes a larger value since the
+   * board is that screen's dominant element.
+   */
+  maxWidth?: number;
 }
 
 export function Board({
@@ -86,33 +100,26 @@ export function Board({
   onSquareClick,
   interactive = true,
   describedBy,
+  maxWidth = 560,
 }: BoardProps) {
   const rows = parseFenBoard(fen);
 
   return (
-    <div style={{ position: "relative", width: "min(92vw, 420px)" }}>
+    <div className="mw-chessboard-shell" style={{ width: `min(100%, ${maxWidth}px)` }}>
       <div
-        className="movewise-board"
+        className="mw-chessboard"
         role="grid"
         aria-label="Chessboard"
         aria-describedby={describedBy}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(8, 1fr)",
-          width: "100%",
-          aspectRatio: "1 / 1",
-          border: "2px solid var(--mw-text)",
-          borderRadius: "var(--mw-radius-sm)",
-          overflow: "hidden",
-        }}
       >
         {rows.map((row, rowIndex) => (
           // ARIA requires a gridcell's parent to have role="row" (an
           // axe-core "aria-required-parent" violation without this) —
           // display: contents keeps the row out of the box-layout tree so
           // the 64 gridcell buttons still lay out as direct children of
-          // the CSS grid above (`grid-template-columns: repeat(8, 1fr)`),
-          // while still being real DOM ancestors for the accessibility tree.
+          // the CSS grid above (`grid-template-columns`/`-rows` in
+          // design-system.css), while still being real DOM ancestors for
+          // the accessibility tree.
           <div role="row" key={`rank-${8 - rowIndex}`} style={{ display: "contents" }}>
             {row.map(({ square, piece }, colIndex) => {
               const isLight = (rowIndex + colIndex) % 2 === 0;
@@ -136,8 +143,13 @@ export function Board({
                   aria-selected={isSelected}
                   disabled={!interactive}
                   onClick={() => onSquareClick?.(square)}
+                  className="mw-chess-square"
                   style={{
-                    position: "relative",
+                    // Only the state-dependent background/selection ring
+                    // are inline (they vary per cell, per render); every
+                    // geometry-affecting property (size, border, radius,
+                    // padding) lives in the static .mw-chess-square class
+                    // so it can never drift from square per-instance.
                     background: isHighlighted
                       ? "var(--mw-warning-bg)"
                       : wasLastMove
@@ -146,24 +158,14 @@ export function Board({
                           ? "var(--mw-sq-light)"
                           : "var(--mw-sq-dark)",
                     boxShadow: isSelected ? "inset 0 0 0 3px var(--mw-moss)" : "none",
-                    border: "none",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
                     cursor: interactive ? "pointer" : "default",
-                    touchAction: "manipulation",
                   }}
                 >
                   {isLeftEdge && (
                     <span
                       aria-hidden="true"
+                      className="mw-chess-coord mw-chess-coord--rank"
                       style={{
-                        position: "absolute",
-                        top: 2,
-                        left: 3,
-                        fontFamily: "var(--mw-font-mono)",
-                        fontSize: "9px",
-                        fontWeight: 700,
                         // Highlighted/last-move backgrounds aren't part of the
                         // light/dark checkerboard pair, so a label colored
                         // relative to *that* pair can land near-invisible on
@@ -180,13 +182,8 @@ export function Board({
                   {isBottomEdge && (
                     <span
                       aria-hidden="true"
+                      className="mw-chess-coord mw-chess-coord--file"
                       style={{
-                        position: "absolute",
-                        bottom: 1,
-                        right: 3,
-                        fontFamily: "var(--mw-font-mono)",
-                        fontSize: "9px",
-                        fontWeight: 700,
                         color: isHighlighted || wasLastMove ? "var(--mw-text)" : isLight ? "var(--mw-sq-dark)" : "var(--mw-sq-light)",
                         opacity: isHighlighted || wasLastMove ? 0.85 : 0.7,
                       }}
@@ -200,36 +197,11 @@ export function Board({
                       src={`/pieces/${piece.color}${piece.type}.svg`}
                       alt=""
                       aria-hidden="true"
-                      style={{
-                        width: "80%",
-                        height: "80%",
-                        filter: "drop-shadow(0 1px 1px rgba(0,0,0,0.25))",
-                      }}
+                      className="mw-chess-piece"
                     />
                   )}
-                  {isLegal && !piece && (
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        position: "absolute",
-                        width: "28%",
-                        height: "28%",
-                        borderRadius: "50%",
-                        background: "var(--mw-sq-legal-dot)",
-                      }}
-                    />
-                  )}
-                  {isLegal && piece && (
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        position: "absolute",
-                        inset: 2,
-                        borderRadius: "50%",
-                        border: "3px solid var(--mw-sq-legal-dot)",
-                      }}
-                    />
-                  )}
+                  {isLegal && !piece && <span aria-hidden="true" className="mw-chess-legal-dot" />}
+                  {isLegal && piece && <span aria-hidden="true" className="mw-chess-capture-ring" />}
                 </button>
               );
             })}

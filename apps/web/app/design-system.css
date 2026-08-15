@@ -658,13 +658,17 @@
   flex-direction: column;
   gap: var(--mw-space-3);
   align-items: center;
-  flex: 1 1 420px;
+  /* Must match the board's own real max width (Board.tsx's maxWidth=720
+     prop on this page) — flex-wrap decides whether the sidebar wraps
+     below based on this basis, and a stale smaller basis let the actual
+     720px-wide board overflow the viewport instead of triggering a wrap. */
+  flex: 1 1 720px;
 }
 .mw-player-card {
   display: flex;
   align-items: center;
   gap: var(--mw-space-3);
-  width: min(92vw, 420px);
+  width: min(100%, 720px);
   padding: 8px 12px;
   border-radius: var(--mw-radius-sm);
   border: 1px solid transparent;
@@ -745,3 +749,95 @@
   color: var(--mw-text-dim);
 }
 .mw-play-analysis-entry .mw-badge { align-self: flex-start; }
+
+/* ---------- Chessboard ----------
+ * Geometry-critical rules only — every property here affects whether a
+ * square is actually square, so nothing that varies per-cell (colors,
+ * selection ring) lives here; those stay as inline styles in Board.tsx.
+ * grid-template-ROWS is not optional: without it, implicit rows size to
+ * their own content (a row with piece <img>s ends up taller than an
+ * empty row), which is exactly what produced non-square, inconsistently
+ * shaped cells before this was added.
+ */
+.mw-chessboard-shell {
+  position: relative;
+  /* width is set inline per-instance from the maxWidth prop (min(100%, Npx)) */
+}
+.mw-chessboard {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+  gap: 0;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 2px solid var(--mw-text);
+  border-radius: var(--mw-radius-sm);
+  overflow: hidden; /* corner radius reaches the squares only through this clip, never on the squares themselves */
+  box-sizing: border-box;
+}
+.mw-chess-square {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  touch-action: manipulation;
+  transition: none; /* no hover/focus transform that would shift or resize a square */
+}
+.mw-chess-square:disabled {
+  opacity: 1; /* browser default dims disabled buttons — a non-interactive board (demo/replay) must stay fully legible */
+}
+.mw-chess-piece {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+}
+.mw-chess-coord {
+  position: absolute;
+  z-index: 3;
+  font-family: var(--mw-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+.mw-chess-coord--rank {
+  top: 2px;
+  left: 3px;
+}
+.mw-chess-coord--file {
+  bottom: 1px;
+  right: 3px;
+}
+.mw-chess-legal-dot {
+  position: absolute;
+  z-index: 1;
+  width: 28%;
+  height: 28%;
+  border-radius: 50%;
+  background: var(--mw-sq-legal-dot);
+}
+.mw-chess-capture-ring {
+  position: absolute;
+  z-index: 1;
+  inset: 6%;
+  border-radius: 50%;
+  border: 3px solid var(--mw-sq-legal-dot);
+  box-sizing: border-box;
+}

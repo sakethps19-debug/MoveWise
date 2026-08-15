@@ -224,6 +224,7 @@ export function PlayRunner() {
             lastMove={lastMove}
             onSquareClick={handleSquareClick}
             interactive={canInteract}
+            maxWidth={720}
           />
 
           <div className={`mw-player-card${playerTurn ? " mw-player-card--active" : ""}`}>

@@ -15,7 +15,7 @@ export default async function PlayPage() {
   return (
     <div className="mw-app-shell">
       <Nav active="play" user={user ? { email: user.email } : null} totalXp={totalXp} />
-      <main style={{ maxWidth: 900, margin: "0 auto", padding: "var(--mw-space-6) var(--mw-space-4)" }}>
+      <main style={{ maxWidth: 1100, margin: "0 auto", padding: "var(--mw-space-6) var(--mw-space-4)" }}>
         <PlayRunner />
       </main>
     </div>
