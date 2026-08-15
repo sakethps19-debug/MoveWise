@@ -16,7 +16,7 @@ true today, not a claim of completeness — several rows are honest "no"s.
 | XSS prevention | React's default JSX escaping covers all rendered lesson content and user-facing text; no `dangerouslySetInnerHTML` anywhere in the codebase. |
 | Safe database access | Prisma's parameterized queries throughout — no raw SQL anywhere in the app. |
 | Secret management | `.env`/`.env.local` gitignored; `.env.example` files committed with no real values. No secrets manager (Vault, etc.) — appropriate for local dev, not audited for a production deployment since none exists. |
-| Dependency scanning | **Not implemented.** No Dependabot/Snyk/`npm audit` step anywhere, manual or automated. |
+| Dependency scanning | **Implemented.** `.github/dependabot.yml` — weekly npm (whole pnpm workspace) and github-actions ecosystem updates, security PRs ungrouped. |
 | Administrative audit trails | **Not implemented** — no admin actions exist yet to audit. |
 | Account export and deletion | **Not implemented.** No UI or Server Action for either. A real gap against the brief's Profile section (Section 5) and general privacy expectations. |
 | Data retention | Not documented or enforced — no automatic deletion of anything. |

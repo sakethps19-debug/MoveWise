@@ -18,8 +18,6 @@ rather than repeating it.
   Profile section and general privacy expectations for a product that
   will eventually handle real users' data, including minors' guardians'
   data once COPPA compliance is real.
-- **No dependency scanning.** Nothing catches a known-vulnerable transitive
-  dependency automatically.
 - **No analytics.** None of the brief's Section 18 questions ("where do
   learners struggle," "which misconceptions recur") are answerable yet —
   blocked on both an analytics pipeline and the learner model
@@ -49,6 +47,13 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **No dependency scanning**: `.github/dependabot.yml` now watches both
+  the npm ecosystem (root `package.json`/`pnpm-lock.yaml`, which
+  Dependabot resolves across the whole pnpm workspace — no per-package
+  config needed) and `github-actions` (the workflow file's own pinned
+  action versions), weekly. Security-update PRs are never batched;
+  routine version bumps are grouped into one PR to keep noise down for
+  a small team.
 - **No rate limiting on login/signup**: `apps/web/lib/rate-limit.ts` adds
   an in-memory sliding-window limiter — 5 signups/hour per IP, 15
   logins/15min per IP, and 8 logins/15min per email (the last one to

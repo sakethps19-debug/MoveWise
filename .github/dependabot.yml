@@ -1,0 +1,25 @@
+version: 2
+updates:
+  # Closes the "No dependency scanning" item in docs/known-risks.md —
+  # nothing previously caught a known-vulnerable transitive dependency.
+  # Dependabot's npm ecosystem understands pnpm workspaces (root
+  # package.json + pnpm-lock.yaml cover every package under packages/
+  # and apps/), so one entry is enough for the whole monorepo.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # Batch routine updates into one PR instead of one per package,
+      # since this is a small team maintaining the repo. Security
+      # updates are never grouped — those still get their own PR so
+      # they're not delayed behind an unrelated routine bump.
+      routine-updates:
+        applies-to: version-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
