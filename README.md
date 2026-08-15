@@ -39,6 +39,8 @@ pnpm --filter @movewise/web dev   # predev auto-generates the Prisma client,
                                    # pushes the SQLite schema, and stages the
                                    # Stockfish engine asset — no manual setup
 open http://localhost:3000
+
+pnpm --filter @movewise/web test:e2e   # 14 Playwright tests; auto-starts the dev server
 ```
 
 Copy `apps/web/.env.example` to `apps/web/.env.local` and
@@ -68,4 +70,4 @@ conservative age-gate blocks under-13 signup outright instead — see
 product-owner input; see `docs/roadmap.md` for the full list.
 
 CI (`.github/workflows/ci.yml`) runs install/typecheck/test/validate-content/
-build on every push and PR.
+build, plus the full E2E suite in a second job, on every push and PR.

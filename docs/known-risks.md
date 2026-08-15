@@ -13,11 +13,6 @@ rather than repeating it.
   stopgap (block under-13 signup outright). This is a legal question, not
   an engineering one — see `docs/security-checklist.md` and
   `docs/roadmap.md`'s open-decisions list.
-- **No E2E test suite is committed to the repo.** Every feature this
-  session was verified via Playwright, but those scripts lived outside
-  the repo as scratch verification, not a maintained suite a future
-  change would automatically run. The biggest gap between "was verified"
-  and "stays verified" — see `docs/testing-strategy.md`.
 
 ## Medium priority
 
@@ -56,6 +51,24 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **No E2E suite was committed to the repo**: `apps/web/e2e/` now has 8
+  real `@playwright/test` specs (14 tests) covering lesson flows across
+  all 13 exercise-step types, the retry-bug fix, hearts, mastery stars,
+  learning-path locking, auth, and Play mode — promoted from this
+  session's scratch verification scripts, and wired into CI as a second
+  job (`e2e`, browsers installed fresh each run). Writing this suite
+  immediately surfaced a real bug (see below) that ad hoc scratch-script
+  testing had never caught, which is exactly the point of committing it.
+- **Missing lesson-completion feedback**: clicking "Finish lesson" called
+  the persistence action but showed nothing and navigated nowhere — a
+  real gap against the brief's explicit "completion feedback" and "lesson
+  completion screens" requirements (Sections 7–8), not just a missing
+  nicety. Found while writing the E2E suite (a test asserting
+  `waitForURL("/")` after finishing timed out) — every earlier manual/
+  scratch-script check happened to `page.goto("/")` explicitly afterward
+  instead of asserting on real navigation, so it went unnoticed. Fixed
+  with a real completion screen (star rating, XP earned, a link back to
+  the learning path) in `LessonRunner`.
 - **No CI**: `.github/workflows/ci.yml` now runs install (frozen lockfile),
   typecheck, unit tests, content validation, and a real production build
   on every push/PR — the exact sequence that was previously only run

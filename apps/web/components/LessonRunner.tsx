@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import type { Lesson } from "@movewise/exercise-schema";
 import { useStockfishEngine } from "../lib/useStockfishEngine";
+import { starsForMistakes } from "../lib/mastery";
 import { ExplainStep } from "./exercises/ExplainStep";
 import { ClickSquareStep } from "./exercises/ClickSquareStep";
 import { MoveStep } from "./exercises/MoveStep";
@@ -39,6 +41,7 @@ export function LessonRunner({ lesson, onComplete }: LessonRunnerProps) {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [xpEarned, setXpEarned] = useState(0);
   const [mistakes, setMistakes] = useState(0);
+  const [finished, setFinished] = useState<{ xp: number; mistakes: number } | null>(null);
 
   const step = lesson.steps[stepIndex];
   const isLastStep = stepIndex === lesson.steps.length - 1;
@@ -51,7 +54,9 @@ export function LessonRunner({ lesson, onComplete }: LessonRunnerProps) {
     setStatus("active");
     setFeedback(null);
     if (isLastStep) {
-      onComplete?.(xpEarned + lesson.xpReward, mistakes);
+      const totalXp = xpEarned + lesson.xpReward;
+      onComplete?.(totalXp, mistakes);
+      setFinished({ xp: totalXp, mistakes });
     } else {
       setStepIndex((i) => i + 1);
     }
@@ -80,6 +85,32 @@ export function LessonRunner({ lesson, onComplete }: LessonRunnerProps) {
   }
 
   const handlers = { status, onCorrect: handleCorrect, onIncorrect: handleIncorrect, onReset: handleReset };
+
+  if (finished) {
+    const stars = starsForMistakes(finished.mistakes);
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+          maxWidth: 480,
+          margin: "0 auto",
+          textAlign: "center",
+        }}
+      >
+        <h1>Lesson complete!</h1>
+        <p style={{ fontSize: 32, color: "#c68a00" }} aria-label={`${stars} of 3 stars`}>
+          {"★".repeat(stars)}
+          <span style={{ opacity: 0.3 }}>{"★".repeat(3 - stars)}</span>
+        </p>
+        <p role="status">+{finished.xp} XP</p>
+        <Link href="/" style={{ padding: "10px 16px", background: "#4c3fd6", color: "#fff", borderRadius: 8 }}>
+          Back to learning path
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 480, margin: "0 auto" }}>

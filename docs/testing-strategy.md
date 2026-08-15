@@ -22,21 +22,23 @@
   production build (`pnpm --filter @movewise/web build`, run before
   every commit that touches `apps/web`) — not "tests" exactly, but part
   of the same verification gate.
+- **E2E suite** (`@playwright/test`, `apps/web/e2e/`, run via
+  `pnpm --filter @movewise/web test:e2e`) — 8 spec files, 14 tests,
+  covering lesson flows across all 13 exercise-step types, the
+  retry-after-wrong-answer fix, hearts (including flooring at zero
+  without lockout), mastery-star tiering, learning-path locking, the
+  full auth flow (signup, the under-13 gate, duplicate email, wrong
+  password, logout, XP persistence across re-login), and Play mode as
+  both colors. Runs in CI as a dedicated job (browsers installed fresh
+  each run — this sandbox's pre-installed Chromium is only used for
+  local runs here, via a config check that's a no-op on a real CI
+  runner). Uses a shared SQLite `dev.db`, so `workers: 1` — tests aren't
+  isolated from each other's data, only ordered.
 - **Manual browser verification via Playwright**, every feature, every
-  commit — see below.
+  commit, beyond what's in the committed suite — see below.
 
 ## What does not exist
 
-- **No CI.** Every check above is run manually, this session, before
-  every commit. Nothing enforces it on a PR — see `docs/known-risks.md`.
-- **No integration/E2E test suite committed to the repo.** The Playwright
-  scripts used for verification throughout this project's history lived
-  in a scratch directory outside the repo, not as a maintained test
-  suite — they proved specific behaviors worked *at the time*, but
-  there's no `pnpm test:e2e` a future change would run automatically.
-  This is the single biggest gap between "was verified" and "stays
-  verified" — worth promoting a curated subset of those scripts into a
-  real `apps/web/e2e/` suite before the app grows much further.
 - **No accessibility test automation**, despite `Board.tsx`'s ARIA
   labeling being deliberately built for it (accessible grid roles,
   `aria-pressed`, alt text). Verified by inspection, not by an automated
@@ -66,5 +68,8 @@ network requests, not mocked) → check console/page errors → for anything
 visual (piece art, arrow rendering, star tiering), screenshot and look at
 it, since none of the automated layers would have caught a broken-image
 icon or a wrong star count rendering. This caught real bugs the automated
-layers alone would have missed — see `docs/known-risks.md` for what a
-promoted E2E suite should prioritize covering first.
+layers alone would have missed — see `docs/known-risks.md`'s "resolved
+this session" section for the full list, including one found by writing
+the E2E suite itself (a missing lesson-completion screen) that every
+earlier ad hoc Playwright check had missed, because those scripts
+navigated away manually instead of asserting on real app behavior.
