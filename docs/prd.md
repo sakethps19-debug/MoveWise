@@ -5,13 +5,41 @@
 "Learn how to think during a chess game." Not a chessboard, not a puzzle
 app, not a Stockfish interface. A platform that connects lessons, practice,
 games, and analysis around an evolving model of the individual learner:
-*learn a concept → practise it → apply it in a guided game → identify
-mistakes → get personalised remedial lessons → demonstrate mastery.*
+*learn a concept → practise it → prove mastery → apply it in a game →
+analyse performance → prescribe remedial lessons → practise again.*
 
 Initial audience: complete beginners through improving casual players
 (roughly 0–1200 online rapid). No assumed familiarity with algebraic
 notation, files/ranks, or FEN — terminology is introduced gradually and
 visually, never assumed.
+
+## Core architecture: two complementary modes (ADR-0008, not built yet)
+
+The product is organized around two modes sharing one concept taxonomy,
+one learner model, and one recommendation engine — not two separate
+features that happen to coexist:
+
+- **Learn & Play** — the structured, curriculum-led mode. "Follow a
+  structured course, practise each idea and unlock new chess skills."
+  Course → Level → Unit → Principle → Sub-lessons → concept-specific
+  puzzles → mastery challenge → revision. See ADR-0008's information-
+  architecture decision and `docs/concept-taxonomy.md`.
+- **Play & Learn** — the game-led, diagnostic mode. "Play a game,
+  understand every important decision and receive your personal
+  training plan." A completed game (Stockfish first; PGN/platform
+  import and OTB entry later) gets move-by-move classification,
+  instructive-moment explanation, and a personalised study plan mapping
+  mistakes back to the same concept taxonomy Learn & Play teaches from.
+  See ADR-0008's move-classification and analysis-pipeline decisions.
+
+**Today's build is entirely Learn & Play**, and even that mode doesn't
+yet have the principle/sub-lesson/puzzle/mastery-challenge hierarchy —
+see the "Curriculum status" and "Primary sections" sections below for
+exactly what exists vs. what ADR-0008 specifies. Play & Learn doesn't
+exist at all yet (Play mode today is freeform Stockfish, no analysis,
+no persistence — see below). `docs/roadmap.md`'s Phase A/B/C is the
+build order; this PRD describes the target, not the current state,
+except where explicitly marked "Built."
 
 ## What makes MoveWise defensible (not "another chess app")
 
@@ -25,8 +53,11 @@ visually, never assumed.
    on every answerable step type that has one; content review should catch
    any that degrade to generic text.*
 3. **Transfer from lessons to games** — measuring whether a concept
-   taught in a lesson is later recognized/applied in Play mode. *Not built
-   — needs the learner model and per-game move analysis, both Phase 3+.*
+   taught in a lesson is later recognized/applied in Play & Learn. *Not
+   built — needs the learner model and per-game move analysis (ADR-0008
+   Phase B/C); this is the specific mechanism `docs/learner-model.md`'s
+   `gameApplicationScore` exists to compute, and the whole reason the
+   two modes share one taxonomy instead of being separate features.*
 4. **A personal coach** — a learner model covering piece-movement,
    tactics, calculation, king safety, endgames, blunder patterns.
    *Not built — see `docs/learner-model.md`.*
@@ -39,14 +70,17 @@ visually, never assumed.
    hardcoded in components. An authoring portal so non-engineers can create
    lessons is planned (Section 14 of the brief) but not built.
 
-## Primary sections (per the brief's Section 5)
+## Primary navigation (ADR-0008, extends the brief's Section 5)
+
+Home experience should prominently offer the two modes, plus secondary
+navigation:
 
 | Section | Status |
 |---|---|
-| **Learn** | Built. Default home screen: status-aware learning path (locked/available/completed, mastery stars, "Continue learning" callout) — see `apps/web/components/LearningPath.tsx`. |
-| **Practice** | Not built. Needs the learner model (weak-concept detection) to generate personalized practice sets rather than a static list. |
-| **Play** | Built (Stockfish opponent, adjustable skill 0–20, both colors). Guided mini-games and post-game analysis/remediation are not built — Play mode today is freeform only, no game persistence, no coaching. |
-| **Progress** | Not built as a section. Home page shows XP total and lesson count for signed-in users; no streaks, accuracy-by-skill, or weekly-activity views. |
+| **Learn & Play** | Partially built under the old flat name ("Learn"). Default home screen: status-aware learning path (locked/available/completed, mastery stars, "Continue learning" callout) — see `apps/web/components/LearningPath.tsx`. What's missing against ADR-0008: the principle/sub-lesson grouping (today it's `Unit → Lesson`, no `Principle` layer), concept-specific puzzle pools (no `Puzzle` content type exists), concept-level mastery/unlocking (unlocking today is pure `LessonCompletion` presence — ADR-0008 requires puzzle accuracy, hint usage, and mastery-challenge result, not lesson completion alone), and a placement assessment. |
+| **Play & Learn** | Not built. Today's "Play" (Stockfish opponent, adjustable skill 0–20, both colors) is the free-play half only — no game persistence, no move analysis, no classification, no post-game review, no study-plan generation. See ADR-0008's Phase B. |
+| **Practice** | Not built. Per ADR-0008, aggregates course puzzles, game-derived positions, spaced-repetition exercises, weak-skill training, saved positions, and mastery reviews from one pool — needs `Puzzle` (ADR-0008) and the learner model (`docs/learner-model.md`) before any of that is real. |
+| **Progress** | Not built as a section. Home page shows XP total and lesson count for signed-in users; no streaks, accuracy-by-skill, or weekly-activity views. ADR-0008 specifies three separate-but-connected views (course progress, game performance, transfer progress) — none exist. |
 | **Profile** | Partially built. `/account` offers data export and account deletion (see `docs/known-risks.md`); no preference/accessibility settings UI exists beyond that and sign-in/sign-out. |
 
 ## Curriculum status
@@ -82,8 +116,8 @@ COPPA compliance, and monetization. These carry cost, ownership, or legal
 implications and are listed as open decisions pending product-owner input
 — see `docs/roadmap.md`. (CI/CD and a real Postgres database are *not*
 on this list anymore — both exist now; see ADR-0005 and
-`.github/workflows/ci.yml`. Actually deploying `apps/web` itself is
-still not done — see `docs/architecture.md`'s Deployment section.)
+`.github/workflows/ci.yml`. `apps/web` is deployed now too, on Vercel —
+see `docs/deployment.md`.)
 
 ## Success metrics (per the brief's Section 23)
 

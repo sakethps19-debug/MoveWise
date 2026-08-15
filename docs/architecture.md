@@ -19,6 +19,22 @@ apart) — it's a consequence of how the packages were built one at a time
 across this project's history, not a deliberate up-front design exercise,
 but it satisfies the requirement regardless.
 
+## Information architecture (target, ADR-0008 — not built)
+
+Everything below this section describes what's actually built today: a
+flat `Unit → Lesson → Step[]` hierarchy. ADR-0008 specifies a deeper
+one — `Course → Level → Unit → Principle → SubLesson`, plus a new
+pooled `Puzzle` content type and a `Concept` taxonomy every teaching
+and diagnostic surface references (`docs/concept-taxonomy.md`). The
+key continuity point: `SubLesson` **is** today's `Lesson` shape,
+unchanged — the existing `packages/exercise-schema` schema, all 8
+exercise-step-type renderers, and everything ADR-0007 just fixed
+(required prompts, hearts recovery, real stars) carry forward without
+rework. What's new is a `Principle` grouping layer above it and a
+`Puzzle` type beside it. See ADR-0008 for the full proposed schema and
+why `Course`/`Level` don't need real tables yet at today's content
+volume.
+
 ## Data flow: a lesson
 
 1. `apps/web/lib/lessons.ts` reads and Zod-parses a lesson JSON file into a
@@ -71,16 +87,20 @@ database is behind it). Schema changes go through real tracked migrations
 (`prisma/migrations/`, applied via `prisma migrate deploy` in
 `predev`/`prebuild` — see ADR-0005), not `prisma db push`.
 
-Four models today: `User`, `Session`, `LessonCompletion`, and
-`RateLimitHit` (one row per login/signup attempt, backing
-`apps/web/lib/rate-limit.ts` — see `docs/known-risks.md` for why an
-earlier in-memory version wasn't good enough once a serverless deploy
-target was concrete rather than theoretical). The ~25-entity model the
-brief's Section 12 describes (course/lesson versioning, concept mastery,
-XP transactions, achievements, revision schedules, saved games, audit
-logs) doesn't exist — additions would be additive to this schema, not a
-redesign, since nothing built so far assumes a fixed shape beyond these
-four tables.
+Four models today: `User`, `Session`, `LessonCompletion` (with
+`hintsUsed` as of ADR-0007), and `RateLimitHit` (one row per
+login/signup attempt, backing `apps/web/lib/rate-limit.ts` — see
+`docs/known-risks.md` for why an earlier in-memory version wasn't good
+enough once a serverless deploy target was concrete rather than
+theoretical). The ~25-entity model the brief's Section 12 describes
+(course/lesson versioning, concept mastery, XP transactions,
+achievements, revision schedules, saved games, audit logs) doesn't
+exist yet — ADR-0008 is now the concrete proposed schema for most of
+it (`Concept`, `UserConceptMastery`, `ExerciseAttempt`, `Principle`,
+`Puzzle`, `Game`, `GameAnalysis`, `MoveAnalysis`, `StudyPlan`), phased
+across Phase A/B/C (`docs/roadmap.md`) rather than one migration —
+still additive to this schema, not a redesign, since nothing built so
+far assumes a fixed shape beyond these four tables.
 
 `/account` (`app/account/page.tsx`) gives a signed-in user data export and
 account deletion. Export is a Route Handler (`app/account/export/route.ts`)
@@ -120,13 +140,11 @@ for exactly which of that list's 10 criteria are and aren't covered.
 
 ## Deployment
 
-The data layer is real (Postgres, hosted on Supabase — ADR-0005), but
-the app itself isn't deployed anywhere yet; everything above runs via
-`pnpm dev` locally, or in CI against a throwaway `postgres:16` service
-container. Deploying `apps/web` means choosing a hosting platform
-(Vercel or self-hosted Node — nothing about the app assumes either) and
-setting a real `DATABASE_URL` there, pointed at the Supabase project's
-direct connection string (from its dashboard — the password isn't
-retrievable through any tool, by Supabase's own design) using a
-Postgres role that isn't blocked by the RLS policy ADR-0005 added (the
-project's own `postgres` role, or another with `BYPASSRLS`).
+Live on Vercel (`movewise-app.vercel.app`), backed by the real Postgres
+database (Supabase — ADR-0005), via the Session pooler connection —
+see `docs/deployment.md` for the one-time setup and the three real
+issues the first deploy attempts found and fixed (pooler mode, a
+Prisma migration-baseline issue, and a webpack-bundling bug — the last
+one covered in full in ADR-0006). CI still runs everything above
+against a throwaway `postgres:16` service container, separate from the
+real Supabase project.

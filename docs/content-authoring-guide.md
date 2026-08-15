@@ -18,10 +18,12 @@ at it.
 See `packages/exercise-schema/src/index.ts` for the authoritative schema.
 Each type's renderer lives at `apps/web/components/exercises/<Type>.tsx` —
 read the matching component before authoring a step of that type, since
-the schema alone doesn't show how a field is used (e.g. `find-check`/
-`find-checkmate` steps have no `text`/`prompt` field at all — the
-instruction shown to the learner is synthesized from `step.type` in
-`ClickSquareStep.tsx`, not authored per-lesson).
+the schema alone doesn't show how a field is used. Every board-
+interaction step type (`select-square`, `move-piece`, `capture`,
+`find-legal-move`, `find-check`/`find-checkmate`, `guided-sequence`)
+requires a `prompt: string` — schema validation fails a lesson missing
+one, per ADR-0007 (a real, previously-shipped defect: these types had
+no instruction field at all until that fix).
 
 `explain` and `review` steps need no answer validation. Every other type
 needs a `feedback` map (see below) except `find-check`, `find-checkmate`,

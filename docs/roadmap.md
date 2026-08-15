@@ -1,6 +1,15 @@
 # Roadmap
 
-Status against the brief's own phase structure (Section 22).
+Status against the brief's own phase structure (Section 22) for Phases
+0-2 below, which are done history. **Phases 3-5 as originally numbered
+are superseded by ADR-0008's Phase A/B/C**, reorganized around the
+Learn & Play / Play & Learn two-mode architecture rather than the
+brief's original linear phase list — the work those old phase
+descriptions pointed at (learner model, practice personalization, game
+coaching, content ops) is the same work, just regrouped around the
+two-mode structure and given a concrete, shared data model
+(`docs/concept-taxonomy.md`, ADR-0008) instead of three separately-
+evolving feature areas.
 
 ## Phase 0 — Audit and foundation
 
@@ -33,39 +42,67 @@ phase after it). Done: authentication, persistence, guest-progress
 migration, profiles (data export + account deletion, plus email +
 sign-out), security controls (partial — see `docs/security-checklist.md`),
 and — resolving the top item in the open-decisions list below — a real
-Postgres database, hosted on Supabase (ADR-0005). Not done: streaks, real
-cloud sync semantics beyond "every signed-in action is already
-server-persisted," and an actual deploy of the app itself — ADR-0005
-lands the data layer only; no hosting platform is chosen for the Next.js
-app, and no production `DATABASE_URL` is wired anywhere yet.
+Postgres database, hosted on Supabase (ADR-0005), deployed on Vercel
+(`docs/deployment.md`). Not done: streaks, real cloud sync semantics
+beyond "every signed-in action is already server-persisted."
 
-## Phase 3 — Practice and personalization
+## Phase A — Learn & Play foundation (ADR-0008)
 
-Not started. Blocked on the learner model (`docs/learner-model.md`) —
-concept-mastery tracking, weak-skill detection, spaced repetition,
-personalized practice, and progress analytics all depend on data this
-codebase doesn't capture yet (per-attempt outcomes, not just per-lesson
-completions).
+Not started, except the first bullet.
 
-## Phase 4 — Play and coaching
+- ~~Correct the existing lesson-engine defects.~~ **Done** — ADR-0007
+  (required prompts on every board exercise, stale-hint clearing,
+  hint-aware stars, server-side prerequisite enforcement, zero-heart
+  guided recovery). This was a prerequisite for everything else in this
+  phase, per the review's own instruction not to build a taxonomy and
+  mastery system on top of a lesson engine with known defects.
+- Create the `Principle → SubLesson → Puzzle → MasteryChallenge`
+  hierarchy (ADR-0008) and migrate `masteryTags` into real `Concept`
+  rows (`docs/concept-taxonomy.md`) — schema and data migration, not a
+  content rewrite (`SubLesson` = today's `Lesson`, unchanged).
+- Restructure the one existing beginner unit (`meet-the-pieces`) into
+  this hierarchy fully before touching the other two units or authoring
+  new content, per the request's own priority.
+- Implement concept-level mastery (`UserConceptMastery`, the 9-state
+  model in `docs/learner-model.md`) and controlled unlocking — puzzle
+  accuracy, hint usage, and mastery-challenge result, not lesson
+  completion alone.
+- Implement the struggling-learner remediation flow
+  (`docs/learner-model.md`) and a per-unit placement assessment.
 
-Partially started. Done: computer games, adjustable strength (skill 0–20),
-fair-play separation is inherent (Play mode's engine is explicitly a
-computer opponent, never assistance during any human-vs-human context,
-because no human-vs-human mode exists at all yet). Not done: guided
-mini-games as a standalone Play-mode feature (mini-games exist only
-embedded inside lessons, via the `mini-game` exercise-step type — not
-exposed as a Play-mode entry point), live coaching, post-game analysis,
-mistake retry, remedial-lesson recommendations. All of these need either
-game persistence (Play mode is currently stateless/freeform) or the
-learner model.
+## Phase B — Play & Learn foundation (ADR-0008)
 
-## Phase 5 — Content operations and scale
+Not started. Blocked on Phase A's `Concept` taxonomy existing (move
+analysis needs concept IDs to tag instructive moments with).
 
-Not started. No authoring portal, no review/publish workflow, no course
-versioning beyond a `version` field on each lesson JSON that nothing
-currently enforces meaning for, no translation workflow, no monitoring,
-no performance work motivated by real traffic (none exists).
+- Persist completed Stockfish games (`Game`, ADR-0008) — Play mode is
+  currently freeform/stateless, this is the first real change to it.
+- Classify every move with the fixed 8-value scale (ADR-0008) —
+  async, cached (`GameAnalysis`), never blocking the request.
+- Identify the 3 most instructive moments per game, map to `Concept`
+  IDs, generate a `StudyPlan` (capped at ~3-4 items, ranked by
+  recency/repetition, not raw mistake count — `docs/concept-
+  taxonomy.md`'s recommendation-ranking section).
+- Allow retrying a critical position (retry move, progressive hint,
+  show best move, link to the relevant `SubLesson`).
+- Fair-play invariant (ADR-0008) implemented and tested before any
+  human-vs-human mode is even scaffolded, not after.
+
+## Phase C — Unified adaptation (ADR-0008)
+
+Not started. Blocked on both A and B having real usage data —
+`gameApplicationScore` (`docs/learner-model.md`) needs real
+`MoveAnalysis` rows to weight against real `ExerciseAttempt` rows, not
+just a designed formula.
+
+- Combine `exerciseConfidence` and `gameApplicationScore` into one
+  `mastered` determination — the concrete mechanism behind "a concept
+  isn't mastered from controlled exercises alone."
+- Detect learned-but-not-applied concepts and surface them (the
+  Progress dashboard's "transfer progress" view, ADR-0008/PRD).
+- Spaced repetition scheduling (`nextRevisionDueAt`), game-derived
+  `Puzzle`s (`sourceGameId`), safe PGN import (with the same
+  fair-play/legal-permission checks as any other game source).
 
 ## Decisions open, pending product-owner input
 

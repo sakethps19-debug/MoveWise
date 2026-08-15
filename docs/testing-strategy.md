@@ -58,6 +58,27 @@
 
 - **No load/performance testing.**
 
+## Acceptance criteria for the two-mode architecture (ADR-0008) — not built, this is the test plan
+
+None of this exists yet — ADR-0008 is a design, not an implementation.
+Written now, alongside the design, so each acceptance criterion has a
+concrete verification plan from the start rather than being retrofitted
+once Phase A/B/C code exists (same reasoning as `docs/learner-model.md`
+being written before Phase 3 started).
+
+| # | Criterion | Verified by | Phase |
+|---|---|---|---|
+| 1 | A learner can study one principle through multiple sub-lessons | E2E: navigate a `Principle`'s full sub-lesson sequence in order, assert each is reachable only after the prior one completes (extends the existing prerequisite-enforcement pattern from ADR-0007's `learning-path.spec.ts`) | A |
+| 2 | The learner receives puzzles specifically assessing that principle | E2E: after completing all sub-lessons in a `Principle`, assert the served `Puzzle`s are all tagged with that principle's `conceptId`; unit test: puzzle-selection query never returns a puzzle from an unrelated concept | A |
+| 3 | The next principle unlocks only after defined proficiency | E2E: attempt to reach a locked principle's sub-lesson by direct URL (mirrors ADR-0007's existing direct-URL-bypass test) with puzzle accuracy below threshold — assert still locked; then meet the real unlock criteria (puzzle accuracy + mastery-challenge pass, not lesson completion alone) and assert it unlocks | A |
+| 4 | A completed game receives accurate move-by-move classification | Unit tests against known, pre-analyzed real games (same "verify against independently-known-correct data" pattern `validate-chess.test.ts` already uses for lesson positions) — fixed positions with an established correct classification (a textbook blunder, a forced mate, a known best-alternative), not invented | B |
+| 5 | Important mistakes receive understandable explanations | Unit test: every `MoveAnalysis` row classified `mistake`/`blunder`/`inaccuracy` has a non-empty `explanation`; E2E: the post-game review UI renders the move, classification, best alternative, and board highlight together for at least one instructive moment | B |
+| 6 | Mistakes map to the correct curriculum concepts | Unit tests against `docs/concept-taxonomy.md`'s mapping table directly — e.g. a synthetic game with a premature-queen-development pattern must classify to `queen-development-timing`, not a neighboring concept | B |
+| 7 | The system recommends a small, prioritised set of lessons | Unit test: `StudyPlan` generation from a synthetic multi-mistake game never exceeds ~3-4 items and never includes a one-time-oversight-only concept (the "don't prescribe after every minor inaccuracy" requirement, directly testable against `docs/concept-taxonomy.md`'s ranking rules) | B |
+| 8 | The learner can retry positions from the game | E2E: from a game review, retry a critical position, play the correct move, assert `UserConceptMastery` updates | B |
+| 9 | Completing remedial lessons updates the learner model | E2E: complete a prescribed `SubLesson`/`Puzzle` from a `StudyPlan`, assert `UserConceptMastery.exerciseConfidence` and `status` change accordingly | B/C |
+| 10 | The system later checks whether learning transfers to new positions and games | E2E/integration: complete a concept's sub-lessons, then play a game applying (or failing to apply) that concept correctly, assert `gameApplicationScore` moves and `mastered` status requires both evidence sources — this is the one criterion that needs both Phase A and Phase B's data flowing into the same `UserConceptMastery` row before it's testable at all | C |
+
 ## Section 19's "every exercise must be automatically validated for" — coverage
 
 | Requirement | Covered? |
