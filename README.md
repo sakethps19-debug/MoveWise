@@ -62,7 +62,10 @@ local SQLite path — no external services required for dev).
 ## What's intentionally not here yet
 
 No PostgreSQL (SQLite for now — see ADR-0002), no admin/authoring portal, no
-i18n, no PWA/offline support, no CI, no analytics, no real COPPA compliance
-(a conservative age-gate blocks under-13 signup outright instead — see
+i18n, no PWA/offline support, no analytics, no real COPPA compliance (a
+conservative age-gate blocks under-13 signup outright instead — see
 `docs/security-checklist.md`). All six are live decisions pending
 product-owner input; see `docs/roadmap.md` for the full list.
+
+CI (`.github/workflows/ci.yml`) runs install/typecheck/test/validate-content/
+build on every push and PR.

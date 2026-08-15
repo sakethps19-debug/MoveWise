@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Closes the top item in docs/known-risks.md ("No CI. Every verification
+# gate is run manually. Nothing stops a regression from merging.") — this
+# runs exactly the sequence that was run manually before every commit
+# throughout this project's history: install, typecheck, unit tests,
+# content validation, then a real production build.
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      # One absolute path, shared by every step regardless of its working
+      # directory — avoids the apps/web-vs-packages/db relative-path
+      # distinction documented in docs/architecture.md, which only exists
+      # to keep local dev's two .env files portable across clone locations.
+      DATABASE_URL: file:${{ github.workspace }}/packages/db/dev-ci.db
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+
+      - run: pnpm test
+
+      - run: pnpm validate:content
+
+      - name: Build apps/web (includes prisma generate/db push via predev/prebuild)
+        run: pnpm run build

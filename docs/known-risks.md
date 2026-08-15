@@ -7,10 +7,6 @@ rather than repeating it.
 
 ## High priority
 
-- **No CI.** Every verification gate (typecheck, tests, content validation,
-  build) is run manually. Nothing stops a regression from merging. First
-  concrete step: a GitHub Actions workflow running the same sequence
-  already run manually before every commit.
 - **No rate limiting on login/signup.** Credential-stuffing risk at any
   real traffic level. See `docs/security-checklist.md`.
 - **Real COPPA compliance is not implemented**, only a conservative
@@ -60,6 +56,12 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **No CI**: `.github/workflows/ci.yml` now runs install (frozen lockfile),
+  typecheck, unit tests, content validation, and a real production build
+  on every push/PR — the exact sequence that was previously only run
+  manually. Verified locally first with a true clean-checkout simulation
+  (local `.env`/`.env.local` temporarily moved aside) before trusting the
+  workflow file, since CI has no local env files to fall back on.
 - **Stuck-state bug**: every board-click exercise type could get
   permanently stuck after a wrong answer, including on the *correct*
   answer clicked immediately after. Existed since these exercise types
