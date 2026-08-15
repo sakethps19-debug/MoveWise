@@ -73,6 +73,18 @@ audit logs) doesn't exist — additions would be additive to this schema, not
 a redesign, since nothing built so far assumes a fixed shape beyond these
 three tables.
 
+`/account` (`app/account/page.tsx`) gives a signed-in user data export and
+account deletion. Export is a Route Handler (`app/account/export/route.ts`)
+rather than a Server Action, since it needs to return a real file download
+with response headers, not a form-state object — it serializes the
+account's email, creation date, and every `LessonCompletion` row as JSON.
+Deletion (`deleteAccountAction`) re-verifies the password server-side (a
+client-side `window.confirm()` is a second, independent guard against an
+accidental click, not the security boundary) and does a single
+`prisma.user.delete`, which cascades to `Session` and `LessonCompletion`
+via `onDelete: Cascade` on both relations — nothing orphaned, no manual
+cleanup needed.
+
 ## Content validation
 
 Two layers, both automated, both run in every verification pass (there's no

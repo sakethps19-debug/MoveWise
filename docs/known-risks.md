@@ -14,10 +14,6 @@ rather than repeating it.
 
 ## Medium priority
 
-- **No account export or deletion.** A real gap against both the brief's
-  Profile section and general privacy expectations for a product that
-  will eventually handle real users' data, including minors' guardians'
-  data once COPPA compliance is real.
 - **No analytics.** None of the brief's Section 18 questions ("where do
   learners struggle," "which misconceptions recur") are answerable yet —
   blocked on both an analytics pipeline and the learner model
@@ -43,6 +39,20 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **No account export or deletion**: `/account` (linked from the
+  signed-in home page) offers both. Export is a Route Handler
+  (`app/account/export/route.ts`, not a Server Action — it needs to hand
+  back a real downloadable file with response headers) returning the
+  account's email, creation date, and every lesson completion as JSON.
+  Deletion (`deleteAccountAction`) requires re-entering the password
+  (verified server-side before anything happens) plus a native
+  `window.confirm()` on the client as a second, independent guard against
+  an accidental click; a single `prisma.user.delete` cascades to Session
+  and LessonCompletion (`onDelete: Cascade` on both relations in
+  `schema.prisma` already), so nothing is left orphaned. Verified: a new
+  E2E spec drives both flows for real, including asserting that
+  dismissing the confirm dialog leaves the account intact and that a
+  login attempt after deletion fails — not just that the button exists.
 - **Guest progress isn't persisted anywhere**: `lib/guestProgress.ts`
   writes completions to `localStorage` for signed-out learners
   (best-effort — silently no-ops if storage is unavailable, e.g. private
@@ -71,15 +81,25 @@ rather than repeating it.
   routine version bumps are grouped into one PR to keep noise down for
   a small team.
 - **No rate limiting on login/signup**: `apps/web/lib/rate-limit.ts` adds
-  an in-memory sliding-window limiter — 5 signups/hour per IP, 15
+  an in-memory sliding-window limiter — 20 signups/hour per IP, 15
   logins/15min per IP, and 8 logins/15min per email (the last one to
   catch credential stuffing distributed across IPs against a single
-  account). Explicitly a stopgap, not the final answer: it's per-process
-  state, so it doesn't survive a restart or share state across multiple
-  server instances. A real fix (shared store, e.g. Redis) belongs with
-  the Postgres/hosting migration in `docs/roadmap.md`'s open decisions,
-  for the same reason SQLite is dev-only for now (ADR-0002) — not worth
-  building before that migration's infrastructure exists. Verified: full
+  account). Explicitly a stopgap, not the final answer, for two reasons:
+  it's per-process state, so it doesn't survive a restart or share state
+  across multiple server instances; and every key can collapse many real,
+  unrelated users into one bucket — shared NAT (a school computer lab is
+  exactly this product's audience) collapses by IP, and any deploy
+  without a reverse proxy setting `x-forwarded-for` collapses *every*
+  visitor into a literal `"unknown"` bucket. Generous limits are the only
+  lever available against that until this becomes a real shared-store,
+  per-user/session limiter — belongs with the Postgres/hosting migration
+  in `docs/roadmap.md`'s open decisions, for the same reason SQLite is
+  dev-only for now (ADR-0002). The signup limit started at 5/hour and was
+  raised to 20/hour after the full local E2E suite itself tripped it —
+  every local test request shares the same `"unknown"` IP bucket in dev
+  (no reverse proxy), so a suite doing 7 signups across its specs is
+  exactly the shared-bucket scenario the limiter needs to tolerate, not
+  an edge case to special-case away. Verified: full
   E2E suite (14/14 at the time this landed) still passes with the
   limiter active, plus a direct read of the new code.
 - **No E2E suite was committed to the repo**: `apps/web/e2e/` now has 8

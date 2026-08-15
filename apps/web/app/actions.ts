@@ -12,10 +12,16 @@ const MIN_PASSWORD_LENGTH = 8;
 const MIN_SIGNUP_AGE = 13;
 
 // Deliberately generous: this is meant to stop automated abuse, not slow
-// down a real user retyping a mistyped password a few times. See
-// lib/rate-limit.ts for why this is an in-memory stopgap, not the final
-// answer.
-const SIGNUP_LIMIT = { limit: 5, windowMs: 60 * 60 * 1000 }; // 5/hour per IP
+// down a real user retyping a mistyped password a few times, and every
+// key here can collapse many real, unrelated users into one bucket —
+// shared NAT (a school computer lab is exactly this product's audience)
+// collapses by IP, and any deploy that doesn't sit behind a proxy
+// setting x-forwarded-for collapses *every* visitor into the "unknown"
+// bucket (see clientIp below). Generous limits are the only lever
+// available against that until this moves to a real per-user/session
+// signal — see lib/rate-limit.ts for why this is a stopgap, not the
+// final answer.
+const SIGNUP_LIMIT = { limit: 20, windowMs: 60 * 60 * 1000 }; // 20/hour per IP
 const LOGIN_IP_LIMIT = { limit: 15, windowMs: 15 * 60 * 1000 }; // 15/15min per IP
 const LOGIN_EMAIL_LIMIT = { limit: 8, windowMs: 15 * 60 * 1000 }; // 8/15min per email, catches distributed attempts against one account
 
@@ -23,7 +29,11 @@ async function clientIp(): Promise<string> {
   const h = await headers();
   // First hop only — good enough for the abuse this stops (spoofing the
   // rest of the chain doesn't help an attacker bypass a limit keyed on
-  // the value their own proxy/client sent first).
+  // the value their own proxy/client sent first). Falls back to a
+  // literal "unknown" when there's no x-forwarded-for at all (plain
+  // `next dev`/`next start` with no reverse proxy in front) — every
+  // visitor then shares that one bucket, which is the scenario the
+  // comment above SIGNUP_LIMIT/LOGIN_IP_LIMIT is about.
   const forwardedFor = h.get("x-forwarded-for");
   return forwardedFor?.split(",")[0]?.trim() || "unknown";
 }
@@ -155,6 +165,22 @@ export async function loginAction(_prevState: FormState, formData: FormData): Pr
 
 export async function logoutAction(): Promise<void> {
   await destroySession();
+  redirect("/");
+}
+
+export async function deleteAccountAction(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const user = await getSession();
+  if (!user) return { error: "You must be signed in." };
+
+  const password = String(formData.get("password") ?? "");
+  if (!(await verifyPassword(password, user.passwordHash))) {
+    return { error: "Incorrect password." };
+  }
+
+  // Cascades to Session and LessonCompletion (see schema.prisma's
+  // onDelete: Cascade on both relations) — one delete, nothing orphaned.
+  await prisma.user.delete({ where: { id: user.id } });
+  await destroySession(); // clears the cookie; the session row is already gone via the cascade above
   redirect("/");
 }
 

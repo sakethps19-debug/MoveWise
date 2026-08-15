@@ -33,9 +33,12 @@ export default async function HomePage() {
             Signed in as {user.email} — {totalXp} XP, {completions?.size ?? 0} lesson
             {(completions?.size ?? 0) === 1 ? "" : "s"} completed
           </span>
-          <form action={logoutAction}>
-            <button type="submit">Sign out</button>
-          </form>
+          <span style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <Link href="/account">Account</Link>
+            <form action={logoutAction}>
+              <button type="submit">Sign out</button>
+            </form>
+          </span>
         </div>
       ) : (
         <p style={{ fontSize: 14 }}>
