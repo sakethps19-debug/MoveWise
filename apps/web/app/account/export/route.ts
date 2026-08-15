@@ -13,7 +13,7 @@ export async function GET() {
 
   const completions = await prisma.lessonCompletion.findMany({
     where: { userId: user.id },
-    select: { lessonId: true, xpEarned: true, mistakes: true, completedAt: true },
+    select: { lessonId: true, xpEarned: true, mistakes: true, hintsUsed: true, completedAt: true },
     orderBy: { completedAt: "asc" },
   });
 

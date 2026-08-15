@@ -15,7 +15,7 @@
     {
       "id": "step-1",
       "type": "explain",
-      "text": "This is a chessboard. It has 64 squares, alternating light and dark. You'll always play from the bottom of the board.",
+      "text": "This is a chessboard. It has 64 squares, alternating light and dark. For now, the board is shown from White's side: White's pieces begin at the bottom.",
       "boardFen": "8/8/8/8/8/8/8/8 w - - 0 1"
     },
     {
@@ -27,6 +27,7 @@
     {
       "id": "step-3",
       "type": "select-square",
+      "prompt": "Tap the square where White's king begins.",
       "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
       "correctSquares": ["e1"],
       "hints": [

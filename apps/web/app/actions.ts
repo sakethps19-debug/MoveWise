@@ -70,22 +70,28 @@ async function migrateGuestProgress(userId: string, formData: FormData): Promise
 
   for (const [lessonId, value] of entries) {
     if (!lessonId || typeof value !== "object" || value === null) continue;
-    const { xpEarned, mistakes } = value as { xpEarned?: unknown; mistakes?: unknown };
+    const { xpEarned, mistakes, hintsUsed } = value as { xpEarned?: unknown; mistakes?: unknown; hintsUsed?: unknown };
     if (typeof xpEarned !== "number" || typeof mistakes !== "number") continue;
     if (!Number.isFinite(xpEarned) || !Number.isFinite(mistakes)) continue;
+    // hintsUsed is newer than the rest of this shape — older localStorage
+    // blobs saved before it existed won't have it, so default rather than
+    // drop the whole (still-valid) xpEarned/mistakes entry.
+    const rawHints = typeof hintsUsed === "number" && Number.isFinite(hintsUsed) ? hintsUsed : 0;
 
     const clampedXp = Math.max(0, Math.min(10_000, Math.round(xpEarned)));
     const clampedMistakes = Math.max(0, Math.min(10_000, Math.round(mistakes)));
+    const clampedHints = Math.max(0, Math.min(10_000, Math.round(rawHints)));
 
     const existing = await prisma.lessonCompletion.findUnique({
       where: { userId_lessonId: { userId, lessonId } },
     });
     const bestMistakes = existing ? Math.min(existing.mistakes, clampedMistakes) : clampedMistakes;
+    const bestHintsUsed = existing ? Math.min(existing.hintsUsed, clampedHints) : clampedHints;
 
     await prisma.lessonCompletion.upsert({
       where: { userId_lessonId: { userId, lessonId } },
-      update: { xpEarned: clampedXp, mistakes: bestMistakes },
-      create: { userId, lessonId, xpEarned: clampedXp, mistakes: bestMistakes },
+      update: { xpEarned: clampedXp, mistakes: bestMistakes, hintsUsed: bestHintsUsed },
+      create: { userId, lessonId, xpEarned: clampedXp, mistakes: bestMistakes, hintsUsed: bestHintsUsed },
     });
   }
 }
@@ -184,21 +190,27 @@ export async function deleteAccountAction(_prevState: FormState, formData: FormD
   redirect("/");
 }
 
-export async function completeLessonAction(lessonId: string, xpEarned: number, mistakes: number): Promise<void> {
+export async function completeLessonAction(
+  lessonId: string,
+  xpEarned: number,
+  mistakes: number,
+  hintsUsed: number,
+): Promise<void> {
   const user = await getSession();
   if (!user) return; // guest: XP is session-local only, nothing to persist
 
   const existing = await prisma.lessonCompletion.findUnique({
     where: { userId_lessonId: { userId: user.id, lessonId } },
   });
-  // Keep the best (lowest-mistake) run's star rating — redoing a mastered
-  // lesson sloppily shouldn't downgrade it.
+  // Keep the best (lowest-mistake, lowest-hint) run's star rating — redoing
+  // a mastered lesson sloppily shouldn't downgrade it.
   const bestMistakes = existing ? Math.min(existing.mistakes, mistakes) : mistakes;
+  const bestHintsUsed = existing ? Math.min(existing.hintsUsed, hintsUsed) : hintsUsed;
 
   await prisma.lessonCompletion.upsert({
     where: { userId_lessonId: { userId: user.id, lessonId } },
-    update: { xpEarned, mistakes: bestMistakes },
-    create: { userId: user.id, lessonId, xpEarned, mistakes },
+    update: { xpEarned, mistakes: bestMistakes, hintsUsed: bestHintsUsed },
+    create: { userId: user.id, lessonId, xpEarned, mistakes, hintsUsed },
   });
   revalidatePath("/");
 }

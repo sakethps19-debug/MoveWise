@@ -4,6 +4,11 @@
 Accepted (product/pedagogy decision made autonomously within engineering
 scope — flagged here for product-owner review, not blocking on it, since
 it's a small and easily-reversed default).
+**Superseded in part by ADR-0007**: zero hearts now triggers a guided
+recovery interstitial rather than an unbounded floor (the "floor at
+zero, no lockout" principle itself is unchanged — recovery isn't a
+lockout), and stars are computed from hint usage as well as mistakes
+(`starsForPerformance`, replacing `starsForMistakes`).
 
 ## Context
 The consolidated product brief asks for "hearts or attempts" (Section 9)

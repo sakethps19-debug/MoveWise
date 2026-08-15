@@ -48,6 +48,7 @@
     {
       "id": "step-4",
       "type": "move-piece",
+      "prompt": "Move the knight to fork the black king and the rook.",
       "fen": "8/8/2r3k1/8/2N5/8/8/K7 w - - 0 1",
       "expectedMoves": ["c4e5"],
       "altValid": [],
@@ -71,6 +72,7 @@
     {
       "id": "step-5",
       "type": "move-piece",
+      "prompt": "Move the knight to fork the black king and the queen, not just give check.",
       "fen": "8/2q1k3/8/8/5N2/8/8/K7 w - - 0 1",
       "expectedMoves": ["f4d5"],
       "altValid": [],

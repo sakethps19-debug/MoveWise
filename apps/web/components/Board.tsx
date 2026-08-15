@@ -72,6 +72,8 @@ export interface BoardProps {
   arrow?: { from: Square; to: Square } | null;
   onSquareClick?: (square: Square) => void;
   interactive?: boolean;
+  /** id of an element (e.g. the exercise prompt) that describes what this board interaction is for. */
+  describedBy?: string;
 }
 
 export function Board({
@@ -83,6 +85,7 @@ export function Board({
   arrow = null,
   onSquareClick,
   interactive = true,
+  describedBy,
 }: BoardProps) {
   const rows = parseFenBoard(fen);
 
@@ -92,6 +95,7 @@ export function Board({
         className="movewise-board"
         role="grid"
         aria-label="Chessboard"
+        aria-describedby={describedBy}
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(8, 1fr)",

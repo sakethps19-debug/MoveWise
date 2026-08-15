@@ -34,6 +34,37 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **Interactive exercises had no visible instruction** — every
+  board-interaction step type (`select-square`, `move-piece`, `capture`,
+  `find-legal-move`, `find-check`/`find-checkmate`, `guided-sequence`)
+  lacked a `prompt` field entirely; the learner had to open a hint just
+  to find out what they were being asked to do. Affected all 17 lesson
+  files. Found via an external product review, verified against the real
+  schema/renderer before treating it as fact rather than assumed true.
+  Fixed at the schema level (`prompt` now required, `.min(1)`, so a
+  future lesson missing one fails `validate:content`/CI), not per-lesson.
+  See ADR-0007.
+- **Stale hints stayed visible after a correct answer** — `activeHint`
+  (and its board highlight/arrow) wasn't gated on step status, so a
+  revealed hint sat right below the "Correct!" banner. Fixed by gating on
+  `status !== "correct"`. See ADR-0007.
+- **Stars ignored hint usage** — a zero-mistake run that used hints, even
+  the solution-reveal level, still showed 3 stars, since `hintsUsed`
+  wasn't tracked at all. Added `LessonCompletion.hintsUsed` and switched
+  to `starsForPerformance(mistakes, hintsUsed)`. See ADR-0007 (supersedes
+  ADR-0004 on this point).
+- **Locked lessons were reachable by direct URL** — the learning path UI
+  hid/disabled locked lessons, but the lesson route itself never checked
+  prerequisites, so a signed-in learner could open any lesson id
+  directly. Fixed with a server-side prerequisite check + redirect on
+  `/learn/[lessonId]`, scoped to authenticated users (guests keep the
+  existing client-side localStorage-based lock). See ADR-0007.
+- **Zero hearts had no recovery path** — reaching zero just left an
+  unbounded floor with no reteach step. Added a guided recovery
+  interstitial (reteach pulled from the lesson's own most recent
+  explanation, then hearts partially restored to retry the same
+  exercise) — still never a hard lockout, still nothing payment-related.
+  See ADR-0007.
 - **SQLite in production would not work**: migrated to Postgres, hosted
   on Supabase (ADR-0005) — resolving open decision #1 in
   `docs/roadmap.md` once the user chose to (hosting/cost was the genuinely

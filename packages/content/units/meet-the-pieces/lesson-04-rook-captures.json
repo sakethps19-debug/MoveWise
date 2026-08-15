@@ -20,6 +20,7 @@
     {
       "id": "step-2",
       "type": "find-legal-move",
+      "prompt": "Find the rook's one legal move — it's blocked in one direction and can capture in the other.",
       "fen": "7k/8/8/8/2PrR3/8/8/K7 w - - 0 1",
       "validMoves": ["e4d4"],
       "feedback": {

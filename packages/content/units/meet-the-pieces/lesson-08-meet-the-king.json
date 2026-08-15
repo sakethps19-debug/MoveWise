@@ -20,6 +20,7 @@
     {
       "id": "step-2",
       "type": "move-piece",
+      "prompt": "Move the king exactly one square in any direction.",
       "fen": "7k/8/8/8/4K3/8/8/8 w - - 0 1",
       "expectedMoves": ["e4e5"],
       "altValid": ["e4d3", "e4d4", "e4d5", "e4e3", "e4f3", "e4f4", "e4f5"],

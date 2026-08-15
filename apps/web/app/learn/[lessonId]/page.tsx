@@ -1,4 +1,5 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { prisma } from "@movewise/db";
 import { loadLesson } from "../../../lib/lessons";
 import { LessonRunner } from "../../../components/LessonRunner";
 import { completeLessonAction } from "../../actions";
@@ -14,6 +15,25 @@ export default async function LessonPage({
   if (!lesson) notFound();
 
   const user = await getSession();
+
+  // Server-side prerequisite enforcement (not just a hidden/disabled link
+  // in LearningPath.tsx) — a signed-in learner could otherwise open a
+  // locked lesson directly by URL. Guests aren't tracked server-side (no
+  // session), so this only applies once signed in; guest sequencing is
+  // still enforced client-side via localStorage in LearningPath.tsx.
+  if (user && lesson.prerequisites.length > 0) {
+    const completed = await prisma.lessonCompletion.findMany({
+      where: { userId: user.id, lessonId: { in: lesson.prerequisites } },
+      select: { lessonId: true },
+    });
+    const completedIds = new Set(completed.map((c) => c.lessonId));
+    const missingId = lesson.prerequisites.find((p) => !completedIds.has(p));
+    if (missingId) {
+      const missingLesson = loadLesson(missingId);
+      const needs = encodeURIComponent(missingLesson?.title ?? missingId);
+      redirect(`/?locked=${encodeURIComponent(lesson.title)}&needs=${needs}`);
+    }
+  }
 
   return (
     <main>

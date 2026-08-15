@@ -27,6 +27,7 @@
     {
       "id": "step-3",
       "type": "capture",
+      "prompt": "Capture the black pawn diagonally ahead of you.",
       "fen": "7k/8/8/3p4/4P3/8/8/K7 w - - 0 1",
       "expectedMoves": ["e4d5"],
       "feedback": {

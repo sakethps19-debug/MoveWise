@@ -14,7 +14,7 @@
 const GUEST_PROGRESS_KEY = "movewise_guest_progress";
 
 export interface GuestProgress {
-  [lessonId: string]: { xpEarned: number; mistakes: number };
+  [lessonId: string]: { xpEarned: number; mistakes: number; hintsUsed: number };
 }
 
 export function readGuestProgress(): GuestProgress {
@@ -29,13 +29,14 @@ export function readGuestProgress(): GuestProgress {
   }
 }
 
-export function recordGuestCompletion(lessonId: string, xpEarned: number, mistakes: number): void {
+export function recordGuestCompletion(lessonId: string, xpEarned: number, mistakes: number, hintsUsed: number): void {
   if (typeof window === "undefined") return;
   const progress = readGuestProgress();
   const existing = progress[lessonId];
   // Same "keep the best run" rule as the signed-in path (completeLessonAction).
   const bestMistakes = existing ? Math.min(existing.mistakes, mistakes) : mistakes;
-  progress[lessonId] = { xpEarned, mistakes: bestMistakes };
+  const bestHintsUsed = existing ? Math.min(existing.hintsUsed, hintsUsed) : hintsUsed;
+  progress[lessonId] = { xpEarned, mistakes: bestMistakes, hintsUsed: bestHintsUsed };
   try {
     window.localStorage.setItem(GUEST_PROGRESS_KEY, JSON.stringify(progress));
   } catch {

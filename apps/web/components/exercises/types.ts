@@ -14,6 +14,8 @@ export interface ExerciseHandlers {
   onIncorrect: (key: string) => void;
   /** Clears status back to "active" — call before processing a new attempt after a wrong one. */
   onReset: () => void;
+  /** Called once per hint reveal (each escalation to a new hint level) — feeds the lesson's star tiering. */
+  onHintUsed: () => void;
 }
 
 export const STEP_XP = 5;

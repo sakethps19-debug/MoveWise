@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Lesson } from "@movewise/exercise-schema";
-import { starsForMistakes } from "../lib/mastery";
+import { starsForPerformance } from "../lib/mastery";
 import { clearGuestProgress, readGuestProgress } from "../lib/guestProgress";
 
 export interface UnitWithLessons {
@@ -48,11 +48,11 @@ export function LearningPath({
   completions,
 }: {
   units: UnitWithLessons[];
-  completions: Map<string, { xpEarned: number; mistakes: number }> | null;
+  completions: Map<string, { xpEarned: number; mistakes: number; hintsUsed: number }> | null;
 }) {
   const [guestCompletions, setGuestCompletions] = useState<Map<
     string,
-    { xpEarned: number; mistakes: number }
+    { xpEarned: number; mistakes: number; hintsUsed: number }
   > | null>(null);
 
   // Server-rendered `completions` is only non-null for a signed-in user.
@@ -136,7 +136,9 @@ export function LearningPath({
                       {status === "locked" ? "🔒" : status === "completed" ? "✓" : "▶"}
                     </span>
                     <span style={{ flex: 1 }}>{lesson.title}</span>
-                    {status === "completed" && record && <Stars count={starsForMistakes(record.mistakes)} />}
+                    {status === "completed" && record && (
+                      <Stars count={starsForPerformance(record.mistakes, record.hintsUsed)} />
+                    )}
                   </div>
                 );
 

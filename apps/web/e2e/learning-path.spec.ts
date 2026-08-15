@@ -90,3 +90,50 @@ test("a perfect first run earns 3 stars; a run with mistakes earns fewer", async
   await expect(lessonRow).toContainText("★★");
   await expect(lessonRow.locator("span[aria-label='2 of 3 stars']")).toBeVisible();
 });
+
+test("a signed-in learner can't bypass locked-lesson sequencing via direct URL", async ({ page }) => {
+  // Real gap found in review: a later lesson opened fine when navigated to
+  // directly by URL, even though it showed as locked on the learning path
+  // — the check only lived in the UI (disabled/hidden links), never on
+  // the server. meet-the-pieces.03-meet-the-rook requires 01 and 02,
+  // neither of which this fresh account has completed.
+  const email = uniqueEmail("sequencing");
+  await page.goto("/signup");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", "password123");
+  await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+
+  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await page.waitForURL(/\/\?locked=/);
+  const banner = page.getByRole("alert").filter({ hasText: "locked" });
+  await expect(banner).toContainText("Meet the rook");
+  await expect(banner).toContainText("locked");
+});
+
+test("a zero-mistake run that used a hint doesn't earn 3 stars", async ({ page }) => {
+  // Real defect found in review: stars were computed from mistakes only,
+  // so a run with zero wrong clicks but a revealed hint (even the
+  // solution-reveal level) still showed 3 stars. See lib/mastery.ts.
+  const email = uniqueEmail("hintstars");
+  await page.goto("/signup");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", "password123");
+  await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+
+  await page.goto("/learn/meet-the-pieces.01-welcome");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Hint 1" }).click();
+  await page.locator('[aria-label*="e1,"]').click(); // correct, zero wrong clicks
+  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await expect(page.getByText(/hint used/)).toBeVisible();
+  await page.getByRole("link", { name: "Back to learning path" }).click();
+  await page.waitForURL("/");
+
+  const lessonRow = page.getByText("Welcome to the chessboard").locator("..");
+  await expect(lessonRow.locator("span[aria-label='2 of 3 stars']")).toBeVisible();
+});

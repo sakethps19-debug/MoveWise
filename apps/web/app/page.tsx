@@ -11,16 +11,23 @@ const UNITS = [
   { id: "basic-tactics", title: "Basic Tactics" },
 ];
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ locked?: string; needs?: string }>;
+}) {
+  const { locked, needs } = await searchParams;
   const units = UNITS.map((unit) => ({ ...unit, lessons: loadUnitLessons(unit.id) }));
   const user = await getSession();
 
   let totalXp = 0;
-  let completions: Map<string, { xpEarned: number; mistakes: number }> | null = null;
+  let completions: Map<string, { xpEarned: number; mistakes: number; hintsUsed: number }> | null = null;
   if (user) {
     const rows = await prisma.lessonCompletion.findMany({ where: { userId: user.id } });
     totalXp = rows.reduce((sum, c) => sum + c.xpEarned, 0);
-    completions = new Map(rows.map((c) => [c.lessonId, { xpEarned: c.xpEarned, mistakes: c.mistakes }]));
+    completions = new Map(
+      rows.map((c) => [c.lessonId, { xpEarned: c.xpEarned, mistakes: c.mistakes, hintsUsed: c.hintsUsed }]),
+    );
   }
 
   return (
@@ -50,6 +57,14 @@ export default async function HomePage() {
       <p>
         <Link href="/play">Play vs. Stockfish →</Link>
       </p>
+
+      {locked && (
+        <p role="alert" style={{ background: "#fff4d6", padding: 12, borderRadius: 8 }}>
+          {needs
+            ? `"${locked}" is locked until you complete "${needs}" first.`
+            : `"${locked}" is locked until you complete its prerequisites first.`}
+        </p>
+      )}
 
       <LearningPath units={units} completions={completions} />
     </main>

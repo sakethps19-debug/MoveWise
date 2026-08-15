@@ -41,6 +41,7 @@ describe("FEN legality", () => {
         {
           id: "step-1",
           type: "move-piece",
+          prompt: "test prompt",
           fen: "not-a-real-fen",
           expectedMoves: ["e4e8"],
           altValid: [],
@@ -62,7 +63,7 @@ describe("find-check / find-checkmate", () => {
   it("accepts a correctSquares set that matches real check-delivering squares", () => {
     const issues = validateLesson(
       makeLesson([
-        { id: "s", type: "find-check", fen: checkFen, correctSquares: ["h8"], feedback: {} },
+        { id: "s", type: "find-check", prompt: "test prompt", fen: checkFen, correctSquares: ["h8"], feedback: {} },
       ]),
     );
     expect(issues).toEqual([]);
@@ -71,7 +72,7 @@ describe("find-check / find-checkmate", () => {
   it("flags a correctSquares entry that doesn't actually deliver check", () => {
     const issues = validateLesson(
       makeLesson([
-        { id: "s", type: "find-check", fen: checkFen, correctSquares: ["h8", "a1"], feedback: {} },
+        { id: "s", type: "find-check", prompt: "test prompt", fen: checkFen, correctSquares: ["h8", "a1"], feedback: {} },
       ]),
     );
     expect(issues).toHaveLength(1);
@@ -84,7 +85,14 @@ describe("find-check / find-checkmate", () => {
     // the opposing king (that square is itself attacked).
     const issues = validateLesson(
       makeLesson([
-        { id: "s", type: "find-check", fen: "k7/8/8/8/8/8/8/7K w - - 0 1", correctSquares: ["a1"], feedback: {} },
+        {
+          id: "s",
+          type: "find-check",
+          prompt: "test prompt",
+          fen: "k7/8/8/8/8/8/8/7K w - - 0 1",
+          correctSquares: ["a1"],
+          feedback: {},
+        },
       ]),
     );
     expect(issues.some((i) => /no legal move in this position delivers check/.test(i.message))).toBe(true);
@@ -93,7 +101,14 @@ describe("find-check / find-checkmate", () => {
   it("accepts a correctSquares set that matches a real checkmate", () => {
     const issues = validateLesson(
       makeLesson([
-        { id: "s", type: "find-checkmate", fen: checkmateFen, correctSquares: ["e8"], feedback: {} },
+        {
+          id: "s",
+          type: "find-checkmate",
+          prompt: "test prompt",
+          fen: checkmateFen,
+          correctSquares: ["e8"],
+          feedback: {},
+        },
       ]),
     );
     expect(issues).toEqual([]);
@@ -103,7 +118,14 @@ describe("find-check / find-checkmate", () => {
     // checkFen's rook check leaves the black king with escape squares.
     const issues = validateLesson(
       makeLesson([
-        { id: "s", type: "find-checkmate", fen: checkFen, correctSquares: ["h8"], feedback: {} },
+        {
+          id: "s",
+          type: "find-checkmate",
+          prompt: "test prompt",
+          fen: checkFen,
+          correctSquares: ["h8"],
+          feedback: {},
+        },
       ]),
     );
     expect(issues.some((i) => /no legal move in this position delivers checkmate/.test(i.message))).toBe(true);
@@ -145,6 +167,7 @@ describe("move-piece / capture", () => {
         {
           id: "s",
           type: "move-piece",
+          prompt: "test prompt",
           fen: rookFen,
           expectedMoves: ["e4e8"],
           altValid: ["e4a4", "e4h4", "e4e1"],
@@ -159,7 +182,16 @@ describe("move-piece / capture", () => {
   it("flags an expectedMoves entry that isn't legal from the FEN", () => {
     const issues = validateLesson(
       makeLesson([
-        { id: "s", type: "move-piece", fen: rookFen, expectedMoves: ["e4f5"], altValid: [], hints: [], feedback: {} },
+        {
+          id: "s",
+          type: "move-piece",
+          prompt: "test prompt",
+          fen: rookFen,
+          expectedMoves: ["e4f5"],
+          altValid: [],
+          hints: [],
+          feedback: {},
+        },
       ]),
     );
     expect(issues[0]!.message).toMatch(/expected\/alt move "e4f5" is not legal/);
@@ -171,6 +203,7 @@ describe("move-piece / capture", () => {
         {
           id: "s",
           type: "move-piece",
+          prompt: "test prompt",
           fen: rookFen,
           expectedMoves: ["e4e8"],
           altValid: ["e4d5"],
@@ -185,7 +218,7 @@ describe("move-piece / capture", () => {
   it("flags a step with no expected moves at all as having no reachable success state", () => {
     const issues = validateLesson(
       makeLesson([
-        { id: "s", type: "capture", fen: rookFen, expectedMoves: [], feedback: {} },
+        { id: "s", type: "capture", prompt: "test prompt", fen: rookFen, expectedMoves: [], feedback: {} },
       ]),
     );
     expect(issues.some((i) => /no expected moves declared/.test(i.message))).toBe(true);
@@ -197,14 +230,18 @@ describe("find-legal-move", () => {
 
   it("accepts a real legal move", () => {
     const issues = validateLesson(
-      makeLesson([{ id: "s", type: "find-legal-move", fen: rookFen, validMoves: ["e4e5"], feedback: {} }]),
+      makeLesson([
+        { id: "s", type: "find-legal-move", prompt: "test prompt", fen: rookFen, validMoves: ["e4e5"], feedback: {} },
+      ]),
     );
     expect(issues).toEqual([]);
   });
 
   it("flags a declared valid move that isn't actually legal", () => {
     const issues = validateLesson(
-      makeLesson([{ id: "s", type: "find-legal-move", fen: rookFen, validMoves: ["e4f5"], feedback: {} }]),
+      makeLesson([
+        { id: "s", type: "find-legal-move", prompt: "test prompt", fen: rookFen, validMoves: ["e4f5"], feedback: {} },
+      ]),
     );
     expect(issues[0]!.message).toMatch(/declared valid move "e4f5" is not actually legal/);
   });
@@ -217,7 +254,14 @@ describe("guided-sequence", () => {
   it("accepts a real player-move / forced-reply sequence, applying replies between moves", () => {
     const issues = validateLesson(
       makeLesson([
-        { id: "s", type: "guided-sequence", fen, playerMoves: ["c2e3", "e1d2"], forcedReplies: ["e8e3"] },
+        {
+          id: "s",
+          type: "guided-sequence",
+          prompt: "test prompt",
+          fen,
+          playerMoves: ["c2e3", "e1d2"],
+          forcedReplies: ["e8e3"],
+        },
       ]),
     );
     expect(issues).toEqual([]);
@@ -226,7 +270,14 @@ describe("guided-sequence", () => {
   it("flags an illegal player move and stops there instead of validating further", () => {
     const issues = validateLesson(
       makeLesson([
-        { id: "s", type: "guided-sequence", fen, playerMoves: ["c2c3", "e1d2"], forcedReplies: ["e8e3"] },
+        {
+          id: "s",
+          type: "guided-sequence",
+          prompt: "test prompt",
+          fen,
+          playerMoves: ["c2c3", "e1d2"],
+          forcedReplies: ["e8e3"],
+        },
       ]),
     );
     expect(issues).toHaveLength(1);
@@ -235,7 +286,16 @@ describe("guided-sequence", () => {
 
   it("flags an illegal forced reply", () => {
     const issues = validateLesson(
-      makeLesson([{ id: "s", type: "guided-sequence", fen, playerMoves: ["c2e3"], forcedReplies: ["e8e1"] }]),
+      makeLesson([
+        {
+          id: "s",
+          type: "guided-sequence",
+          prompt: "test prompt",
+          fen,
+          playerMoves: ["c2e3"],
+          forcedReplies: ["e8e1"],
+        },
+      ]),
     );
     expect(issues[0]!.message).toMatch(/forced reply "e8e1" \(after move 1\) is not legal/);
   });
@@ -247,7 +307,14 @@ describe("guided-sequence", () => {
     // (this is the exact bug documented as fixed in docs/known-risks.md).
     const issues = validateLesson(
       makeLesson([
-        { id: "s", type: "guided-sequence", fen, playerMoves: ["c2e3", "e1d2"], forcedReplies: ["e8e3"] },
+        {
+          id: "s",
+          type: "guided-sequence",
+          prompt: "test prompt",
+          fen,
+          playerMoves: ["c2e3", "e1d2"],
+          forcedReplies: ["e8e3"],
+        },
       ]),
     );
     expect(issues).toEqual([]);
@@ -263,6 +330,7 @@ describe("move-piece level-3 hint arrows", () => {
         {
           id: "s",
           type: "move-piece",
+          prompt: "test prompt",
           fen: rookFen,
           expectedMoves: ["e4e8"],
           altValid: [],
@@ -280,6 +348,7 @@ describe("move-piece level-3 hint arrows", () => {
         {
           id: "s",
           type: "move-piece",
+          prompt: "test prompt",
           fen: rookFen,
           expectedMoves: ["e4e8"],
           altValid: [],
@@ -302,6 +371,7 @@ describe("move-piece level-3 hint arrows", () => {
         {
           id: "s",
           type: "select-square",
+          prompt: "test prompt",
           fen: "7k/8/8/8/4R3/8/8/K7 w - - 0 1",
           correctSquares: ["e4"],
           hints: [{ level: 3, text: "nonsense arrow", arrowFrom: "a1", arrowTo: "a1" }],

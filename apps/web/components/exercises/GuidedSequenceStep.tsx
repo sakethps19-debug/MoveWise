@@ -56,10 +56,15 @@ export function GuidedSequenceStep({
     if (nextIndex >= step.playerMoves.length) onCorrect(STEP_XP);
   }
 
+  const promptId = `${step.id}-prompt`;
+
   return (
     <>
-      <p>
-        Play the correct move. Move {Math.min(index + 1, step.playerMoves.length)} of {step.playerMoves.length}.
+      <p id={promptId} className="movewise-exercise-prompt">
+        {step.prompt}
+      </p>
+      <p style={{ opacity: 0.7 }}>
+        Move {Math.min(index + 1, step.playerMoves.length)} of {step.playerMoves.length}.
       </p>
       <Board
         fen={fen}
@@ -67,6 +72,7 @@ export function GuidedSequenceStep({
         legalTargets={selected ? legalTargetsFrom(fen, selected) : []}
         onSquareClick={handleClick}
         interactive={status === "active"}
+        describedBy={promptId}
       />
       <StepFooter status={status} feedback={feedback} xp={STEP_XP} isLastStep={isLastStep} onAdvance={onAdvance} />
     </>

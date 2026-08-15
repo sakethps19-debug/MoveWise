@@ -14,6 +14,7 @@ export function MoveStep({
   onCorrect,
   onIncorrect,
   onReset,
+  onHintUsed,
   isLastStep,
   onAdvance,
   feedback,
@@ -25,7 +26,8 @@ export function MoveStep({
 
   const legalTargets = useMemo(() => (selected ? legalTargetsFrom(step.fen, selected) : []), [selected, step.fen]);
 
-  const activeHint = "hints" in step ? step.hints.find((h) => h.level === hintLevel) : undefined;
+  // No stale hint highlight/arrow/text once the step is answered correctly.
+  const activeHint = status !== "correct" && "hints" in step ? step.hints.find((h) => h.level === hintLevel) : undefined;
   const highlightSquares =
     activeHint && "highlightSquares" in activeHint ? (activeHint.highlightSquares as Square[]) : [];
   const activeArrow =
@@ -56,8 +58,13 @@ export function MoveStep({
     else onIncorrect("default");
   }
 
+  const promptId = `${step.id}-prompt`;
+
   return (
     <>
+      <p id={promptId} className="movewise-exercise-prompt">
+        {step.prompt}
+      </p>
       <Board
         fen={step.fen}
         selected={selected}
@@ -65,10 +72,18 @@ export function MoveStep({
         highlightSquares={highlightSquares}
         arrow={activeArrow}
         onSquareClick={handleClick}
+        describedBy={promptId}
       />
       <StepFooter status={status} feedback={feedback} xp={STEP_XP} isLastStep={isLastStep} onAdvance={onAdvance} />
       {status !== "correct" && "hints" in step && (
-        <button type="button" onClick={() => setHintLevel((l) => Math.min(4, l + 1))} disabled={hintLevel >= 4}>
+        <button
+          type="button"
+          onClick={() => {
+            setHintLevel((l) => Math.min(4, l + 1));
+            onHintUsed();
+          }}
+          disabled={hintLevel >= 4}
+        >
           {hintLevel >= 4 ? "Solution shown" : `Hint ${hintLevel + 1}`}
         </button>
       )}

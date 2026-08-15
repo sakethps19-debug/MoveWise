@@ -22,6 +22,7 @@
     {
       "id": "step-2",
       "type": "move-piece",
+      "prompt": "Move the rook to a legal destination — any distance along its rank or file.",
       "fen": "7k/8/8/8/4R3/8/8/K7 w - - 0 1",
       "expectedMoves": ["e4e8"],
       "altValid": ["e4a4", "e4h4", "e4e1"],
@@ -38,6 +39,7 @@
     {
       "id": "step-3",
       "type": "move-piece",
+      "prompt": "Move the rook to capture the black pawn blocking its path.",
       "fen": "4k3/8/8/8/3pR3/8/8/4K3 w - - 0 1",
       "expectedMoves": ["e4d4"],
       "altValid": [],

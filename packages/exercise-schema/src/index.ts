@@ -42,6 +42,7 @@ export const ExplainStepSchema = BaseStep.extend({
 
 export const SelectSquareStepSchema = BaseStep.extend({
   type: z.literal("select-square"),
+  prompt: z.string().min(1),
   fen: z.string().min(1),
   correctSquares: z.array(SquareSchema).min(1),
   hints: z.array(HintSchema),
@@ -50,6 +51,7 @@ export const SelectSquareStepSchema = BaseStep.extend({
 
 export const MovePieceStepSchema = BaseStep.extend({
   type: z.literal("move-piece"),
+  prompt: z.string().min(1),
   fen: z.string().min(1),
   expectedMoves: z.array(z.string().min(1)).min(1),
   altValid: z.array(z.string()).default([]),
@@ -59,6 +61,7 @@ export const MovePieceStepSchema = BaseStep.extend({
 
 export const CaptureStepSchema = BaseStep.extend({
   type: z.literal("capture"),
+  prompt: z.string().min(1),
   fen: z.string().min(1),
   expectedMoves: z.array(z.string().min(1)).min(1),
   feedback: FeedbackMapSchema,
@@ -66,6 +69,7 @@ export const CaptureStepSchema = BaseStep.extend({
 
 export const FindLegalMoveStepSchema = BaseStep.extend({
   type: z.literal("find-legal-move"),
+  prompt: z.string().min(1),
   fen: z.string().min(1),
   validMoves: z.array(z.string().min(1)).min(1),
   feedback: FeedbackMapSchema,
@@ -94,6 +98,7 @@ export const OrderStepsStepSchema = BaseStep.extend({
 
 export const FindCheckStepSchema = BaseStep.extend({
   type: z.enum(["find-check", "find-checkmate"]),
+  prompt: z.string().min(1),
   fen: z.string().min(1),
   correctSquares: z.array(SquareSchema).min(1),
   feedback: FeedbackMapSchema,
@@ -101,6 +106,7 @@ export const FindCheckStepSchema = BaseStep.extend({
 
 export const GuidedSequenceStepSchema = BaseStep.extend({
   type: z.literal("guided-sequence"),
+  prompt: z.string().min(1),
   fen: z.string().min(1),
   forcedReplies: z.array(z.string()),
   playerMoves: z.array(z.string()).min(1),

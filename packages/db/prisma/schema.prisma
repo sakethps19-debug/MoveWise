@@ -39,6 +39,11 @@ model LessonCompletion {
   /// fact, not a display value — star tiers are computed from this, not
   /// stored, so the tiering rule can change without a migration.
   mistakes    Int      @default(0)
+  /// Hints revealed across the whole lesson, on the completing run — a
+  /// zero-mistake run that leaned on hints (up to and including the
+  /// solution-reveal level) still isn't a 3-star run. Same "raw fact,
+  /// tiering computed elsewhere" reasoning as `mistakes`.
+  hintsUsed   Int      @default(0)
   completedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

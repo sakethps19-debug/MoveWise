@@ -35,6 +35,7 @@
     {
       "id": "step-4",
       "type": "guided-sequence",
+      "prompt": "Block the rook's check with your knight, then continue after Black recaptures.",
       "fen": "k3r3/8/8/8/8/8/2N5/4K3 w - - 0 1",
       "playerMoves": ["c2e3", "e1d2"],
       "forcedReplies": ["e8e3"]

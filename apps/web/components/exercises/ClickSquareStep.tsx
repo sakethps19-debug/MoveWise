@@ -14,6 +14,7 @@ export function ClickSquareStep({
   onCorrect,
   onIncorrect,
   onReset,
+  onHintUsed,
   isLastStep,
   onAdvance,
   feedback,
@@ -22,7 +23,8 @@ export function ClickSquareStep({
 } & ExerciseHandlers & { isLastStep: boolean; onAdvance: () => void; feedback: string | null }) {
   const [hintLevel, setHintLevel] = useState(0);
 
-  const activeHint = "hints" in step ? step.hints.find((h) => h.level === hintLevel) : undefined;
+  // No stale hint highlight/arrow/text once the step is answered correctly.
+  const activeHint = status !== "correct" && "hints" in step ? step.hints.find((h) => h.level === hintLevel) : undefined;
   const highlightSquares =
     activeHint && "highlightSquares" in activeHint ? (activeHint.highlightSquares as Square[]) : [];
   const activeArrow =
@@ -37,24 +39,30 @@ export function ClickSquareStep({
     else onIncorrect(square);
   }
 
+  const promptId = `${step.id}-prompt`;
+
   return (
     <>
-      {(step.type === "find-check" || step.type === "find-checkmate") && (
-        <p>
-          {step.type === "find-checkmate"
-            ? "Click the square where you can deliver checkmate."
-            : "Click the square where you can put the opponent in check."}
-        </p>
-      )}
+      <p id={promptId} className="movewise-exercise-prompt">
+        {step.prompt}
+      </p>
       <Board
         fen={step.fen}
         highlightSquares={highlightSquares}
         arrow={activeArrow}
         onSquareClick={handleClick}
+        describedBy={promptId}
       />
       <StepFooter status={status} feedback={feedback} xp={STEP_XP} isLastStep={isLastStep} onAdvance={onAdvance} />
       {status !== "correct" && "hints" in step && (
-        <button type="button" onClick={() => setHintLevel((l) => Math.min(4, l + 1))} disabled={hintLevel >= 4}>
+        <button
+          type="button"
+          onClick={() => {
+            setHintLevel((l) => Math.min(4, l + 1));
+            onHintUsed();
+          }}
+          disabled={hintLevel >= 4}
+        >
           {hintLevel >= 4 ? "Solution shown" : `Hint ${hintLevel + 1}`}
         </button>
       )}

@@ -73,7 +73,7 @@ export function MiniGameStep({
 
   return (
     <>
-      <p>
+      <p id={`${step.id}-prompt`} className="movewise-exercise-prompt">
         <strong>Objective:</strong> {step.objective}
       </p>
       <p style={{ opacity: 0.7 }}>{step.winCondition}</p>
@@ -90,6 +90,7 @@ export function MiniGameStep({
             legalTargets={selected ? legalTargetsFrom(fen, selected) : []}
             onSquareClick={handleClick}
             interactive={engineReady && !thinking && status === "active" && sideToMove(fen) === playerColor}
+            describedBy={`${step.id}-prompt`}
           />
           <p role="status">
             {!engineReady
