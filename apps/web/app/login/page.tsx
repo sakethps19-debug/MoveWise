@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { loginAction, type FormState } from "../actions";
 import { readGuestProgress } from "../../lib/guestProgress";
+import { Button } from "../../components/ui/Button";
 
 const initialState: FormState = {};
 
@@ -20,30 +21,43 @@ export default function LoginPage() {
   }, []);
 
   return (
-    <main style={{ maxWidth: 400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
-      <h1>Sign in</h1>
-      <form action={formAction} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <input type="hidden" name="guestProgress" ref={guestProgressRef} />
-        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          Email
-          <input name="email" type="email" required autoComplete="email" />
-        </label>
-        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          Password
-          <input name="password" type="password" required autoComplete="current-password" />
-        </label>
-        {state.error && (
-          <p role="alert" style={{ color: "#b3261e" }}>
-            {state.error}
-          </p>
-        )}
-        <button type="submit" disabled={pending}>
-          {pending ? "Signing in…" : "Sign in"}
-        </button>
-      </form>
-      <p>
-        Don't have an account? <Link href="/signup">Sign up</Link>
-      </p>
+    <main className="mw-auth-shell">
+      <div className="mw-auth-card">
+        <div className="mw-auth-brand">
+          <span className="mw-nav-mark" aria-hidden="true">M</span>
+          <span className="mw-nav-wordmark">MoveWise</span>
+        </div>
+        <h1 className="mw-auth-title">Sign in</h1>
+        <form action={formAction} className="mw-auth-form">
+          <input type="hidden" name="guestProgress" ref={guestProgressRef} />
+          <div className="mw-field">
+            <label className="mw-field-label" htmlFor="email">Email</label>
+            <input className="mw-input" id="email" name="email" type="email" required autoComplete="email" />
+          </div>
+          <div className="mw-field">
+            <label className="mw-field-label" htmlFor="password">Password</label>
+            <input
+              className="mw-input"
+              id="password"
+              name="password"
+              type="password"
+              required
+              autoComplete="current-password"
+            />
+          </div>
+          {state.error && (
+            <p role="alert" className="mw-feedback mw-feedback--error">
+              {state.error}
+            </p>
+          )}
+          <Button type="submit" disabled={pending} fullWidth>
+            {pending ? "Signing in…" : "Sign in"}
+          </Button>
+        </form>
+        <p className="mw-auth-footer">
+          Don&apos;t have an account? <Link href="/signup">Sign up</Link>
+        </p>
+      </div>
     </main>
   );
 }

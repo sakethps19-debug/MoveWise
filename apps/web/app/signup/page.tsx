@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { signupAction, type FormState } from "../actions";
 import { readGuestProgress } from "../../lib/guestProgress";
+import { Button } from "../../components/ui/Button";
 
 const initialState: FormState = {};
 
@@ -20,34 +21,56 @@ export default function SignupPage() {
   }, []);
 
   return (
-    <main style={{ maxWidth: 400, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
-      <h1>Create an account</h1>
-      <form action={formAction} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <input type="hidden" name="guestProgress" ref={guestProgressRef} />
-        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          Email
-          <input name="email" type="email" required autoComplete="email" />
-        </label>
-        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          Password
-          <input name="password" type="password" required minLength={8} autoComplete="new-password" />
-        </label>
-        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          Birth year
-          <input name="birthYear" type="number" required min={1900} max={new Date().getFullYear()} />
-        </label>
-        {state.error && (
-          <p role="alert" style={{ color: "#b3261e" }}>
-            {state.error}
-          </p>
-        )}
-        <button type="submit" disabled={pending}>
-          {pending ? "Creating account…" : "Sign up"}
-        </button>
-      </form>
-      <p>
-        Already have an account? <Link href="/login">Sign in</Link>
-      </p>
+    <main className="mw-auth-shell">
+      <div className="mw-auth-card">
+        <div className="mw-auth-brand">
+          <span className="mw-nav-mark" aria-hidden="true">M</span>
+          <span className="mw-nav-wordmark">MoveWise</span>
+        </div>
+        <h1 className="mw-auth-title">Create an account</h1>
+        <form action={formAction} className="mw-auth-form">
+          <input type="hidden" name="guestProgress" ref={guestProgressRef} />
+          <div className="mw-field">
+            <label className="mw-field-label" htmlFor="email">Email</label>
+            <input className="mw-input" id="email" name="email" type="email" required autoComplete="email" />
+          </div>
+          <div className="mw-field">
+            <label className="mw-field-label" htmlFor="password">Password</label>
+            <input
+              className="mw-input"
+              id="password"
+              name="password"
+              type="password"
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
+          </div>
+          <div className="mw-field">
+            <label className="mw-field-label" htmlFor="birthYear">Birth year</label>
+            <input
+              className="mw-input"
+              id="birthYear"
+              name="birthYear"
+              type="number"
+              required
+              min={1900}
+              max={new Date().getFullYear()}
+            />
+          </div>
+          {state.error && (
+            <p role="alert" className="mw-feedback mw-feedback--error">
+              {state.error}
+            </p>
+          )}
+          <Button type="submit" disabled={pending} fullWidth>
+            {pending ? "Creating account…" : "Sign up"}
+          </Button>
+        </form>
+        <p className="mw-auth-footer">
+          Already have an account? <Link href="/login">Sign in</Link>
+        </p>
+      </div>
     </main>
   );
 }
