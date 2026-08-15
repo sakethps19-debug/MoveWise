@@ -27,14 +27,17 @@ Play mode works, accounts persist progress.
 
 ## Phase 2 — Accounts and cloud progress
 
-Partially done, out of order relative to the brief's own phasing (accounts
+Mostly done, out of order relative to the brief's own phasing (accounts
 and persistence were built during Phase 1 gap-filling, not as a separate
 phase after it). Done: authentication, persistence, guest-progress
-migration, profiles (minimal — email + sign-out only), security controls
-(partial — see `docs/security-checklist.md`). Not done: PostgreSQL (still
-SQLite — ADR-0002's consequences section covers the migration path),
-streaks, real cloud sync semantics beyond "every signed-in action is
-already server-persisted."
+migration, profiles (data export + account deletion, plus email +
+sign-out), security controls (partial — see `docs/security-checklist.md`),
+and — resolving the top item in the open-decisions list below — a real
+Postgres database, hosted on Supabase (ADR-0005). Not done: streaks, real
+cloud sync semantics beyond "every signed-in action is already
+server-persisted," and an actual deploy of the app itself — ADR-0005
+lands the data layer only; no hosting platform is chosen for the Next.js
+app, and no production `DATABASE_URL` is wired anywhere yet.
 
 ## Phase 3 — Practice and personalization
 
@@ -68,17 +71,19 @@ no performance work motivated by real traffic (none exists).
 
 Carried forward from the initial repository assessment — nothing below
 blocks continued low-stakes work (more content, more docs), but real
-progress on Phase 2's Postgres migration, Phase 3, Phase 4's persistence
-work, or Phase 5 needs at least one of these resolved:
+progress on Phase 3, Phase 4's persistence work, or Phase 5 needs at
+least one of these resolved. (Hosting/infra for Postgres — originally
+item 1 here — is resolved: ADR-0005, Supabase, free tier. Choosing an
+actual deploy platform/process for the Next.js app itself is still open,
+but wasn't one of the original six and isn't blocking anything yet.)
 
-1. **Hosting/infra for Postgres, and who pays for it.**
-2. **Analytics vendor** (self-hosted vs. a SaaS product — cost and
+1. **Analytics vendor** (self-hosted vs. a SaaS product — cost and
    data-handling implications either way).
-3. **Scope and timing of the admin/authoring portal** (Section 14) — a
+2. **Scope and timing of the admin/authoring portal** (Section 14) — a
    second full application.
-4. **Real COPPA compliance work** — legal, not engineering.
-5. **Monetization stance** — architecture (account tiers, payment
+3. **Real COPPA compliance work** — legal, not engineering.
+4. **Monetization stance** — architecture (account tiers, payment
    provider) shouldn't get guessed at.
-6. **i18n scope for Phase 1** — retrofitting full localization later is
+5. **i18n scope for Phase 1** — retrofitting full localization later is
    expensive; worth deciding whether new content should be authored with
    i18n keys from now on, or English-only until Phase 5.

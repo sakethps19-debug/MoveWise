@@ -13,12 +13,26 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      # Real Postgres, not SQLite — the app targets Supabase Postgres in
+      # dev/prod (see ADR-0005); CI gets its own throwaway instance per
+      # run rather than touching the real Supabase project, same as
+      # local dev uses its own local Postgres instance.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: movewise
+          POSTGRES_PASSWORD: movewise_ci
+          POSTGRES_DB: movewise_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      # One absolute path, shared by every step regardless of its working
-      # directory — avoids the apps/web-vs-packages/db relative-path
-      # distinction documented in docs/architecture.md, which only exists
-      # to keep local dev's two .env files portable across clone locations.
-      DATABASE_URL: file:${{ github.workspace }}/packages/db/dev-ci.db
+      DATABASE_URL: postgresql://movewise:movewise_ci@localhost:5432/movewise_ci
     steps:
       - uses: actions/checkout@v4
 
@@ -36,6 +50,7 @@ jobs:
       # generate` runs — normally triggered by apps/web's predev/prebuild,
       # but `pnpm typecheck` below runs standalone `tsc` per package and
       # never goes through that chain. Generate it explicitly, first.
+      # (`generate` reads only schema.prisma, no live DB connection needed.)
       - run: npx prisma generate
         working-directory: packages/db
 
@@ -45,14 +60,28 @@ jobs:
 
       - run: pnpm validate:content
 
-      - name: Build apps/web (also runs prisma generate/db push again, via predev/prebuild)
+      - name: Build apps/web (also runs prisma generate/migrate deploy again, via predev/prebuild)
         run: pnpm run build
 
   e2e:
     runs-on: ubuntu-latest
     needs: verify
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: movewise
+          POSTGRES_PASSWORD: movewise_ci
+          POSTGRES_DB: movewise_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
-      DATABASE_URL: file:${{ github.workspace }}/packages/db/dev-ci.db
+      DATABASE_URL: postgresql://movewise:movewise_ci@localhost:5432/movewise_ci
     steps:
       - uses: actions/checkout@v4
 

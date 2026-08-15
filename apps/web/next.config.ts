@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@movewise/chess-rules", "@movewise/exercise-schema", "@movewise/engine"],
   webpack: (config, { isServer }) => {
     // @movewise/db must be require()'d at runtime, not bundled: it pulls in
-    // @libsql/client's native bindings, and Next's built-in
+    // pg's native/optional bindings, and Next's built-in
     // `serverExternalPackages` opt-out only matches packages whose resolved
     // path contains a literal "node_modules/<pkg>/" segment — a pnpm
     // workspace package like @movewise/db resolves through a symlink to a
@@ -16,8 +16,8 @@ const nextConfig: NextConfig = {
       config.externals = [
         ...(Array.isArray(config.externals) ? config.externals : [config.externals].filter(Boolean)),
         "@movewise/db",
-        "@prisma/adapter-libsql",
-        "@libsql/client",
+        "@prisma/adapter-pg",
+        "pg",
       ];
     }
     return config;

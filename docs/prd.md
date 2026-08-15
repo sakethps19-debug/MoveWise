@@ -78,10 +78,12 @@ Strategy, Endgames, and Openings (Section 6 of the brief) are unbuilt.
 
 Not attempted, and shouldn't be inferred as accidentally missing: an
 authoring portal, i18n, offline/PWA support, real (legally-reviewed)
-COPPA compliance, monetization, analytics infrastructure, CI/CD, and a
-production Postgres deployment. All six carry cost, ownership, or legal
+COPPA compliance, and monetization. These carry cost, ownership, or legal
 implications and are listed as open decisions pending product-owner input
-— see `docs/roadmap.md`.
+— see `docs/roadmap.md`. (CI/CD and a real Postgres database are *not*
+on this list anymore — both exist now; see ADR-0005 and
+`.github/workflows/ci.yml`. Actually deploying `apps/web` itself is
+still not done — see `docs/architecture.md`'s Deployment section.)
 
 ## Success metrics (per the brief's Section 23)
 

@@ -9,7 +9,7 @@ apps/web             Next.js 15 App Router — the only deployable unit
 packages/chess-rules  chess.js wrapper — the only module allowed to import chess.js
 packages/engine        Stockfish Worker/UCI wrapper
 packages/exercise-schema  Zod content schema + chess-legality validator
-packages/db            Prisma 7 + SQLite (dev) via @prisma/adapter-libsql
+packages/db            Prisma 7 + Postgres (Supabase) via @prisma/adapter-pg
 packages/content        lesson JSON, organized by unit
 ```
 
@@ -62,9 +62,14 @@ committed to git, since it's fully reproducible from the pinned dependency
 See ADR-0003 for the reasoning. Mechanically: `apps/web/lib/auth.ts` owns
 password hashing (bcryptjs) and session management (random-token cookie,
 looked up against a `Session` table). `packages/db` wraps a Prisma
-`PrismaClient` constructed with a `@prisma/adapter-libsql` driver adapter
-(see ADR-0002 for why not `better-sqlite3`, and why not the schema-embedded
-`datasource.url` most Prisma docs describe — Prisma 7 changed both).
+`PrismaClient` constructed with a `@prisma/adapter-pg` driver adapter
+against a real Postgres database, hosted on Supabase (ADR-0005 — this
+replaced an initial SQLite-via-libsql setup, ADR-0002, which explains why
+not `better-sqlite3` and why not the schema-embedded `datasource.url`
+most Prisma docs describe — Prisma 7 changed both, independent of which
+database is behind it). Schema changes go through real tracked migrations
+(`prisma/migrations/`, applied via `prisma migrate deploy` in
+`predev`/`prebuild` — see ADR-0005), not `prisma db push`.
 
 Three models today: `User`, `Session`, `LessonCompletion`. The ~25-entity
 model the brief's Section 12 describes (course/lesson versioning, concept
@@ -111,9 +116,13 @@ for exactly which of that list's 10 criteria are and aren't covered.
 
 ## Deployment
 
-None exists. Everything above runs via `pnpm dev` locally. Deploying means:
-Vercel (or self-hosted Node) for `apps/web`, a real Postgres instance
-(swapping `@prisma/adapter-libsql` for `@prisma/adapter-pg` per ADR-0002's
-consequences section — schema and app code don't change), and choosing who
-hosts/pays for the database. This is one of the open product-owner
-decisions in `docs/roadmap.md`, not an oversight.
+The data layer is real (Postgres, hosted on Supabase — ADR-0005), but
+the app itself isn't deployed anywhere yet; everything above runs via
+`pnpm dev` locally, or in CI against a throwaway `postgres:16` service
+container. Deploying `apps/web` means choosing a hosting platform
+(Vercel or self-hosted Node — nothing about the app assumes either) and
+setting a real `DATABASE_URL` there, pointed at the Supabase project's
+direct connection string (from its dashboard — the password isn't
+retrievable through any tool, by Supabase's own design) using a
+Postgres role that isn't blocked by the RLS policy ADR-0005 added (the
+project's own `postgres` role, or another with `BYPASSRLS`).

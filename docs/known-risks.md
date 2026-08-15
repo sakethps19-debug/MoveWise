@@ -24,10 +24,6 @@ rather than repeating it.
 
 ## Lower priority / accepted for now
 
-- **SQLite in production would not work** (Vercel's serverless runtime has
-  no persistent filesystem) — not a bug, a known constraint of the current
-  dev-only database choice, resolved by the Postgres migration in
-  `docs/roadmap.md`'s open decisions, not before.
 - **No i18n infrastructure.** English-only throughout, no translation
   keys, no locale routing.
 - **No PWA/offline support.**
@@ -39,6 +35,18 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **SQLite in production would not work**: migrated to Postgres, hosted
+  on Supabase (ADR-0005) — resolving open decision #1 in
+  `docs/roadmap.md` once the user chose to (hosting/cost was the genuinely
+  open question, not something to pick unilaterally). Along the way,
+  Supabase's own tooling flagged Row-Level Security as disabled on the
+  new tables — a real exposure via Supabase's auto-provisioned public
+  REST API, even though this app doesn't use that API at all. Surfaced to
+  the user with the remediation SQL shown, not auto-applied, per the
+  tool's own instructions; they chose to enable it. **Still open**: a
+  real production `DATABASE_URL` (Supabase never exposes the DB password
+  via API — the user needs to get it from their dashboard) and an actual
+  deploy of the app itself; ADR-0005 lands the data layer only.
 - **No accessibility test automation**: `e2e/accessibility.spec.ts` runs
   `@axe-core/playwright` (scoped to WCAG 2.0/2.1 A and AA rules, not
   axe's full best-practice set) against the home page, login/signup, a
@@ -117,9 +125,10 @@ rather than repeating it.
   without a reverse proxy setting `x-forwarded-for` collapses *every*
   visitor into a literal `"unknown"` bucket. Generous limits are the only
   lever available against that until this becomes a real shared-store,
-  per-user/session limiter — belongs with the Postgres/hosting migration
-  in `docs/roadmap.md`'s open decisions, for the same reason SQLite is
-  dev-only for now (ADR-0002). The signup limit started at 5/hour and was
+  per-user/session limiter — now that ADR-0005 gives the app a real
+  Postgres database, that's a plausible place to back it (a
+  `RateLimitBucket` table, or a real cache layer), but it isn't built.
+  The signup limit started at 5/hour and was
   raised to 20/hour after the full local E2E suite itself tripped it —
   every local test request shares the same `"unknown"` IP bucket in dev
   (no reverse proxy), so a suite doing 7 signups across its specs is

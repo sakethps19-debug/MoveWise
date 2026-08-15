@@ -24,8 +24,9 @@ A pnpm-workspace TypeScript monorepo:
   legality* (not just JSON shape): every FEN, expected move, hint arrow,
   and check/checkmate-delivering square in every lesson is verified
   programmatically, not hand-checked.
-- **`packages/db`** — Prisma 7 (SQLite locally, via `@prisma/adapter-libsql`)
-  — `User`, `Session`, `LessonCompletion`.
+- **`packages/db`** — Prisma 7, Postgres (hosted on Supabase — see
+  ADR-0005) via `@prisma/adapter-pg` — `User`, `Session`,
+  `LessonCompletion`.
 - **`packages/content`** — lesson JSON, three units so far: "Meet the
   Pieces" (12 lessons), "Check and Checkmate Basics" (3 lessons), and
   "Basic Tactics" (1 lesson — "The knight fork"). All 13 exercise-step
@@ -45,7 +46,7 @@ pnpm typecheck
 pnpm test
 pnpm validate:content
 pnpm --filter @movewise/web dev   # predev auto-generates the Prisma client,
-                                   # pushes the SQLite schema, and stages the
+                                   # applies pending migrations, and stages the
                                    # Stockfish engine asset — no manual setup
 open http://localhost:3000
 
@@ -53,8 +54,10 @@ pnpm --filter @movewise/web test:e2e   # 24 Playwright tests (incl. automated ac
 ```
 
 Copy `apps/web/.env.example` to `apps/web/.env.local` and
-`packages/db/.env.example` to `packages/db/.env` first (both just need a
-local SQLite path — no external services required for dev).
+`packages/db/.env.example` to `packages/db/.env` first — both need a
+Postgres `DATABASE_URL`. Either run a local Postgres instance (see
+`packages/db/.env.example` for the one-time setup) or point both files
+at a real Supabase project's connection string.
 
 ## Docs
 
@@ -72,11 +75,13 @@ local SQLite path — no external services required for dev).
 
 ## What's intentionally not here yet
 
-No PostgreSQL (SQLite for now — see ADR-0002), no admin/authoring portal, no
-i18n, no PWA/offline support, no analytics, no real COPPA compliance (a
-conservative age-gate blocks under-13 signup outright instead — see
-`docs/security-checklist.md`). All six are live decisions pending
-product-owner input; see `docs/roadmap.md` for the full list.
+No admin/authoring portal, no i18n, no PWA/offline support, no analytics,
+no real COPPA compliance (a conservative age-gate blocks under-13 signup
+outright instead — see `docs/security-checklist.md`), and no actual
+deploy of the app itself (the database is real now — Postgres on
+Supabase, ADR-0005 — but nothing hosts `apps/web` yet). These are live
+decisions pending product-owner input; see `docs/roadmap.md` for the full
+list.
 
 CI (`.github/workflows/ci.yml`) runs install/typecheck/test/validate-content/
 build, plus the full E2E suite in a second job, on every push and PR.

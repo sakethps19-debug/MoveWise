@@ -2,6 +2,10 @@
 
 ## Status
 Accepted (decided autonomously — reversible technical choice, no cost/data implications).
+**Superseded for the datasource/adapter choice by ADR-0005** (SQLite →
+Postgres migration) — the driver-adapter *pattern* this ADR established
+(and its prediction, in Consequences below, of exactly this swap) still
+applies; only `@prisma/adapter-libsql` itself was replaced.
 
 ## Context
 Prisma 7 is a genuine breaking change from what most Prisma documentation
