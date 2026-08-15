@@ -201,7 +201,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
           <h2>Let&apos;s review before continuing</h2>
           <p>{reteachText}</p>
           <p className="mw-recovery-note">
-            You've used up your hearts on this lesson, but that's alright — a couple of hearts will come back so you
+            You&apos;ve used up your hearts on this lesson, but that&apos;s alright — a couple of hearts will come back so you
             can try this exercise again with the idea fresh.
           </p>
           <Button onClick={handleRecoveryComplete}>Try again</Button>

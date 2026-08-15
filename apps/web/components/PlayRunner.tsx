@@ -100,7 +100,6 @@ export function PlayRunner({
       })
       .catch(() => setEngineFailure("Stockfish stopped responding."))
       .finally(() => setThinking(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- recordMove is stable enough for this effect's purposes
   }, [fen, engineRef, engineReady, playerColor, skill, thinking, engineError, gameOver]);
 
   const legalTargets = selected ? legalTargetsFrom(fen, selected) : [];
@@ -224,6 +223,7 @@ export function PlayRunner({
             <span className="mw-player-card-detail">{SKILL_LEVELS.find((l) => l.value === skill)?.label}</span>
             <div className="mw-captured-row" role="group" aria-label="Pieces Stockfish has captured">
               {capturedByEngine.map((symbol, i) => (
+                // eslint-disable-next-line @next/next/no-img-element -- tiny static vector art, no optimization needed
                 <img key={i} src={`/pieces/${playerColor}${symbol}.svg`} alt={pieceNameOf(symbol)} className="mw-captured-piece" />
               ))}
             </div>
@@ -244,6 +244,7 @@ export function PlayRunner({
             <span className="mw-player-card-detail">{playerColor === "w" ? "White" : "Black"}</span>
             <div className="mw-captured-row" role="group" aria-label="Pieces you've captured">
               {capturedByPlayer.map((symbol, i) => (
+                // eslint-disable-next-line @next/next/no-img-element -- tiny static vector art, no optimization needed
                 <img key={i} src={`/pieces/${engineColor}${symbol}.svg`} alt={pieceNameOf(symbol)} className="mw-captured-piece" />
               ))}
             </div>

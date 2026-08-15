@@ -31,20 +31,61 @@ rather than repeating it.
   `docs/testing-strategy.md`'s coverage table).
 - **Star tiers (0/1-2/3+ mistakes) are an initial guess**, not user-tested
   — see ADR-0004.
-- **`pnpm lint` cannot currently run non-interactively.** `next lint` has
-  no committed ESLint config in this repo and prompts for one on first
-  run (Strict/Base/Cancel) — piping a selection into stdin doesn't
-  satisfy its raw-terminal prompt, so it can't complete in a non-TTY
-  environment (this sandbox, and presumably CI too, though `.github/
-  workflows/ci.yml` doesn't invoke `pnpm lint` at all, which is
-  consistent with this never having been runnable in automation).
-  Pre-existing, not introduced this pass — confirmed by checking the
-  workflow file and git history for any `.eslintrc*`/`eslint.config.*`
-  before assuming it was newly broken. Fixing it means choosing and
-  committing an ESLint config, a real decision for whoever owns this
-  repo's tooling, not something to pick unilaterally mid-feature-work.
+- **`.github/workflows/ci.yml` still doesn't run `pnpm lint`** — it now
+  can (see "Resolved this session" below), but the workflow file itself
+  wasn't updated to add a lint step, since that's a CI-configuration
+  decision distinct from making the command runnable at all, and
+  wasn't asked for.
 
 ## Resolved this session, kept here for the record
+
+- **`pnpm lint` could not run at all** — `next lint` had no committed
+  ESLint config anywhere in the repo (confirmed via git history, not
+  assumed) and prompted interactively on first run, which can't complete
+  in a non-TTY environment. Added `eslint`, `eslint-config-next`, and
+  `@eslint/eslintrc` as real devDependencies (pinned to versions matching
+  the installed Next.js, `^15.5.23`, not whatever the registry's default
+  tag resolved to — an unpinned install pulled in `eslint-config-next@16`
+  with unmet peer-dependency warnings against it) and a standard
+  `eslint.config.mjs` (`next/core-web-vitals` + `next/typescript`, the
+  same setup `next lint`'s own interactive "Strict" option would have
+  generated). Running it for the first time surfaced four real,
+  previously-invisible issues, all fixed: two unescaped-entity JSX errors
+  (`app/account/page.tsx`, `components/LessonRunner.tsx`), one stale
+  `eslint-disable` comment suppressing a warning that no longer applied
+  (`components/PlayRunner.tsx`), and two `<img>` elements missing the
+  same "tiny static vector art" suppression comment `Board.tsx`'s
+  identical pattern already carries. `pnpm lint` is now clean.
+- **Cross-unit progression had no test coverage** — every progression
+  test exercised only `meet-the-pieces`, and the gating code being
+  unit-agnostic isn't the same claim as it being verified across a real
+  unit boundary. Added `e2e/cross-unit-progression.spec.ts`: real UI
+  completion of `meet-the-pieces.12-unit-mastery-challenge` (the unit's
+  actual final/mastery-check lesson, all 9 graded steps) unlocking
+  `check-and-checkmate.01`; `basic-tactics` verified locked both before
+  *and* partway through `check-and-checkmate` (only its own final lesson
+  unlocks the third unit, not "some progress" in the second); a locked
+  lesson's learning-path row confirmed to render no `<a>` at all (not
+  just a redirect on direct URL entry, a separate claim); a hard reload
+  re-verified against the server, not a client cache; replaying a
+  completed lesson checked against the database directly (exactly one
+  `LessonCompletion` row, unchanged total XP), not just the UI's word for
+  it; the dev-only reset control checked the same way (zero
+  `LessonCompletion`/`UserConceptMastery`/`ExerciseAttempt` rows
+  afterward, every unit re-locked). Meet-the-pieces lessons 2–11 are
+  seeded directly rather than clicked through — their content is already
+  covered elsewhere; what this file adds is boundary behavior, which only
+  needs them *completed*. Seeding uses a standalone helper script
+  (`e2e/db-helper.mjs`), not a direct `@movewise/db` import in the
+  `.spec.ts` file — Playwright's own test transform can't load Prisma
+  7's ESM-generated client (confirmed: plain `node` run from `apps/web`
+  loads it fine, so this is a Playwright/esbuild interop gap, not a
+  product issue), so the seeding calls shell out to a plain Node script
+  instead.
+
+- **Board-loading flash, feedback design, lesson-progression states, and
+  Play & Learn's information architecture** — a product-review pass
+  across six areas:
 
 - **Board-loading flash, feedback design, lesson-progression states, and
   Play & Learn's information architecture** — a product-review pass
