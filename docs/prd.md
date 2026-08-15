@@ -47,7 +47,7 @@ visually, never assumed.
 | **Practice** | Not built. Needs the learner model (weak-concept detection) to generate personalized practice sets rather than a static list. |
 | **Play** | Built (Stockfish opponent, adjustable skill 0–20, both colors). Guided mini-games and post-game analysis/remediation are not built — Play mode today is freeform only, no game persistence, no coaching. |
 | **Progress** | Not built as a section. Home page shows XP total and lesson count for signed-in users; no streaks, accuracy-by-skill, or weekly-activity views. |
-| **Profile** | Not built. No account/preference/accessibility/privacy settings UI exists beyond sign-in/sign-out. |
+| **Profile** | Partially built. `/account` offers data export and account deletion (see `docs/known-risks.md`); no preference/accessibility settings UI exists beyond that and sign-in/sign-out. |
 
 ## Curriculum status
 
