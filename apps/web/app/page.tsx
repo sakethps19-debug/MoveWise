@@ -3,6 +3,7 @@ import { prisma } from "@movewise/db";
 import { loadUnitLessons } from "../lib/lessons";
 import { getSession } from "../lib/auth";
 import { logoutAction } from "./actions";
+import { LearningPath } from "../components/LearningPath";
 
 const UNITS = [
   { id: "meet-the-pieces", title: "Meet the Pieces" },
@@ -14,23 +15,23 @@ export default async function HomePage() {
   const user = await getSession();
 
   let totalXp = 0;
-  let completedCount = 0;
+  let completions: Map<string, { xpEarned: number; mistakes: number }> | null = null;
   if (user) {
-    const completions = await prisma.lessonCompletion.findMany({ where: { userId: user.id } });
-    totalXp = completions.reduce((sum, c) => sum + c.xpEarned, 0);
-    completedCount = completions.length;
+    const rows = await prisma.lessonCompletion.findMany({ where: { userId: user.id } });
+    totalXp = rows.reduce((sum, c) => sum + c.xpEarned, 0);
+    completions = new Map(rows.map((c) => [c.lessonId, { xpEarned: c.xpEarned, mistakes: c.mistakes }]));
   }
 
   return (
-    <main style={{ maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 12 }}>
+    <main style={{ maxWidth: 480, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
       <h1>MoveWise</h1>
       <p style={{ opacity: 0.7 }}>Learn how to think during a chess game.</p>
 
       {user ? (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14 }}>
           <span>
-            Signed in as {user.email} — {totalXp} XP, {completedCount} lesson{completedCount === 1 ? "" : "s"}{" "}
-            completed
+            Signed in as {user.email} — {totalXp} XP, {completions?.size ?? 0} lesson
+            {(completions?.size ?? 0) === 1 ? "" : "s"} completed
           </span>
           <form action={logoutAction}>
             <button type="submit">Sign out</button>
@@ -45,18 +46,8 @@ export default async function HomePage() {
       <p>
         <Link href="/play">Play vs. Stockfish →</Link>
       </p>
-      {units.map((unit) => (
-        <div key={unit.id}>
-          <h2>{unit.title}</h2>
-          <ol style={{ display: "flex", flexDirection: "column", gap: 8, paddingLeft: 20 }}>
-            {unit.lessons.map((lesson) => (
-              <li key={lesson.id}>
-                <Link href={`/learn/${lesson.id}`}>{lesson.title}</Link>
-              </li>
-            ))}
-          </ol>
-        </div>
-      ))}
+
+      <LearningPath units={units} completions={completions} />
     </main>
   );
 }
