@@ -43,6 +43,19 @@ type CoreStatus = "locked" | "available" | "completed";
  * here, or the learner sees an inviting ▶ that just bounces them back.
  * Lesson completion alone (the old `prerequisites`-only check) is not
  * sufficient once a lesson is a principle's first sub-lesson (ADR-0008).
+ *
+ * `conceptMastery` must be the raw per-session value here — `null` means
+ * "no signed-in session, no UserConceptMastery to check" (a guest),
+ * `Map` (even an empty one) means "signed in, real tracking exists".
+ * Collapsing that distinction away (as an earlier version of this
+ * function did, via a derived "effective" value that went `null` once
+ * *any* progress existed, guest or not) meant a guest's missing mastery
+ * data read as "checked and not proficient" instead of "nothing to
+ * check" — a real bug: a guest who aced a principle's lessons still saw
+ * its next principle's first lesson as locked, even though the
+ * server-side route guard (below, already correctly scoped to
+ * `if (user && ...)`) would have let them straight in by URL. Confirmed
+ * live via Playwright before this fix, not assumed from reading the code.
  */
 function statusOf(
   lesson: Lesson,
@@ -55,13 +68,16 @@ function statusOf(
   if (completedIds.has(lesson.id)) return "completed";
   if (!lesson.prerequisites.every((p) => completedIds.has(p))) return "locked";
 
-  if (lesson.principleId) {
+  // No signed-in session to check proficiency against at all (a guest) —
+  // skip the principle gate entirely rather than reading "no data" as
+  // "not proficient". Matches the server-side guard's own `if (user && ...)`.
+  if (lesson.principleId && conceptMastery !== null) {
     const principle = principlesById.get(lesson.principleId);
     if (principle && principle.subLessonIds[0] === lesson.id) {
       const index = principlesInOrder.findIndex((p) => p.id === principle.id);
       const previous = index > 0 ? principlesInOrder[index - 1] : undefined;
       if (previous) {
-        const status = conceptMastery?.get(previous.conceptId);
+        const status = conceptMastery.get(previous.conceptId);
         if (!status || !PROFICIENT_STATUSES.has(status)) return "locked";
       }
     }
@@ -81,6 +97,7 @@ function unlockReason(
   lessonsById: Map<string, Lesson>,
   principlesById: Map<string, Principle>,
   principlesInOrder: Principle[],
+  hasConceptMasteryTracking: boolean,
 ): string | null {
   if (completedIds === null) return null; // guest: no per-row reason, matches statusOf's "everything open" treatment
   const missingPrereq = lesson.prerequisites.find((p) => !completedIds.has(p));
@@ -88,7 +105,10 @@ function unlockReason(
     const title = lessonsById.get(missingPrereq)?.title ?? missingPrereq;
     return `Unlocks after "${title}"`;
   }
-  if (lesson.principleId) {
+  // No session to check proficiency against — same reasoning as statusOf:
+  // a guest is never locked by the principle gate, so there's no reason
+  // to report for it either.
+  if (lesson.principleId && hasConceptMasteryTracking) {
     const principle = principlesById.get(lesson.principleId);
     if (principle && principle.subLessonIds[0] === lesson.id) {
       const index = principlesInOrder.findIndex((p) => p.id === principle.id);
@@ -154,9 +174,17 @@ export function LearningPath({
 
   const effectiveCompletions = completions ?? guestCompletions;
   const completedIds = effectiveCompletions ? new Set(effectiveCompletions.keys()) : null;
-  // Guests get no principle-proficiency gate either — same reasoning as
-  // completions: no server session to track UserConceptMastery against.
-  const effectiveConceptMastery = completedIds === null ? null : conceptMastery;
+  // `conceptMastery` itself is already the right "do we have a real
+  // session to check proficiency against" signal — `null` for a guest
+  // (no UserConceptMastery rows exist without a session), a real Map
+  // (possibly empty) once signed in. No derived "effective" value needed
+  // — a previous version of this file had one that collapsed to `null`
+  // for guests via a different, unrelated condition (`completedIds`),
+  // which happened to produce the same `null` value here but obscured
+  // that `statusOf`/`unlockReason` need this exact "have a session or
+  // not" distinction, not a stand-in for it. See statusOf's doc comment
+  // for the real bug that caused.
+  const hasConceptMasteryTracking = conceptMastery !== null;
 
   const allLessons = units.flatMap((u) => u.lessons);
   const allLessonsById = new Map(allLessons.map((l) => [l.id, l]));
@@ -167,7 +195,7 @@ export function LearningPath({
       completedIds,
       allPrinciplesById,
       units.find((u) => u.id === lesson.unitId)?.principles ?? [],
-      effectiveConceptMastery,
+      conceptMastery,
     );
   const unlockReasonFor = (lesson: Lesson) =>
     unlockReason(
@@ -176,6 +204,7 @@ export function LearningPath({
       allLessonsById,
       allPrinciplesById,
       units.find((u) => u.id === lesson.unitId)?.principles ?? [],
+      hasConceptMasteryTracking,
     );
   // Layers "in-progress" and "mastered" onto the three core, gating-
   // relevant statuses — see the LessonStatus/CoreStatus doc comment above.
@@ -196,11 +225,11 @@ export function LearningPath({
   // Signed-in only, same reasoning as everywhere else conceptMastery is
   // used: guests have no server-tracked mastery to flag.
   const needsReview =
-    effectiveConceptMastery === null
+    conceptMastery === null
       ? []
       : units
           .flatMap((u) => u.principles.map((p) => ({ unit: u, principle: p })))
-          .filter(({ principle }) => effectiveConceptMastery.get(principle.conceptId) === "struggling");
+          .filter(({ principle }) => conceptMastery.get(principle.conceptId) === "struggling");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-6)" }}>
@@ -291,7 +320,7 @@ export function LearningPath({
                       <h3 className="mw-principle-title">{group.heading}</h3>
                       {(() => {
                         const principle = unit.principles[groupIndex];
-                        const status = principle ? effectiveConceptMastery?.get(principle.conceptId) : undefined;
+                        const status = principle ? conceptMastery?.get(principle.conceptId) : undefined;
                         return <MasteryBadge status={status} />;
                       })()}
                     </div>

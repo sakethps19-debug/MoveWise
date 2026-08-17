@@ -96,6 +96,33 @@ async function migrateGuestProgress(userId: string, formData: FormData): Promise
       update: { xpEarned: clampedXp, mistakes: bestMistakes, hintsUsed: bestHintsUsed },
       create: { userId, lessonId, xpEarned: clampedXp, mistakes: bestMistakes, hintsUsed: bestHintsUsed },
     });
+
+    // Real bug this closes: migration wrote LessonCompletion rows only,
+    // never UserConceptMastery — so a guest who was proficient enough to
+    // have unlocked a principle-gated lesson (the guest path never
+    // checks proficiency at all, see LearningPath.tsx's statusOf) would
+    // find that same lesson *locked* immediately after signing up, since
+    // the signed-in gate does check proficiency and found zero mastery
+    // rows. Guests never record per-step ExerciseAttempt data (only the
+    // lesson-level xpEarned/mistakes/hintsUsed aggregate), so this
+    // synthesizes a reasonable proxy from the one signal that *is*
+    // real: `mistakes` wrong attempts followed by one correct attempt,
+    // per concept the lesson teaches — the same shape a real playthrough
+    // with that many mistakes would have produced, run through the exact
+    // same `recordAttemptsAndUpdateMastery` path a live completion uses,
+    // not a separate ad hoc calculation.
+    const migratedLesson = loadLesson(lessonId);
+    if (migratedLesson) {
+      const attempts: AttemptRecord[] = [
+        ...Array.from({ length: clampedMistakes }, (_, i) => ({
+          stepId: `guest-migration-${i}`,
+          correct: false,
+          wrongAnswerKey: "guest-migration",
+        })),
+        { stepId: "guest-migration-final", correct: true, wrongAnswerKey: null },
+      ];
+      await recordAttemptsAndUpdateMastery(userId, lessonId, attempts);
+    }
   }
 }
 

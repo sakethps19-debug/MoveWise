@@ -26,7 +26,8 @@
       "correctSquares": ["a7", "d5", "d8", "h8", "e4", "a1", "a4"],
       "feedback": {
         "default": "None of those deliver check. Look at every square the queen can reach in one move — which ones land on the same rank, file, or diagonal as the black king?"
-      }
+      },
+      "successExplanation": "That's check — the queen combines rook and bishop movement, so any reachable square sharing the king's rank, file, or diagonal puts it in check."
     },
     {
       "id": "step-3",
@@ -36,14 +37,16 @@
       "correctSquares": ["e8"],
       "feedback": {
         "default": "Not mate. The black king is trapped behind its own pawns — which rook move controls the entire back rank with no escape square?"
-      }
+      },
+      "successExplanation": "Re8 is checkmate — it controls the entire back rank, and the king's own pawns block every escape square on the 7th rank."
     },
     {
       "id": "step-4",
       "type": "order-steps",
       "prompt": "Tap the three phases of a chess game in the order they happen.",
       "items": ["Endgame", "Opening", "Middlegame"],
-      "correctOrder": [1, 2, 0]
+      "correctOrder": [1, 2, 0],
+      "successExplanation": "Right — opening (develop your pieces), then middlegame (plans and tactics), then endgame (few pieces left, the king becomes active)."
     },
     {
       "id": "step-5",
@@ -51,7 +54,8 @@
       "prompt": "Play the opening moves: advance your e-pawn, develop your knight, then develop your bishop.",
       "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
       "playerMoves": ["e2e4", "g1f3", "f1c4"],
-      "forcedReplies": ["e7e5", "b8c6"]
+      "forcedReplies": ["e7e5", "b8c6"],
+      "successExplanation": "That's a classic opening trio: e4 claims the center, Nf3 develops toward it, and Bc4 aims at f7 — all before moving any piece twice."
     },
     {
       "id": "step-6",

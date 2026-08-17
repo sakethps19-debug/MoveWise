@@ -39,6 +39,67 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **Two real progression bugs, found via direct Playwright reproduction of a
+  user-reported "lesson 3 stays locked after a perfect run" report, not
+  assumed from reading code**: the reported scenario didn't reproduce for
+  a signed-in account (verified fresh, live, before assuming anything),
+  but two related bugs did, both now fixed with regression tests
+  (`e2e/progression-guard.spec.ts`):
+  - **A guest could never unlock a principle-gated lesson, ever, no
+    matter how well they performed.** `LearningPath.tsx`'s `statusOf`
+    derived an `effectiveConceptMastery` value that was always exactly
+    equal to the raw `conceptMastery` prop (its only "special casing"
+    branch produced the same `null` guests already had), so the
+    principle-proficiency gate had no actual guest exception despite a
+    comment claiming one existed — missing mastery data (guests have
+    none, no session to track it against) read as "checked and not
+    proficient" instead of "nothing to check." The server-side route
+    guard (`app/learn/[lessonId]/page.tsx`) already correctly scoped
+    this check to `if (user && ...)`; the client-side display logic
+    didn't match it. Fixed by removing the pointless derived variable
+    and gating the principle check itself on whether real
+    session-backed mastery data exists (`conceptMastery !== null`), in
+    both `statusOf` and `unlockReason`.
+  - **Signing up after guest play could re-lock a lesson the guest could
+    already reach.** `migrateGuestProgress` (`app/actions.ts`) wrote
+    `LessonCompletion` rows only, never `UserConceptMastery` — so a
+    guest who'd unlocked further content (before the bug above existed,
+    or once it's fixed) would find it locked again immediately after
+    creating an account, since the signed-in gate *does* check
+    proficiency and found nothing. Fixed by running each migrated
+    lesson's `masteryTags` through the exact same
+    `recordAttemptsAndUpdateMastery` path a live completion uses,
+    synthesizing attempts from the one real signal guests do have
+    (`mistakes` wrong attempts, then one correct one, per concept) —
+    not a separate ad hoc calculation.
+- **Replay-XP policy, now explicit**: replaying a completed lesson
+  **cannot** farm XP. `completeLessonAction` `upsert`s a single
+  `LessonCompletion` row per `(user, lesson)` — a replay *updates* that
+  row's `xpEarned` to the new run's value, it never creates a second row
+  or adds to the total. Since a lesson's max XP is fixed (same graded
+  steps, same per-step award, same completion bonus, every run), no
+  sequence of replays can push total XP above what one completion of
+  every lesson already grants. Verified directly against the database in
+  `cross-unit-progression.spec.ts` (exact row count and total XP,
+  unchanged after a replay) — this was a deliberate, existing design
+  choice being confirmed and documented, not a new change.
+- **9 graded exercise steps across 3 lessons fell back to a bare "+5 XP"**
+  on a correct answer instead of an explanation of why it was correct
+  (`successExplanation` was simply absent) — `basic-tactics/lesson-01`
+  (4 steps), `check-and-checkmate/lesson-01` (2 steps), and the
+  non-curated `step-type-preview` demo lesson (3 steps). All 12
+  `meet-the-pieces` lessons and `check-and-checkmate/lesson-02` already
+  had one on every graded step. Fixed by authoring one for each. Two
+  further steps (one real, `check-and-checkmate/lesson-03`'s
+  `guided-sequence`; one in the demo lesson) had no schema field to hold
+  one at all — `GuidedSequenceStepSchema` gained an optional
+  `successExplanation`, and `GuidedSequenceStep.tsx` was wired to
+  actually render it (the schema previously silently stripped the field
+  even if content had authored it, since `ExerciseStepSchema`'s
+  discriminated union has no `.passthrough()`). Lesson `objectives`
+  arrays were audited across all 17 files for grammar/punctuation —
+  found genuinely clean (one consistent house style throughout, no
+  errors), so nothing needed changing there.
 - **`pnpm lint` could not run at all** — `next lint` had no committed
   ESLint config anywhere in the repo (confirmed via git history, not
   assumed) and prompted interactively on first run, which can't complete
