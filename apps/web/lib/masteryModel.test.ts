@@ -48,4 +48,54 @@ describe("computeMasteryStatus", () => {
     const result = computeMasteryStatus("struggling", attempts);
     expect(result.status).toBe("recovered");
   });
+
+  const puzzleCorrect = { correct: true, source: "puzzle" as const };
+  const puzzleWrong = { correct: false, source: "puzzle" as const };
+
+  it("is practising once puzzle attempts exist but accuracy isn't high enough yet", () => {
+    // Below proficient overall accuracy (would otherwise be "learning"),
+    // with a puzzle attempt mixed in — accuracy 0.5 is deliberately not
+    // below STRUGGLING_THRESHOLD either, so this exercises the new branch.
+    const result = computeMasteryStatus(null, [correct, correct, wrong, puzzleWrong]);
+    expect(result.status).toBe("practising");
+  });
+
+  it("is ready-for-assessment once puzzle accuracy clears the threshold with enough attempts", () => {
+    // Overall accuracy (4/6) stays below PROFICIENT_THRESHOLD so the
+    // existing proficient check doesn't fire first; puzzle-only accuracy
+    // is a perfect 3/3.
+    const result = computeMasteryStatus(null, [
+      correct,
+      wrong,
+      wrong,
+      puzzleCorrect,
+      puzzleCorrect,
+      puzzleCorrect,
+    ]);
+    expect(result.status).toBe("ready-for-assessment");
+  });
+
+  it("does not reach ready-for-assessment from too few puzzle attempts, even at perfect puzzle accuracy", () => {
+    const result = computeMasteryStatus(null, [correct, wrong, puzzleCorrect, puzzleCorrect]);
+    expect(result.status).toBe("practising");
+  });
+
+  it("proficient still fires from overall accuracy regardless of attempt source (unchanged behavior)", () => {
+    const result = computeMasteryStatus(null, [correct, correct, correct, correct, puzzleWrong]);
+    expect(result.status).toBe("proficient");
+  });
+
+  it("lesson-only attempt histories are completely unaffected by the source field (backward compatible)", () => {
+    // Every existing test above passes plain {correct} objects with no
+    // `source` at all — this just makes that equivalence explicit.
+    const withoutSource = computeMasteryStatus(null, [correct, correct, correct, correct, wrong]);
+    const withExplicitLessonSource = computeMasteryStatus(null, [
+      { correct: true, source: "lesson" as const },
+      { correct: true, source: "lesson" as const },
+      { correct: true, source: "lesson" as const },
+      { correct: true, source: "lesson" as const },
+      { correct: false, source: "lesson" as const },
+    ]);
+    expect(withoutSource).toEqual(withExplicitLessonSource);
+  });
 });

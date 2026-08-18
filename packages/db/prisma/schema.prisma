@@ -96,12 +96,18 @@ model UserConceptMastery {
 model ExerciseAttempt {
   id             String   @id @default(cuid())
   userId         String
-  lessonId       String
+  /// Exactly one of lessonId/puzzleId is set — which content type this
+  /// attempt was against. Both nullable (rather than a single polymorphic
+  /// `refId`) so each keeps its own clearly-named index and existing
+  /// lessonId-keyed queries need no change. See ADR-0008's Puzzle type —
+  /// puzzles are pooled, concept-tagged exercises outside any lesson.
+  lessonId       String?
+  puzzleId       String?
   stepId         String
-  /// The lesson's masteryTags at attempt time — which concepts this
-  /// attempt is evidence for. Denormalized onto the attempt (not looked
-  /// up from the lesson later) so historical attempts stay meaningful
-  /// even if a lesson's tags are recurated later.
+  /// The lesson's masteryTags (or the puzzle's conceptIds) at attempt
+  /// time — which concepts this attempt is evidence for. Denormalized
+  /// onto the attempt (not looked up later) so historical attempts stay
+  /// meaningful even if a lesson/puzzle's tags are recurated later.
   conceptIds     String[]
   correct        Boolean
   /// The feedback-map key that was hit on a wrong answer (e.g.
@@ -114,6 +120,7 @@ model ExerciseAttempt {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, lessonId])
+  @@index([userId, puzzleId])
   @@index([userId, createdAt])
 }
 

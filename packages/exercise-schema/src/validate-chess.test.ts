@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { validateLesson } from "./validate-chess";
-import type { ExerciseStep, Lesson } from "./index";
+import { validateLesson, validatePuzzle } from "./validate-chess";
+import type { ExerciseStep, Lesson, Puzzle } from "./index";
 
 /**
  * Unit tests for the chess-legality validator's own logic — previously
@@ -384,5 +384,39 @@ describe("move-piece level-3 hint arrows", () => {
       ]),
     );
     expect(issues).toEqual([]);
+  });
+});
+
+describe("validatePuzzle (ADR-0008 pooled Puzzle content)", () => {
+  function makePuzzle(overrides: Partial<Puzzle> = {}): Puzzle {
+    return {
+      id: "test.puzzle",
+      conceptIds: ["rook-movement"],
+      fen: "7k/8/8/8/4R3/8/8/K7 w - - 0 1",
+      prompt: "Move the rook.",
+      correctMoves: ["e4e8"],
+      difficulty: 1,
+      feedback: { default: "Not quite." },
+      ...overrides,
+    };
+  }
+
+  it("passes a legal FEN with a legal correct move", () => {
+    expect(validatePuzzle(makePuzzle())).toEqual([]);
+  });
+
+  it("flags an illegal FEN", () => {
+    const issues = validatePuzzle(makePuzzle({ fen: "not-a-fen" }));
+    expect(issues).toHaveLength(1);
+    expect(issues[0]?.message).toMatch(/FEN is not legal/);
+  });
+
+  it("flags a correct move that isn't actually legal from the FEN", () => {
+    const issues = validatePuzzle(makePuzzle({ correctMoves: ["e4e5", "a1a8"] }));
+    expect(issues.some((i) => i.message.includes("a1a8"))).toBe(true);
+  });
+
+  it("accepts multiple correct moves when all are legal", () => {
+    expect(validatePuzzle(makePuzzle({ correctMoves: ["e4e8", "e4e1", "e4a4", "e4h4"] }))).toEqual([]);
   });
 });

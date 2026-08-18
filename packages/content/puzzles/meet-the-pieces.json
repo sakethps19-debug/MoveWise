@@ -1,0 +1,170 @@
+[
+  {
+    "id": "meet-the-pieces.puzzle-board-basics-1",
+    "conceptIds": ["board-orientation", "square-identification"],
+    "fen": "4k3/8/8/8/8/8/8/K7 w - - 0 1",
+    "prompt": "Move your king one square toward the center of the board — onto b2.",
+    "correctMoves": ["a1b2"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "The king moves exactly one square in any direction, including diagonally. From a1, which single square gets you toward the middle of the board?"
+    },
+    "successExplanation": "Kb2 moves one square diagonally — the king can step in any of the eight directions around it, always just one square at a time."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-board-basics-2",
+    "conceptIds": ["board-orientation", "square-identification"],
+    "fen": "4k3/8/8/8/8/8/8/4K3 w - - 0 1",
+    "prompt": "Move your king onto the f-file, one rank up.",
+    "correctMoves": ["e1f2"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "Read the files left to right: a, b, c, d, e, f... From e1, the f-file is one step to the right. Combine that with moving one rank up."
+    },
+    "successExplanation": "Kf2 is one square right (onto the f-file) and one square up (onto rank 2) — exactly the kind of single-square step every king move is."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-rook-1",
+    "conceptIds": ["rook-movement"],
+    "fen": "4k3/8/8/8/8/3R4/8/4K3 w - - 0 1",
+    "prompt": "Slide the rook straight up the d-file to the top of the board.",
+    "correctMoves": ["d3d8"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "The rook moves in straight lines only — up/down a file or left/right along a rank, any distance. From d3, which square is at the very top of the d-file?"
+    },
+    "successExplanation": "Rd8 slides straight up the d-file all the way to the last rank — exactly how a rook moves: straight lines, any distance, until something blocks it."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-rook-2",
+    "conceptIds": ["rook-movement", "blocked-paths", "captures"],
+    "fen": "4k3/8/8/8/3p4/3R4/8/4K3 w - - 0 1",
+    "prompt": "Capture the pawn blocking your rook's path up the file.",
+    "correctMoves": ["d3d4"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "The rook can't jump over the pawn on d4 — but it can capture it. Which move lands your rook right on top of that pawn?"
+    },
+    "successExplanation": "Rxd4 captures the blocking pawn — a rook stops at the first piece in its path, but if that piece is an enemy, it can capture it there."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-bishop-1",
+    "conceptIds": ["bishop-movement"],
+    "fen": "4k3/8/8/8/8/8/8/2B1K3 w - - 0 1",
+    "prompt": "Move the bishop along its diagonal as far as it can toward the top-right corner.",
+    "correctMoves": ["c1h6"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "The bishop only moves diagonally — pick the diagonal heading up and to the right from c1, and go as far as the board allows."
+    },
+    "successExplanation": "Bh6 travels the whole c1–h6 diagonal in one move — bishops move diagonally, any distance, until something blocks them."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-bishop-2",
+    "conceptIds": ["bishop-movement"],
+    "fen": "4k3/8/8/3B4/8/8/8/4K3 w - - 0 1",
+    "prompt": "Move the bishop diagonally down-left as far as possible.",
+    "correctMoves": ["d5a2"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "Down-left means the file letter and the rank number both decrease together. From d5, trace that diagonal to the edge of the board."
+    },
+    "successExplanation": "Ba2 follows the d5–a2 diagonal to the board's edge — every bishop move stays on a single diagonal, and always on the same square colour."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-queen-1",
+    "conceptIds": ["queen-movement"],
+    "fen": "k7/8/8/8/3Q4/8/8/4K3 w - - 0 1",
+    "prompt": "Move the queen straight across its rank to the right-hand edge of the board.",
+    "correctMoves": ["d4h4"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "The queen can move like a rook (straight lines) or a bishop (diagonals). This time, slide it sideways along rank 4, all the way to the right edge."
+    },
+    "successExplanation": "Qh4 slides along rank 4 to the edge — the queen combines rook and bishop movement, so straight-line moves like this are always available too."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-queen-2",
+    "conceptIds": ["queen-movement"],
+    "fen": "k7/8/8/8/3Q4/8/8/4K3 w - - 0 1",
+    "prompt": "Move the queen diagonally down-right, all the way to the corner of the board.",
+    "correctMoves": ["d4g1"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "This time use the queen's diagonal movement, like a bishop — head down and to the right from d4 until you reach the edge."
+    },
+    "successExplanation": "Qg1 travels the whole diagonal from d4 down to the corner — the queen's diagonal moves work exactly like a bishop's."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-king-1",
+    "conceptIds": ["king-movement"],
+    "fen": "4k3/8/8/4K3/8/8/8/8 w - - 0 1",
+    "prompt": "Move your king one square diagonally, toward the kingside (right).",
+    "correctMoves": ["e5f6"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "Picture the eight squares surrounding your king — the kingside diagonal move goes up and to the right. Which square is that?"
+    },
+    "successExplanation": "Kf6 steps one square diagonally — the king can move one square in any of the eight directions, as long as the destination isn't attacked."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-king-2",
+    "conceptIds": ["king-movement"],
+    "fen": "4k3/8/8/8/8/8/8/4K3 w - - 0 1",
+    "prompt": "Move your king one square straight up the board.",
+    "correctMoves": ["e1e2"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "Straight up means staying on the same file and moving to the next rank. From e1, which square is that?"
+    },
+    "successExplanation": "Ke2 moves straight up one rank — a simple, single-square step, exactly what the king is limited to."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-knight-1",
+    "conceptIds": ["knight-movement"],
+    "fen": "4k3/8/8/8/8/8/8/1N2K3 w - - 0 1",
+    "prompt": "Move the knight in its L-shape to reach d2.",
+    "correctMoves": ["b1d2"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "The knight jumps in an L-shape: two squares in one direction, then one square to the side. From b1, which squares can it reach?"
+    },
+    "successExplanation": "Nd2 is a legal L-shaped jump — two files across and one rank up — and the knight is the only piece that can leap over anything in between."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-knight-2",
+    "conceptIds": ["knight-movement"],
+    "fen": "4k3/8/8/8/8/8/8/1N2K3 w - - 0 1",
+    "prompt": "Move the knight to a3 instead.",
+    "correctMoves": ["b1a3"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "From b1, the knight's L-shape options are a3, c3, and d2. Try the one on the a-file."
+    },
+    "successExplanation": "Na3 is another valid L-shape from b1 — one square across, two ranks up."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-pawn-1",
+    "conceptIds": ["pawn-movement"],
+    "fen": "4k3/8/8/8/8/8/4P3/4K3 w - - 0 1",
+    "prompt": "Push the pawn two squares forward, using its first-move option.",
+    "correctMoves": ["e2e4"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "A pawn on its starting square can move one OR two squares straight ahead — but only on its very first move. Which square is two ahead of e2?"
+    },
+    "successExplanation": "e4 uses the pawn's special first-move option — two squares forward instead of the usual one, only available before it has moved."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-pawn-2",
+    "conceptIds": ["pawn-movement", "captures"],
+    "fen": "4k3/8/8/8/3p4/4P3/8/4K3 w - - 0 1",
+    "prompt": "Capture the black pawn diagonally in front of you.",
+    "correctMoves": ["e3d4"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "Pawns move straight ahead but capture diagonally — one square forward-left or forward-right, only onto a square with an enemy piece. Which diagonal has the black pawn?"
+    },
+    "successExplanation": "exd4 captures diagonally — pawns can only capture on the diagonal squares ahead of them, never straight ahead."
+  }
+]

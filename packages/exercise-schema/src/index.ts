@@ -221,6 +221,8 @@ export const PuzzleSchema = z.object({
   correctMoves: z.array(z.string().min(1)).min(1),
   difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   feedback: FeedbackMapSchema,
+  /** Shown on a correct answer — explains WHY it's correct, matching every other exercise type's standardized feedback. */
+  successExplanation: z.string().min(1).optional(),
   sourceGameId: z.string().min(1).optional(),
 });
 

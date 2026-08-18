@@ -7,6 +7,7 @@ import { prisma } from "@movewise/db";
 import { createSession, destroySession, getSession, hashPassword, verifyPassword } from "../lib/auth";
 import { checkRateLimit, formatRetryAfter } from "../lib/rate-limit";
 import { loadLesson } from "../lib/lessons";
+import { findPuzzle } from "../lib/puzzles";
 import { computeMasteryStatus, type MasteryStatus } from "../lib/masteryModel";
 import type { AttemptRecord } from "../components/LessonRunner";
 
@@ -274,13 +275,44 @@ export async function completeLessonAction(
 }
 
 /**
+ * Recomputes UserConceptMastery for each given concept from the
+ * learner's full ExerciseAttempt history on that concept — not just the
+ * attempts just recorded, so a concept taught/practised across multiple
+ * lessons and puzzles (or revisited later) accumulates one real signal.
+ * Shared by both the lesson-completion path and the puzzle-attempt path
+ * below; each attempt's `source` ("lesson" vs "puzzle") is derived from
+ * which of `lessonId`/`puzzleId` is set on the row, not stored
+ * separately — see masteryModel.ts's `practising`/`ready-for-assessment`
+ * doc comment for why the source distinction matters.
+ */
+async function recomputeMasteryForConcepts(userId: string, conceptIds: string[]): Promise<void> {
+  for (const conceptId of conceptIds) {
+    const [existingMastery, history] = await Promise.all([
+      prisma.userConceptMastery.findUnique({ where: { userId_conceptId: { userId, conceptId } } }),
+      prisma.exerciseAttempt.findMany({
+        where: { userId, conceptIds: { has: conceptId } },
+        orderBy: { createdAt: "asc" },
+        select: { correct: true, puzzleId: true },
+      }),
+    ]);
+
+    const { status, exerciseConfidence } = computeMasteryStatus(
+      (existingMastery?.status as MasteryStatus | undefined) ?? null,
+      history.map((a) => ({ correct: a.correct, source: a.puzzleId ? ("puzzle" as const) : ("lesson" as const) })),
+    );
+
+    await prisma.userConceptMastery.upsert({
+      where: { userId_conceptId: { userId, conceptId } },
+      update: { status, exerciseConfidence, lastPracticedAt: new Date() },
+      create: { userId, conceptId, status, exerciseConfidence, lastPracticedAt: new Date() },
+    });
+  }
+}
+
+/**
  * ADR-0008 / docs/learner-model.md's concrete first implementation step:
  * persist every attempt (not just the lesson-level aggregate), then
- * recompute UserConceptMastery for every concept this lesson teaches
- * from the learner's full attempt history on that concept — not just
- * this one lesson's attempts, so a concept taught across multiple
- * lessons (or revisited later) accumulates one real signal, not one per
- * lesson.
+ * recompute mastery for every concept this lesson teaches.
  */
 async function recordAttemptsAndUpdateMastery(userId: string, lessonId: string, attempts: AttemptRecord[]): Promise<void> {
   if (attempts.length === 0) return;
@@ -300,25 +332,34 @@ async function recordAttemptsAndUpdateMastery(userId: string, lessonId: string, 
     })),
   });
 
-  for (const conceptId of conceptIds) {
-    const [existingMastery, history] = await Promise.all([
-      prisma.userConceptMastery.findUnique({ where: { userId_conceptId: { userId, conceptId } } }),
-      prisma.exerciseAttempt.findMany({
-        where: { userId, conceptIds: { has: conceptId } },
-        orderBy: { createdAt: "asc" },
-        select: { correct: true },
-      }),
-    ]);
+  await recomputeMasteryForConcepts(userId, conceptIds);
+}
 
-    const { status, exerciseConfidence } = computeMasteryStatus(
-      (existingMastery?.status as MasteryStatus | undefined) ?? null,
-      history,
-    );
+/**
+ * The puzzle-pool equivalent of the lesson path above — one row per
+ * attempt against a pooled Puzzle (ADR-0008) instead of a lesson step.
+ * This is the concrete evidence source docs/learner-model.md specifies
+ * for `practising`/`ready-for-assessment`: "working through concept-
+ * tagged Puzzles" / "puzzle accuracy above threshold".
+ */
+export async function recordPuzzleAttemptAction(puzzleId: string, correct: boolean): Promise<void> {
+  const user = await getSession();
+  if (!user) return; // guest: puzzle practice is session-local only, nothing to persist — same reasoning as completeLessonAction
 
-    await prisma.userConceptMastery.upsert({
-      where: { userId_conceptId: { userId, conceptId } },
-      update: { status, exerciseConfidence, lastPracticedAt: new Date() },
-      create: { userId, conceptId, status, exerciseConfidence, lastPracticedAt: new Date() },
-    });
-  }
+  const puzzle = findPuzzle(puzzleId);
+  if (!puzzle) return; // unknown puzzle id — nothing to record against
+
+  await prisma.exerciseAttempt.create({
+    data: {
+      userId: user.id,
+      puzzleId,
+      stepId: puzzleId,
+      conceptIds: puzzle.conceptIds,
+      correct,
+      wrongAnswerKey: null,
+    },
+  });
+
+  await recomputeMasteryForConcepts(user.id, puzzle.conceptIds);
+  revalidatePath("/");
 }

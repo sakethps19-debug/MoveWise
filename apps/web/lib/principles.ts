@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import path from "node:path";
 import { parsePrinciple, type Principle } from "@movewise/exercise-schema";
 
@@ -15,6 +15,18 @@ export function loadUnitPrinciples(unitId: string): Principle[] {
 /** Which Principle a given lesson belongs to, if the unit has been restructured (ADR-0008). */
 export function findPrincipleForLesson(lessonId: string, unitId: string): Principle | null {
   return loadUnitPrinciples(unitId).find((p) => p.subLessonIds.includes(lessonId)) ?? null;
+}
+
+/** Finds a principle by id across every unit — the /practice/[principleId] route only has the id, not which unit it belongs to. */
+export function findPrincipleById(principleId: string): Principle | null {
+  if (!existsSync(PRINCIPLES_ROOT)) return null;
+  for (const file of readdirSync(PRINCIPLES_ROOT)) {
+    if (!file.endsWith(".json")) continue;
+    const unitId = file.replace(/\.json$/, "");
+    const match = loadUnitPrinciples(unitId).find((p) => p.id === principleId);
+    if (match) return match;
+  }
+  return null;
 }
 
 /** The principle immediately before this one in the same unit, by `order` — null if this is the first. */

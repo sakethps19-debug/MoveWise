@@ -370,6 +370,37 @@ export function LearningPath({
                         </Link>
                       );
                     })}
+                    {(() => {
+                      // Puzzle pool (ADR-0008): a principle's own practice
+                      // exercises, reachable once every one of its
+                      // sub-lessons is done — matches docs/learner-model.md's
+                      // `practising` state ("sub-lessons done, working
+                      // through concept-tagged Puzzles") and the server-side
+                      // gate in app/practice/[principleId]/page.tsx exactly,
+                      // same reasoning as the lesson-locking mirror above.
+                      const principle = unit.principles[groupIndex];
+                      if (!principle || principle.puzzleIds.length === 0) return null;
+                      const allSubLessonsDone = group.lessons.every((l) => statusFor(l) === "completed");
+                      if (!allSubLessonsDone) return null;
+                      return (
+                        <Link
+                          href={`/practice/${principle.id}`}
+                          className="mw-lesson-node-link"
+                        >
+                          <div className="mw-lesson-node mw-lesson-node--available">
+                            <span className="mw-lesson-node-icon" aria-hidden="true">
+                              🧩
+                            </span>
+                            <span className="mw-lesson-node-body">
+                              <span className="mw-lesson-node-title">Practice puzzles</span>
+                              <span className="mw-lesson-node-reason">
+                                {principle.puzzleIds.length} puzzle{principle.puzzleIds.length === 1 ? "" : "s"}
+                              </span>
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })()}
                   </div>
                 </div>
               ))}
