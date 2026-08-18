@@ -1,0 +1,11 @@
+[
+  {
+    "id": "basic-tactics.the-knight-fork",
+    "unitId": "basic-tactics",
+    "title": "The knight fork",
+    "conceptId": "knight-fork",
+    "order": 0,
+    "subLessonIds": ["basic-tactics.01-the-knight-fork"],
+    "puzzleIds": []
+  }
+]

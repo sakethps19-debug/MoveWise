@@ -17,6 +17,7 @@
   line-height: 1;
   border-radius: var(--mw-radius-sm);
   padding: 12px 20px;
+  min-height: 44px; /* WCAG 2.5.5 / mobile touch-target floor */
   border: 1.5px solid transparent;
   cursor: pointer;
   transition: background-color var(--mw-duration-fast) var(--mw-ease), transform var(--mw-duration-fast) var(--mw-ease), border-color var(--mw-duration-fast) var(--mw-ease);
@@ -58,8 +59,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: var(--mw-radius-sm);
   border: 1px solid var(--mw-border);
   background: var(--mw-surface);
@@ -137,6 +138,9 @@
 
 /* ---------- Feedback banner ---------- */
 .mw-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mw-space-3);
   border-radius: var(--mw-radius);
   padding: var(--mw-space-4);
   font-size: 14px;
@@ -146,6 +150,31 @@
 @keyframes mw-feedback-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+.mw-feedback-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+.mw-feedback--success .mw-feedback-icon {
+  background: var(--mw-success);
+  color: var(--mw-success-bg);
+}
+.mw-feedback--error .mw-feedback-icon {
+  background: var(--mw-error);
+  color: var(--mw-error-bg);
+}
+.mw-feedback-xp {
+  display: inline-block;
+  font-weight: 700;
+  white-space: nowrap;
 }
 .mw-feedback--success {
   background: var(--mw-success-bg);
@@ -228,6 +257,8 @@
   align-items: center;
   gap: var(--mw-space-3);
   padding: 10px 12px;
+  min-height: 44px; /* WCAG 2.5.5 / mobile touch-target floor */
+  box-sizing: border-box;
   border-radius: var(--mw-radius-sm);
   font-size: 14px;
   font-weight: 600;
@@ -323,6 +354,69 @@
 }
 
 /* ---------- Learn & Play home ---------- */
+.mw-daily-goal {
+  display: flex;
+  align-items: center;
+  gap: var(--mw-space-3);
+  padding: var(--mw-space-3) var(--mw-space-4);
+  border-radius: var(--mw-radius);
+  border: 1px solid var(--mw-border);
+  background: var(--mw-surface);
+  font-size: 13px;
+  color: var(--mw-text-dim);
+}
+.mw-daily-goal-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--mw-text);
+}
+.mw-daily-goal-flame {
+  color: var(--mw-brass-ink, var(--mw-brass));
+  font-size: 10px;
+}
+.mw-daily-goal-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--mw-border);
+}
+
+.mw-review-needed {
+  padding: var(--mw-space-4);
+  border-radius: var(--mw-radius-lg);
+  border: 1px solid var(--mw-warning);
+  background: var(--mw-warning-bg);
+}
+.mw-review-needed-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 var(--mw-space-3);
+  color: var(--mw-warning-ink);
+}
+.mw-review-needed-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--mw-space-3);
+  border-radius: var(--mw-radius-sm);
+  background: var(--mw-surface);
+  border: 1px solid var(--mw-border);
+  text-decoration: none;
+  color: inherit;
+  min-height: 44px;
+  box-sizing: border-box;
+  justify-content: center;
+}
+.mw-review-needed-item-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+.mw-review-needed-item-detail {
+  font-size: 12px;
+  color: var(--mw-text-dim);
+}
+
 .mw-continue-card {
   position: relative;
   display: block;
@@ -405,6 +499,8 @@
   align-items: center;
   gap: var(--mw-space-3);
   padding: 12px 14px;
+  min-height: 44px; /* WCAG 2.5.5 / mobile touch-target floor */
+  box-sizing: border-box;
   border-radius: var(--mw-radius);
   border: 1px solid var(--mw-border);
   background: var(--mw-surface);
@@ -425,19 +521,63 @@
   background: var(--mw-success-bg);
   border-color: var(--mw-success);
 }
+.mw-lesson-node--mastered {
+  background: var(--mw-success-bg);
+  border-color: var(--mw-brass);
+  border-width: 1.5px;
+}
 .mw-lesson-node--available {
   border-color: var(--mw-moss);
   border-width: 1.5px;
+}
+.mw-lesson-node--in-progress {
+  border-color: var(--mw-moss);
+  border-width: 1.5px;
+  border-style: dashed;
 }
 .mw-lesson-node-icon {
   width: 20px;
   text-align: center;
   flex-shrink: 0;
 }
-.mw-lesson-node-title {
+.mw-lesson-node-body {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.mw-lesson-node-title {
   font-size: 14.5px;
   font-weight: 600;
+}
+.mw-lesson-node-reason {
+  font-size: 12px;
+  color: var(--mw-text-dim);
+}
+
+/* ---------- Dev-only tools (Phase 4; never rendered in production) ---------- */
+.mw-dev-reset {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--mw-space-3);
+  padding: var(--mw-space-3) var(--mw-space-4);
+  margin-bottom: var(--mw-space-5);
+  border: 1px dashed var(--mw-warning);
+  border-radius: var(--mw-radius);
+  background: var(--mw-warning-bg);
+}
+.mw-dev-reset-label {
+  font-size: 13px;
+  color: var(--mw-text-dim);
+  flex: 1;
+  min-width: 160px;
+}
+.mw-dev-reset-message {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--mw-warning-ink);
 }
 
 /* ---------- Page-level chrome ---------- */
@@ -475,6 +615,10 @@
   border: 1px solid var(--mw-border);
   border-radius: var(--mw-radius-sm);
   padding: 12px 14px;
+  min-height: 44px; /* WCAG 2.5.5 / mobile touch-target floor */
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
   cursor: pointer;
   transition: border-color var(--mw-motion-fast), background var(--mw-motion-fast);
 }
@@ -530,6 +674,9 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  min-height: 44px; /* WCAG 2.5.5 / mobile touch-target floor */
+  padding: 4px 2px;
+  box-sizing: border-box;
 }
 .mw-lesson-exit:hover {
   color: var(--mw-text);
@@ -663,6 +810,10 @@
   border: none;
   border-right: 1px solid var(--mw-border);
   padding: 8px 12px;
+  min-height: 44px; /* WCAG 2.5.5 / mobile touch-target floor */
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -866,6 +1017,86 @@
   border-radius: 50%;
   border: 3px solid var(--mw-sq-legal-dot);
   box-sizing: border-box;
+}
+
+/* ---------- Play & Learn game review (Phase 6; demo data only) ---------- */
+.mw-game-review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-4);
+  padding-top: var(--mw-space-4);
+  border-top: 1px solid var(--mw-border);
+}
+.mw-game-review-demo-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--mw-space-3);
+  padding: var(--mw-space-3) var(--mw-space-4);
+  border: 1px dashed var(--mw-warning);
+  border-radius: var(--mw-radius);
+  background: var(--mw-warning-bg);
+  color: var(--mw-warning-ink);
+  font-size: 13px;
+}
+.mw-game-review-heading {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+.mw-game-review-table-wrap {
+  overflow-x: auto; /* the table must scroll within itself, never widen the page (Phase 1's no-horizontal-overflow rule) */
+}
+.mw-game-review-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.mw-game-review-table th {
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--mw-text-dim);
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--mw-border-strong);
+}
+.mw-game-review-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--mw-border);
+  vertical-align: top;
+}
+.mw-game-review-explanation {
+  max-width: 320px;
+  color: var(--mw-text-dim);
+}
+.mw-game-review-empty {
+  font-size: 13px;
+  color: var(--mw-text-dim);
+}
+.mw-game-review-recs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-2);
+}
+.mw-game-review-rec-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-radius: var(--mw-radius-sm);
+  border: 1px solid var(--mw-moss);
+  color: var(--mw-text);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+.mw-game-review-rec-link:hover {
+  background: var(--mw-surface-2);
 }
 
 /* ---------- Auth (login/signup) ---------- */

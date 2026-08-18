@@ -25,7 +25,8 @@
       "correctSquares": ["h8"],
       "feedback": {
         "default": "Not check. The rook needs a clear line straight to the black king — which square lines up with it?"
-      }
+      },
+      "successExplanation": "Rh8 puts the black king in check — the rook has a clear line straight down the h-file to it."
     },
     {
       "id": "step-3",
@@ -38,12 +39,14 @@
         "Skip your turn"
       ],
       "correctIndex": 1,
-      "feedback": { "default": "Check is mandatory to answer — you can't make a move that leaves your own king in check." }
+      "feedback": { "default": "Check is mandatory to answer — you can't make a move that leaves your own king in check." },
+      "successExplanation": "Right — check is mandatory to answer. You can't make a move that leaves your own king in check."
     },
     {
       "id": "step-4",
       "type": "review",
       "summary": "Check means the king is under attack and must escape immediately. Next: what happens when there's no way out."
     }
-  ]
+  ],
+  "principleId": "check-and-checkmate.recognizing-check"
 }

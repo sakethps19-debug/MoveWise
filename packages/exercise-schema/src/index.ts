@@ -128,6 +128,7 @@ export const GuidedSequenceStepSchema = BaseStep.extend({
   fen: z.string().min(1),
   forcedReplies: z.array(z.string()),
   playerMoves: z.array(z.string()).min(1),
+  successExplanation: z.string().min(1).optional(),
 });
 
 export const MiniGameStepSchema = BaseStep.extend({

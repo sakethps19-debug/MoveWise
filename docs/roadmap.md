@@ -48,8 +48,10 @@ beyond "every signed-in action is already server-persisted."
 
 ## Phase A — Learn & Play foundation (ADR-0008)
 
-Mostly done for `meet-the-pieces`, the one unit this phase's own
-priority says to restructure fully before touching the other two.
+Mostly done, now across all three curated units (`meet-the-pieces`,
+`check-and-checkmate`, `basic-tactics`) — `meet-the-pieces` was
+restructured first per this phase's own stated priority, then the other
+two followed the same pattern.
 
 - ~~Correct the existing lesson-engine defects.~~ **Done** — ADR-0007
   (required prompts on every board exercise, stale-hint clearing,
@@ -59,15 +61,19 @@ priority says to restructure fully before touching the other two.
   mastery system on top of a lesson engine with known defects.
 - ~~Create the `Principle → SubLesson → ... → MasteryChallenge`
   hierarchy and migrate `masteryTags` into real `Concept` entries.~~
-  **Done for `meet-the-pieces`** — `packages/content/concepts.json` (19
-  concepts, migrated from the existing tags) and
-  `packages/content/principles/meet-the-pieces.json` (7 principles,
-  cross-referentially validated by `pnpm validate:content`). The other
-  two units (`check-and-checkmate`, `basic-tactics`) haven't been
-  restructured yet — deliberately, per this phase's own stated priority.
-  **`Puzzle` is not built** — no puzzle content authored this pass, so
-  every principle's `puzzleIds` is empty; puzzle-pool accuracy isn't
-  part of the unlock signal yet (see below).
+  **Done for all three curated units** — `packages/content/concepts.json`
+  (19 concepts, migrated from the existing tags) plus a
+  `packages/content/principles/{unitId}.json` file per unit:
+  `meet-the-pieces` (7 principles), `check-and-checkmate` (3), and
+  `basic-tactics` (1), all cross-referentially validated by `pnpm
+  validate:content`. `meet-the-pieces` was restructured first per this
+  phase's own stated priority (finish one unit before generalizing);
+  `check-and-checkmate` and `basic-tactics` followed the identical
+  pattern once it was proven out — no app code changes were needed,
+  `lib/principles.ts` and `LearningPath.tsx` were already data-driven off
+  file presence. **`Puzzle` is still not built** — no puzzle content
+  authored yet, so every principle's `puzzleIds` is empty; puzzle-pool
+  accuracy isn't part of the unlock signal yet (see below).
 - ~~Implement concept-level mastery and controlled unlocking.~~ **Done,
   with an honest scope cut**: `UserConceptMastery`/`ExerciseAttempt`
   (real Postgres tables) and `lib/masteryModel.ts`'s
@@ -88,8 +94,17 @@ priority says to restructure fully before touching the other two.
 
 ## Phase B — Play & Learn foundation (ADR-0008)
 
-Not started. Blocked on Phase A's `Concept` taxonomy existing (move
-analysis needs concept IDs to tag instructive moments with).
+No longer blocked (Phase A's `Concept` taxonomy now covers all three
+curated units), but not functionally started either — what exists is
+architecture, not analysis: `apps/web/lib/gameAnalysis.ts`'s typed
+`MoveAnalysis`/`GameReview` model (matching `packages/engine`'s existing
+`EngineAnalysis.score` shape) and a clearly-labeled demo UI
+(`GameReviewDemo.tsx`) built from fixed sample data, wired into a real
+"1. Play / 2. Review / 3. Recommendations" hierarchy on the Play & Learn
+page. None of it reads a real game's moves or calls the engine for
+post-game analysis — see that file's own "remaining integration work"
+comment for the concrete list, superseding the bullets below where they
+overlap.
 
 - Persist completed Stockfish games (`Game`, ADR-0008) — Play mode is
   currently freeform/stateless, this is the first real change to it.

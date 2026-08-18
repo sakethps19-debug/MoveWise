@@ -76,7 +76,14 @@ export function GuidedSequenceStep({
           describedBy={promptId}
         />
       </div>
-      <StepFooter status={status} feedback={feedback} xp={STEP_XP} isLastStep={isLastStep} onAdvance={onAdvance} />
+      <StepFooter
+        status={status}
+        feedback={feedback}
+        successExplanation={step.successExplanation}
+        xp={STEP_XP}
+        isLastStep={isLastStep}
+        onAdvance={onAdvance}
+      />
     </>
   );
 }

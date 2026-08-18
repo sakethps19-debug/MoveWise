@@ -96,6 +96,33 @@ async function migrateGuestProgress(userId: string, formData: FormData): Promise
       update: { xpEarned: clampedXp, mistakes: bestMistakes, hintsUsed: bestHintsUsed },
       create: { userId, lessonId, xpEarned: clampedXp, mistakes: bestMistakes, hintsUsed: bestHintsUsed },
     });
+
+    // Real bug this closes: migration wrote LessonCompletion rows only,
+    // never UserConceptMastery — so a guest who was proficient enough to
+    // have unlocked a principle-gated lesson (the guest path never
+    // checks proficiency at all, see LearningPath.tsx's statusOf) would
+    // find that same lesson *locked* immediately after signing up, since
+    // the signed-in gate does check proficiency and found zero mastery
+    // rows. Guests never record per-step ExerciseAttempt data (only the
+    // lesson-level xpEarned/mistakes/hintsUsed aggregate), so this
+    // synthesizes a reasonable proxy from the one signal that *is*
+    // real: `mistakes` wrong attempts followed by one correct attempt,
+    // per concept the lesson teaches — the same shape a real playthrough
+    // with that many mistakes would have produced, run through the exact
+    // same `recordAttemptsAndUpdateMastery` path a live completion uses,
+    // not a separate ad hoc calculation.
+    const migratedLesson = loadLesson(lessonId);
+    if (migratedLesson) {
+      const attempts: AttemptRecord[] = [
+        ...Array.from({ length: clampedMistakes }, (_, i) => ({
+          stepId: `guest-migration-${i}`,
+          correct: false,
+          wrongAnswerKey: "guest-migration",
+        })),
+        { stepId: "guest-migration-final", correct: true, wrongAnswerKey: null },
+      ];
+      await recordAttemptsAndUpdateMastery(userId, lessonId, attempts);
+    }
   }
 }
 
@@ -191,6 +218,31 @@ export async function deleteAccountAction(_prevState: FormState, formData: FormD
   await prisma.user.delete({ where: { id: user.id } });
   await destroySession(); // clears the cookie; the session row is already gone via the cascade above
   redirect("/");
+}
+
+/**
+ * Phase 4's "clearly isolated development-only progress reset mechanism."
+ * Guarded here, server-side, not just by the calling UI being hidden in
+ * production (components/DevResetControl.tsx already only renders under
+ * `process.env.NODE_ENV === "development"`) — a Server Action is its own
+ * callable endpoint regardless of what the client renders, so the actual
+ * safety boundary has to live in the action itself. Only ever deletes the
+ * signed-in caller's own rows (never another user's, never guest
+ * localStorage server-side) — same blast radius as the self-service
+ * account deletion above, just without deleting the account itself.
+ */
+export async function devResetProgressAction(): Promise<{ error?: string }> {
+  if (process.env.NODE_ENV !== "development") {
+    return { error: "Not available outside development." };
+  }
+  const user = await getSession();
+  if (!user) return { error: "You must be signed in." };
+
+  await prisma.exerciseAttempt.deleteMany({ where: { userId: user.id } });
+  await prisma.userConceptMastery.deleteMany({ where: { userId: user.id } });
+  await prisma.lessonCompletion.deleteMany({ where: { userId: user.id } });
+  revalidatePath("/");
+  return {};
 }
 
 export async function completeLessonAction(

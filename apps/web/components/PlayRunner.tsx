@@ -15,8 +15,10 @@ import {
 } from "@movewise/chess-rules";
 import { sideToMove } from "@movewise/engine";
 import { useStockfishEngine } from "../lib/useStockfishEngine";
+import type { GameReview } from "../lib/gameAnalysis";
 import { Board } from "./Board";
 import { Button } from "./ui/Button";
+import { GameReviewDemo } from "./GameReviewDemo";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -52,8 +54,15 @@ function statusText(fen: string, playerColor: PlayerColor, thinking: boolean, re
   return inCheck(fen) ? "Your move — you're in check!" : "Your move.";
 }
 
-export function PlayRunner() {
+export function PlayRunner({
+  demoReview,
+  lessonTitleById,
+}: {
+  demoReview: GameReview;
+  lessonTitleById: Record<string, string>;
+}) {
   const [fen, setFen] = useState(START_FEN);
+  const [showReview, setShowReview] = useState(false);
   const [playerColor, setPlayerColor] = useState<PlayerColor>("w");
   const [skill, setSkill] = useState<number>(10);
   const [selected, setSelected] = useState<Square | null>(null);
@@ -91,7 +100,6 @@ export function PlayRunner() {
       })
       .catch(() => setEngineFailure("Stockfish stopped responding."))
       .finally(() => setThinking(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- recordMove is stable enough for this effect's purposes
   }, [fen, engineRef, engineReady, playerColor, skill, thinking, engineError, gameOver]);
 
   const legalTargets = selected ? legalTargetsFrom(fen, selected) : [];
@@ -124,6 +132,7 @@ export function PlayRunner() {
     setEngineFailure(null);
     setMoves([]);
     setResigned(false);
+    setShowReview(false);
   }
 
   const capturedByPlayer = moves.filter((m) => m.color === playerColor && m.captured).map((m) => m.captured!);
@@ -148,7 +157,9 @@ export function PlayRunner() {
       <div className="mw-page-head">
         <h1 className="mw-page-title">Play &amp; Learn</h1>
         <p className="mw-page-subtitle">
-          A full game against Stockfish — no hints, no lesson, just you and the engine.
+          <strong>1. Play a game</strong> against Stockfish — no hints, no lesson, just you and the engine. Once it
+          ends, <strong>2. review the game</strong> move by move and <strong>3. get lesson recommendations</strong>{" "}
+          from what went wrong.
         </p>
       </div>
 
@@ -212,6 +223,7 @@ export function PlayRunner() {
             <span className="mw-player-card-detail">{SKILL_LEVELS.find((l) => l.value === skill)?.label}</span>
             <div className="mw-captured-row" role="group" aria-label="Pieces Stockfish has captured">
               {capturedByEngine.map((symbol, i) => (
+                // eslint-disable-next-line @next/next/no-img-element -- tiny static vector art, no optimization needed
                 <img key={i} src={`/pieces/${playerColor}${symbol}.svg`} alt={pieceNameOf(symbol)} className="mw-captured-piece" />
               ))}
             </div>
@@ -232,6 +244,7 @@ export function PlayRunner() {
             <span className="mw-player-card-detail">{playerColor === "w" ? "White" : "Black"}</span>
             <div className="mw-captured-row" role="group" aria-label="Pieces you've captured">
               {capturedByPlayer.map((symbol, i) => (
+                // eslint-disable-next-line @next/next/no-img-element -- tiny static vector art, no optimization needed
                 <img key={i} src={`/pieces/${engineColor}${symbol}.svg`} alt={pieceNameOf(symbol)} className="mw-captured-piece" />
               ))}
             </div>
@@ -239,7 +252,7 @@ export function PlayRunner() {
         </div>
 
         <aside className="mw-play-sidebar">
-          <h2 className="mw-play-sidebar-title">Moves</h2>
+          <h2 className="mw-play-sidebar-title">1. Moves so far</h2>
           <ol className="mw-move-history">
             {movePairs.length === 0 && <li className="mw-move-history-empty">No moves yet.</li>}
             {movePairs.map((pair) => (
@@ -251,12 +264,27 @@ export function PlayRunner() {
             ))}
           </ol>
 
-          <div className="mw-play-analysis-entry">
-            <span className="mw-badge mw-badge--neutral">Soon</span>
-            <p>Post-game analysis — move-by-move breakdown and a personal study plan — isn&apos;t built yet.</p>
-          </div>
+          {gameOver && !showReview && (
+            <div className="mw-play-analysis-entry">
+              <p>
+                The game is over. See what a full move-by-move review and lesson recommendations will look like
+                (sample data, not yet a real analysis of this game).
+              </p>
+              <Button variant="ghost" fullWidth onClick={() => setShowReview(true)}>
+                Review this game (demo)
+              </Button>
+            </div>
+          )}
+          {!gameOver && (
+            <div className="mw-play-analysis-entry">
+              <span className="mw-badge mw-badge--neutral">Locked</span>
+              <p>Game review and lesson recommendations unlock once this game ends.</p>
+            </div>
+          )}
         </aside>
       </div>
+
+      {showReview && <GameReviewDemo review={demoReview} lessonTitleById={lessonTitleById} />}
     </div>
   );
 }

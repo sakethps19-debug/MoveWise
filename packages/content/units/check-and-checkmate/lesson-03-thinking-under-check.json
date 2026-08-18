@@ -40,7 +40,8 @@
       "prompt": "Block the rook's check with your knight, then continue after Black recaptures.",
       "fen": "k3r3/8/8/8/8/8/2N5/4K3 w - - 0 1",
       "playerMoves": ["c2e3", "e1d2"],
-      "forcedReplies": ["e8e3"]
+      "forcedReplies": ["e8e3"],
+      "successExplanation": "Blocking with the knight on e3 stopped the check; once Black's rook recaptured it, moving your king to d2 kept it safely out of the line of attack."
     },
     {
       "id": "step-5",
@@ -61,5 +62,6 @@
       "type": "review",
       "summary": "Capture, block, or move — in that order, every time you're in check. And when the position is winning, remember checkmate is the goal, not just winning material: fence the lone king to the edge with your rook, then deliver mate there."
     }
-  ]
+  ],
+  "principleId": "check-and-checkmate.thinking-under-check"
 }

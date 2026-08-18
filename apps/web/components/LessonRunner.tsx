@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Lesson } from "@movewise/exercise-schema";
 import { useStockfishEngine } from "../lib/useStockfishEngine";
 import { starsForPerformance, starsExplanation } from "../lib/mastery";
 import { recordGuestCompletion } from "../lib/guestProgress";
+import { markLessonStarted, clearLessonStarted } from "../lib/lessonProgressUI";
+import { recordCompletionToday } from "../lib/streak";
 import { Hearts } from "./ui/Hearts";
 import { Stars } from "./ui/Stars";
 import { Button } from "./ui/Button";
@@ -70,6 +72,13 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
   const isLastStep = stepIndex === lesson.steps.length - 1;
   const hearts = Math.max(0, START_HEARTS - mistakes);
 
+  // Phase 4's "in progress" learning-path status: a pure UI signal, not a
+  // progress record (see lib/lessonProgressUI.ts) — marked as soon as a
+  // learner opens the lesson, cleared once they actually finish it.
+  useEffect(() => {
+    markLessonStarted(lesson.id);
+  }, [lesson.id]);
+
   const reteachText = useMemo(() => {
     for (let i = stepIndex; i >= 0; i--) {
       const s = lesson.steps[i];
@@ -88,6 +97,8 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
       const totalXp = xpEarned + lesson.xpReward;
       onComplete?.(totalXp, mistakes, hintsUsed, attempts);
       if (isGuest) recordGuestCompletion(lesson.id, totalXp, mistakes, hintsUsed);
+      clearLessonStarted(lesson.id);
+      recordCompletionToday();
       setFinished({ xp: totalXp, mistakes, hintsUsed });
     } else {
       setStepIndex((i) => i + 1);
@@ -190,7 +201,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
           <h2>Let&apos;s review before continuing</h2>
           <p>{reteachText}</p>
           <p className="mw-recovery-note">
-            You've used up your hearts on this lesson, but that's alright — a couple of hearts will come back so you
+            You&apos;ve used up your hearts on this lesson, but that&apos;s alright — a couple of hearts will come back so you
             can try this exercise again with the idea fresh.
           </p>
           <Button onClick={handleRecoveryComplete}>Try again</Button>

@@ -32,7 +32,7 @@ test("login and signup pages", async ({ page }) => {
   await expectNoViolations(page);
 });
 
-test("a lesson page: explain/select-square steps, and the completion screen", async ({ page }) => {
+test("a lesson page: explain/select-square/true-false steps, and the completion screen", async ({ page }) => {
   await page.goto("/learn/meet-the-pieces.01-welcome");
   await expectNoViolations(page);
 
@@ -41,7 +41,12 @@ test("a lesson page: explain/select-square steps, and the completion screen", as
   await expectNoViolations(page); // select-square step, with the board rendered
 
   await page.locator('[aria-label*="e1,"]').click();
-  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "False" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Complete unit" }).click();
   await expectNoViolations(page); // the completion screen
 });
 
@@ -97,7 +102,12 @@ test.describe("dark theme", () => {
     await expectNoViolations(page);
 
     await page.locator('[aria-label*="e1,"]').click();
-    await page.getByRole("button", { name: "Finish lesson" }).click();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.locator('[aria-label*="e8,"]').click();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "False" }).click();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Complete unit" }).click();
     await expectNoViolations(page);
   });
 
@@ -139,7 +149,12 @@ test.describe("prefers-reduced-motion", () => {
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("button", { name: "Continue" }).click();
     await page.locator('[aria-label*="e1,"]').click();
-    await page.getByRole("button", { name: "Finish lesson" }).click();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.locator('[aria-label*="e8,"]').click();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "False" }).click();
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("button", { name: "Complete unit" }).click();
 
     const duration = await page
       .locator(".mw-completion-stars .mw-stars")

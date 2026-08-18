@@ -4,7 +4,7 @@ import { parsePrinciple, type Principle } from "@movewise/exercise-schema";
 
 const PRINCIPLES_ROOT = path.join(process.cwd(), "..", "..", "packages", "content", "principles");
 
-/** Loads a unit's Principle groupings, ordered. Empty for a unit that hasn't been restructured into principles yet — see ADR-0008, only meet-the-pieces has these so far. */
+/** Loads a unit's Principle groupings, ordered. Empty for a unit that hasn't been restructured into principles yet — see ADR-0008; all three curated units (meet-the-pieces, check-and-checkmate, basic-tactics) have these now, step-type-preview deliberately doesn't. */
 export function loadUnitPrinciples(unitId: string): Principle[] {
   const file = path.join(PRINCIPLES_ROOT, `${unitId}.json`);
   if (!existsSync(file)) return [];

@@ -26,7 +26,7 @@ export default function AccountPage() {
       <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <h2 style={{ fontSize: 16, margin: 0, color: "#b3261e" }}>Delete your account</h2>
         <p style={{ fontSize: 14, opacity: 0.7, margin: 0 }}>
-          Permanently deletes your account and all lesson progress. This can't be undone.
+          Permanently deletes your account and all lesson progress. This can&apos;t be undone.
         </p>
         <form
           action={formAction}

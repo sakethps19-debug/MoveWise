@@ -28,7 +28,8 @@
       "correct": false,
       "feedback": {
         "default": "A fork just means one piece attacks two enemy pieces at once — often it's two minor pieces or a rook and a piece, with no check involved at all. It's extra strong when the king is one of the two targets, because the opponent is forced to deal with the check first."
-      }
+      },
+      "successExplanation": "Right — a fork just means one piece attacks two enemy pieces at once. The king doesn't have to be one of them, though it's especially strong when it is."
     },
     {
       "id": "step-3",
@@ -43,7 +44,8 @@
       "correctIndex": 1,
       "feedback": {
         "default": "A bishop, rook, or queen attacks along lines — if two enemy pieces aren't on the same line, it can't hit both. The knight's jump doesn't work that way, so it can land on a square that attacks two completely unrelated squares at once."
-      }
+      },
+      "successExplanation": "Right — the knight's jump doesn't follow a line, so it can attack two squares nothing else could reach from that same spot."
     },
     {
       "id": "step-4",
@@ -67,7 +69,8 @@
       ],
       "feedback": {
         "default": "That's a legal knight move, but it doesn't attack both the king and the rook. Look for the square where the knight's L-shape lines up with both pieces at once."
-      }
+      },
+      "successExplanation": "Ne5 forks the king on g6 (check!) and the rook on c6 at the same time — the rook falls next move."
     },
     {
       "id": "step-5",
@@ -94,12 +97,14 @@
       ],
       "feedback": {
         "default": "A knight move that only checks the king isn't the goal here — you're looking for the square that attacks the king AND the queen at the same time."
-      }
+      },
+      "successExplanation": "Nd5 forks the king on e7 and the queen on c7 — a much bigger prize than a plain check."
     },
     {
       "id": "step-6",
       "type": "review",
       "summary": "A fork is one piece attacking two enemy targets at once. The knight is especially dangerous at it, because its L-shaped jump can attack two squares that have nothing to do with each other geometrically — no line, no diagonal connects them, so the defender rarely sees it coming. When one of the forked pieces is the king, the opponent has to deal with check first, and the other piece is often lost."
     }
-  ]
+  ],
+  "principleId": "basic-tactics.the-knight-fork"
 }

@@ -46,10 +46,15 @@ test("signup, duplicate email rejected, wrong password rejected, logout, XP pers
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
   await page.locator('[aria-label*="e1,"]').click();
-  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "False" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Complete unit" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
-  await expect(page.getByText("15 XP", { exact: true })).toBeVisible();
+  await expect(page.getByText("30 XP", { exact: true })).toBeVisible();
 
   // sign out, sign back in, XP is still there
   await page.getByRole("button", { name: "Sign out" }).click();
@@ -68,5 +73,5 @@ test("signup, duplicate email rejected, wrong password rejected, logout, XP pers
   await page.fill("input[name=password]", "password123");
   await page.click("button[type=submit]");
   await page.waitForURL("/");
-  await expect(page.getByText("15 XP", { exact: true })).toBeVisible();
+  await expect(page.getByText("30 XP", { exact: true })).toBeVisible();
 });

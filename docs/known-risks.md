@@ -31,9 +31,245 @@ rather than repeating it.
   `docs/testing-strategy.md`'s coverage table).
 - **Star tiers (0/1-2/3+ mistakes) are an initial guess**, not user-tested
   — see ADR-0004.
+- **`.github/workflows/ci.yml` still doesn't run `pnpm lint`** — it now
+  can (see "Resolved this session" below), but the workflow file itself
+  wasn't updated to add a lint step, since that's a CI-configuration
+  decision distinct from making the command runnable at all, and
+  wasn't asked for.
 
 ## Resolved this session, kept here for the record
 
+- **Two real progression bugs, found via direct Playwright reproduction of a
+  user-reported "lesson 3 stays locked after a perfect run" report, not
+  assumed from reading code**: the reported scenario didn't reproduce for
+  a signed-in account (verified fresh, live, before assuming anything),
+  but two related bugs did, both now fixed with regression tests
+  (`e2e/progression-guard.spec.ts`):
+  - **A guest could never unlock a principle-gated lesson, ever, no
+    matter how well they performed.** `LearningPath.tsx`'s `statusOf`
+    derived an `effectiveConceptMastery` value that was always exactly
+    equal to the raw `conceptMastery` prop (its only "special casing"
+    branch produced the same `null` guests already had), so the
+    principle-proficiency gate had no actual guest exception despite a
+    comment claiming one existed — missing mastery data (guests have
+    none, no session to track it against) read as "checked and not
+    proficient" instead of "nothing to check." The server-side route
+    guard (`app/learn/[lessonId]/page.tsx`) already correctly scoped
+    this check to `if (user && ...)`; the client-side display logic
+    didn't match it. Fixed by removing the pointless derived variable
+    and gating the principle check itself on whether real
+    session-backed mastery data exists (`conceptMastery !== null`), in
+    both `statusOf` and `unlockReason`.
+  - **Signing up after guest play could re-lock a lesson the guest could
+    already reach.** `migrateGuestProgress` (`app/actions.ts`) wrote
+    `LessonCompletion` rows only, never `UserConceptMastery` — so a
+    guest who'd unlocked further content (before the bug above existed,
+    or once it's fixed) would find it locked again immediately after
+    creating an account, since the signed-in gate *does* check
+    proficiency and found nothing. Fixed by running each migrated
+    lesson's `masteryTags` through the exact same
+    `recordAttemptsAndUpdateMastery` path a live completion uses,
+    synthesizing attempts from the one real signal guests do have
+    (`mistakes` wrong attempts, then one correct one, per concept) —
+    not a separate ad hoc calculation.
+- **Replay-XP policy, now explicit**: replaying a completed lesson
+  **cannot** farm XP. `completeLessonAction` `upsert`s a single
+  `LessonCompletion` row per `(user, lesson)` — a replay *updates* that
+  row's `xpEarned` to the new run's value, it never creates a second row
+  or adds to the total. Since a lesson's max XP is fixed (same graded
+  steps, same per-step award, same completion bonus, every run), no
+  sequence of replays can push total XP above what one completion of
+  every lesson already grants. Verified directly against the database in
+  `cross-unit-progression.spec.ts` (exact row count and total XP,
+  unchanged after a replay) — this was a deliberate, existing design
+  choice being confirmed and documented, not a new change.
+- **9 graded exercise steps across 3 lessons fell back to a bare "+5 XP"**
+  on a correct answer instead of an explanation of why it was correct
+  (`successExplanation` was simply absent) — `basic-tactics/lesson-01`
+  (4 steps), `check-and-checkmate/lesson-01` (2 steps), and the
+  non-curated `step-type-preview` demo lesson (3 steps). All 12
+  `meet-the-pieces` lessons and `check-and-checkmate/lesson-02` already
+  had one on every graded step. Fixed by authoring one for each. Two
+  further steps (one real, `check-and-checkmate/lesson-03`'s
+  `guided-sequence`; one in the demo lesson) had no schema field to hold
+  one at all — `GuidedSequenceStepSchema` gained an optional
+  `successExplanation`, and `GuidedSequenceStep.tsx` was wired to
+  actually render it (the schema previously silently stripped the field
+  even if content had authored it, since `ExerciseStepSchema`'s
+  discriminated union has no `.passthrough()`). Lesson `objectives`
+  arrays were audited across all 17 files for grammar/punctuation —
+  found genuinely clean (one consistent house style throughout, no
+  errors), so nothing needed changing there.
+- **`pnpm lint` could not run at all** — `next lint` had no committed
+  ESLint config anywhere in the repo (confirmed via git history, not
+  assumed) and prompted interactively on first run, which can't complete
+  in a non-TTY environment. Added `eslint`, `eslint-config-next`, and
+  `@eslint/eslintrc` as real devDependencies (pinned to versions matching
+  the installed Next.js, `^15.5.23`, not whatever the registry's default
+  tag resolved to — an unpinned install pulled in `eslint-config-next@16`
+  with unmet peer-dependency warnings against it) and a standard
+  `eslint.config.mjs` (`next/core-web-vitals` + `next/typescript`, the
+  same setup `next lint`'s own interactive "Strict" option would have
+  generated). Running it for the first time surfaced four real,
+  previously-invisible issues, all fixed: two unescaped-entity JSX errors
+  (`app/account/page.tsx`, `components/LessonRunner.tsx`), one stale
+  `eslint-disable` comment suppressing a warning that no longer applied
+  (`components/PlayRunner.tsx`), and two `<img>` elements missing the
+  same "tiny static vector art" suppression comment `Board.tsx`'s
+  identical pattern already carries. `pnpm lint` is now clean.
+- **Cross-unit progression had no test coverage** — every progression
+  test exercised only `meet-the-pieces`, and the gating code being
+  unit-agnostic isn't the same claim as it being verified across a real
+  unit boundary. Added `e2e/cross-unit-progression.spec.ts`: real UI
+  completion of `meet-the-pieces.12-unit-mastery-challenge` (the unit's
+  actual final/mastery-check lesson, all 9 graded steps) unlocking
+  `check-and-checkmate.01`; `basic-tactics` verified locked both before
+  *and* partway through `check-and-checkmate` (only its own final lesson
+  unlocks the third unit, not "some progress" in the second); a locked
+  lesson's learning-path row confirmed to render no `<a>` at all (not
+  just a redirect on direct URL entry, a separate claim); a hard reload
+  re-verified against the server, not a client cache; replaying a
+  completed lesson checked against the database directly (exactly one
+  `LessonCompletion` row, unchanged total XP), not just the UI's word for
+  it; the dev-only reset control checked the same way (zero
+  `LessonCompletion`/`UserConceptMastery`/`ExerciseAttempt` rows
+  afterward, every unit re-locked). Meet-the-pieces lessons 2–11 are
+  seeded directly rather than clicked through — their content is already
+  covered elsewhere; what this file adds is boundary behavior, which only
+  needs them *completed*. Seeding uses a standalone helper script
+  (`e2e/db-helper.mjs`), not a direct `@movewise/db` import in the
+  `.spec.ts` file — Playwright's own test transform can't load Prisma
+  7's ESM-generated client (confirmed: plain `node` run from `apps/web`
+  loads it fine, so this is a Playwright/esbuild interop gap, not a
+  product issue), so the seeding calls shell out to a plain Node script
+  instead.
+
+- **Board-loading flash, feedback design, lesson-progression states, and
+  Play & Learn's information architecture** — a product-review pass
+  across six areas:
+
+- **Board-loading flash, feedback design, lesson-progression states, and
+  Play & Learn's information architecture** — a product-review pass
+  across six areas:
+  - **Board stabilization**: preloaded all 12 piece SVGs
+    (`app/layout.tsx`'s `<link rel="preload">` tags) so the starting
+    position never visibly assembles piece-by-piece on a cold cache — no
+    entrance animation exists to begin with, and `prefers-reduced-motion`
+    already collapses the feedback/star animations that do (verified,
+    not just read from CSS). Added `e2e/board-regression.spec.ts` (12
+    tests at the three required device widths: 1440×900, 1024×768,
+    390×844) asserting 64 equal 1:1 squares, exactly 32 fully-decoded
+    starting pieces sized 82–90% of their square, no page-level
+    horizontal overflow, and no piece-count growth between first paint
+    and network-idle — on top of the existing `chessboard-geometry.spec.ts`.
+  - **Touch targets**: `.mw-btn`, `.mw-order-item`, `.mw-segmented-option`,
+    `.mw-icon-btn`, `.mw-nav-item`, and `.mw-lesson-exit` all now have an
+    explicit 44px minimum (several were ~32–40px) — real WCAG 2.5.5
+    findings, not a redesign. The chessboard's own squares are the one
+    accepted exception: an 8-wide board on a 390px phone is inherently
+    ~44px/square at best, and enlarging the board to guarantee more would
+    break the "board stays within the viewport" requirement instead.
+  - **Feedback design**: `StepFooter.tsx` now shows a correct answer's
+    explanation *and* its XP together (previously one or the other), plus
+    a filled circular icon on both correct/incorrect banners. Fixed a
+    real contrast bug: light-mode `--mw-warning-ink` measured 4.05:1
+    against its own background, under the 4.5:1 AA floor for text that
+    size (`--mw-badge--warning`); now 5.71:1.
+  - **Reference lesson**: `meet-the-pieces.01-welcome` rebuilt onto the
+    full template (objective → explanation → guided exercise → independent
+    exercise → mistake correction → recap → completion/XP) — a second,
+    hint-free `select-square` step and a `true-false` step were added
+    alongside the original guided one, plus a `review` recap step. Every
+    correct/incorrect path has a specific, misconception-level
+    explanation (e.g. "That's Black's queen — she stands right next to
+    the king, same as on White's side," not "Try again"). Updated every
+    E2E spec that drove this lesson's old 3-step shape (`lessons.spec.ts`,
+    `accessibility.spec.ts`, `auth.spec.ts`, `account.spec.ts`,
+    `learning-path.spec.ts` — 8 call sites) to the new 6-step one and its
+    new XP total (15 → 30, since `xpReward` also went 10 → 15).
+  - **Progression states**: extended the learning path from 3 states
+    (locked/available/completed) to 5 (+ in-progress, + mastered) without
+    touching the gating logic those three already correctly drove —
+    `LearningPath.tsx` layers "in-progress" (`lib/lessonProgressUI.ts`, a
+    client-only "started" signal, never gates anything) and "mastered"
+    (a completed lesson's own 3-star performance — a lesson-level
+    distinction from `MasteryStatus`'s unrelated concept-level `mastered`
+    state, which stays Phase-C-only as before) on top of the existing
+    three. Locked rows now show *why* ("Unlocks after 'X'" /
+    "Unlocks once 'Y' is proficient"), not just a lock icon. Added a
+    development-only progress-reset control (`DevResetControl.tsx`,
+    `devResetProgressAction` in `app/actions.ts`) guarded twice — the
+    component only renders under a server-side `NODE_ENV === "development"`
+    check in `app/page.tsx` (dead-code-eliminated from a production
+    build), and the Server Action itself independently re-checks
+    `NODE_ENV`, since an action is a real callable endpoint regardless of
+    what the client renders.
+  - **Learning-path visuals**: added a local (not yet server-tracked)
+    daily-goal/streak strip (`lib/streak.ts`, `DailyGoalStrip.tsx`), a
+    "Review needed" section surfacing principles whose concept mastery
+    has regressed to `"struggling"` (real signal already computed by
+    `lib/masteryModel.ts`, not new data), and a "Chapter complete" badge
+    once every lesson in a unit is done.
+  - **Play & Learn hierarchy**: relabeled the page's own copy and
+    structure into the explicit "1. Play a game / 2. Review the game /
+    3. Recommended lessons" sequence the brief asked for, replacing a
+    bare "Soon" badge. Built the typed data model for real game review
+    (`lib/gameAnalysis.ts`'s `MoveAnalysis`/`GameReview`, matching
+    `packages/engine`'s existing `EngineAnalysis.score` shape so a real
+    implementation can slot in later) and a clearly-labeled demo
+    (`GameReviewDemo.tsx`, a "DEMO" badge plus explicit "not a real
+    engine review of the game you just played" copy) built from fixed,
+    hand-authored sample moves — deliberately *not* derived from the
+    game the learner just played, since faking evals from their real
+    moves would look more like genuine analysis, not less. Recommended
+    lessons in the demo link to real, existing lesson ids. The file's own
+    doc comment lists the concrete remaining integration work (persist
+    `Game` rows, call `engine.bestMove` before/after each real ply,
+    classify from real eval swings, map mistakes via
+    `docs/concept-taxonomy.md`) — none of it built this pass.
+
+  Verified: `pnpm typecheck`/`test`/`validate:content`/`build` all pass;
+  the full E2E suite (98 tests, including 2 new files —
+  `board-regression.spec.ts`, `dev-tools.spec.ts` — and additions to
+  `play-mode.spec.ts`) passes against real local Postgres; manually
+  driven with Playwright through signup → lesson completion → reload →
+  persistence → next-lesson-unlock → locked-lesson block → dark mode →
+  Play & Learn's full demo-review flow, with console errors monitored
+  live (one real one found and fixed: no `favicon.ico`/app icon existed
+  at all, now `app/icon.svg`). Screenshots taken at 1440×900, 1024×768,
+  and 390×844 in both themes.
+
+  Not done, and not claimed as done: no visual-design rewrite of the
+  learning path beyond the additions above (the existing "clean course
+  outline" direction, `docs/design/visual-directions.md`'s Direction A,
+  was kept rather than replaced); no unit-specific E2E coverage for the
+  `check-and-checkmate`/`basic-tactics` progression states (they share
+  the exact same unit-agnostic code path already covered against
+  `meet-the-pieces`); `pnpm lint` still can't run in this environment
+  (see the entry above — pre-existing, not new).
+
+- **`check-and-checkmate` and `basic-tactics` were still the flat
+  `Unit → Lesson` shape** (ADR-0008 Phase A): both units now have a
+  `packages/content/principles/{unitId}.json` file — `check-and-checkmate`
+  gets 3 principles (`recognizing-check` → `check`,
+  `recognizing-checkmate` → `checkmate`, `thinking-under-check` →
+  `decision-making`), `basic-tactics` gets 1 (`the-knight-fork` →
+  `knight-fork`, the most specific concept in that unit's
+  `tactics`/`fork`/`knight-fork` hierarchy, chosen the same way
+  `meet-the-pieces`' principles each pick their most specific matching
+  concept). Every affected lesson got a matching `principleId` back-
+  reference. No `apps/web` code changes were needed — `lib/principles.ts`
+  and `LearningPath.tsx` were already written to branch on principle-file
+  presence per unit, exactly so this could be a content-only change.
+  `pnpm validate:content`, `typecheck`, and `test` all pass; two stale
+  code comments (`lib/principles.ts`, `LearningPath.tsx`) and three docs
+  (`docs/architecture.md`, `docs/testing-strategy.md`, this roadmap
+  reference) that said "meet-the-pieces only" were updated to match.
+  Deliberately not done in this pass: no new unit (`check-and-checkmate`,
+  `basic-tactics`)-specific E2E tests — the unlock/grouping mechanism
+  they'd exercise is unit-agnostic code already covered against
+  `meet-the-pieces` in `e2e/learning-path.spec.ts`, and no `Puzzle`
+  content exists yet for either unit (unchanged from before this pass).
 - **Lesson completion alone unlocked the next principle** (ADR-0008
   Phase A): `meet-the-pieces` is now restructured into 7 principles with
   a real `Concept` taxonomy (`packages/content/concepts.json`,
