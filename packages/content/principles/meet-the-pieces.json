@@ -6,7 +6,7 @@
     "conceptId": "board-orientation",
     "order": 0,
     "subLessonIds": ["meet-the-pieces.01-welcome", "meet-the-pieces.02-ranks-files-squares"],
-    "puzzleIds": []
+    "puzzleIds": ["meet-the-pieces.puzzle-board-basics-1", "meet-the-pieces.puzzle-board-basics-2"]
   },
   {
     "id": "meet-the-pieces.the-rook",
@@ -15,7 +15,7 @@
     "conceptId": "rook-movement",
     "order": 1,
     "subLessonIds": ["meet-the-pieces.03-meet-the-rook", "meet-the-pieces.04-rook-captures"],
-    "puzzleIds": []
+    "puzzleIds": ["meet-the-pieces.puzzle-rook-1", "meet-the-pieces.puzzle-rook-2"]
   },
   {
     "id": "meet-the-pieces.the-bishop",
@@ -24,7 +24,7 @@
     "conceptId": "bishop-movement",
     "order": 2,
     "subLessonIds": ["meet-the-pieces.05-meet-the-bishop", "meet-the-pieces.06-bishop-colours"],
-    "puzzleIds": []
+    "puzzleIds": ["meet-the-pieces.puzzle-bishop-1", "meet-the-pieces.puzzle-bishop-2"]
   },
   {
     "id": "meet-the-pieces.the-queen",
@@ -33,7 +33,7 @@
     "conceptId": "queen-movement",
     "order": 3,
     "subLessonIds": ["meet-the-pieces.07-meet-the-queen"],
-    "puzzleIds": []
+    "puzzleIds": ["meet-the-pieces.puzzle-queen-1", "meet-the-pieces.puzzle-queen-2"]
   },
   {
     "id": "meet-the-pieces.the-king",
@@ -42,7 +42,7 @@
     "conceptId": "king-movement",
     "order": 4,
     "subLessonIds": ["meet-the-pieces.08-meet-the-king"],
-    "puzzleIds": []
+    "puzzleIds": ["meet-the-pieces.puzzle-king-1", "meet-the-pieces.puzzle-king-2"]
   },
   {
     "id": "meet-the-pieces.the-knight",
@@ -51,7 +51,7 @@
     "conceptId": "knight-movement",
     "order": 5,
     "subLessonIds": ["meet-the-pieces.09-meet-the-knight"],
-    "puzzleIds": []
+    "puzzleIds": ["meet-the-pieces.puzzle-knight-1", "meet-the-pieces.puzzle-knight-2"]
   },
   {
     "id": "meet-the-pieces.the-pawn",
@@ -60,6 +60,6 @@
     "conceptId": "pawn-movement",
     "order": 6,
     "subLessonIds": ["meet-the-pieces.10-meet-the-pawn", "meet-the-pieces.11-capturing-piece-values"],
-    "puzzleIds": []
+    "puzzleIds": ["meet-the-pieces.puzzle-pawn-1", "meet-the-pieces.puzzle-pawn-2"]
   }
 ]

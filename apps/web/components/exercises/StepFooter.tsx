@@ -11,6 +11,7 @@ export function StepFooter({
   xp,
   isLastStep,
   onAdvance,
+  finishLabel = "Finish lesson",
 }: {
   status: StepStatus;
   feedback: string | null;
@@ -19,6 +20,8 @@ export function StepFooter({
   xp: number;
   isLastStep: boolean;
   onAdvance: () => void;
+  /** Button label on the last item — "Finish lesson" by default, overridden by non-lesson callers like PuzzleRunner ("Finish practice"). */
+  finishLabel?: string;
 }) {
   if (status === "incorrect" && feedback) {
     return (
@@ -48,7 +51,7 @@ export function StepFooter({
           </span>
         </p>
         <Button onClick={onAdvance} fullWidth>
-          {isLastStep ? "Finish lesson" : "Continue"}
+          {isLastStep ? finishLabel : "Continue"}
         </Button>
       </div>
     );

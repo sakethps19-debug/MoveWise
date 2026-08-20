@@ -6,24 +6,28 @@
  * expected move — the exact acceptance criteria from the Phase 0 doc.
  *
  * Also validates the ADR-0008 content-hierarchy layer added on top of
- * lessons: packages/content/concepts.json (the Concept registry) and
- * packages/content/principles/*.json (Principle groupings), including
- * cross-referential integrity — a principle's subLessonIds/
- * masteryChallengeLessonId must reference real lessons, its conceptId
- * (and every lesson's masteryTags) must reference a registered concept.
- * This catches a typo'd id the same way a broken FEN gets caught: at
- * validate-content time, not by a learner hitting a 404 mid-lesson.
+ * lessons: packages/content/concepts.json (the Concept registry),
+ * packages/content/principles/*.json (Principle groupings), and
+ * packages/content/puzzles/*.json (pooled Puzzle content, same
+ * chess-legality checks as a lesson's move-piece steps), including
+ * cross-referential integrity — a principle's subLessonIds/puzzleIds/
+ * masteryChallengeLessonId must reference real lessons/puzzles, its
+ * conceptId (and every lesson's masteryTags, every puzzle's conceptIds)
+ * must reference a registered concept. This catches a typo'd id the same
+ * way a broken FEN gets caught: at validate-content time, not by a
+ * learner hitting a 404 mid-lesson.
  */
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { parseLesson, parseConcept, parsePrinciple, type Lesson } from "../packages/exercise-schema/src/index";
-import { validateLesson } from "../packages/exercise-schema/src/validate-chess";
+import { parseLesson, parseConcept, parsePrinciple, parsePuzzle, type Lesson, type Puzzle } from "../packages/exercise-schema/src/index";
+import { validateLesson, validatePuzzle } from "../packages/exercise-schema/src/validate-chess";
 import { validateInstructionalQuality } from "../packages/exercise-schema/src/validate-instructional";
 
 const CONTENT_ROOT = join(import.meta.dirname, "../packages/content");
 const UNITS_ROOT = join(CONTENT_ROOT, "units");
 const CONCEPTS_FILE = join(CONTENT_ROOT, "concepts.json");
 const PRINCIPLES_ROOT = join(CONTENT_ROOT, "principles");
+const PUZZLES_ROOT = join(CONTENT_ROOT, "puzzles");
 
 function* walkLessonFiles(dir: string): Generator<string> {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -59,6 +63,37 @@ for (const filePath of walkLessonFiles(UNITS_ROOT)) {
   }
 }
 
+// Puzzle pools (ADR-0008) — same structural + chess-legality validation as
+// lessons, one file per unit.
+let puzzlesChecked = 0;
+const puzzlesById = new Map<string, Puzzle>();
+if (existsSync(PUZZLES_ROOT)) {
+  for (const file of readdirSync(PUZZLES_ROOT)) {
+    if (!file.endsWith(".json")) continue;
+    const filePath = join(PUZZLES_ROOT, file);
+    const raw = JSON.parse(readFileSync(filePath, "utf-8"));
+    let fileOk = true;
+    for (const entry of raw) {
+      puzzlesChecked += 1;
+      const puzzle = parsePuzzle(entry); // throws on structural schema violation
+      if (puzzlesById.has(puzzle.id)) {
+        failures += 1;
+        fileOk = false;
+        console.error(`\n✗ ${filePath}\n  duplicate puzzle id "${puzzle.id}"`);
+      }
+      puzzlesById.set(puzzle.id, puzzle);
+      const issues = validatePuzzle(puzzle);
+      if (issues.length > 0) {
+        failures += issues.length;
+        fileOk = false;
+        console.error(`\n✗ ${filePath}`);
+        for (const issue of issues) console.error(`  [${issue.stepId}] ${issue.message}`);
+      }
+    }
+    if (fileOk) console.log(`✓ ${filePath} (${raw.length} puzzles)`);
+  }
+}
+
 // Concept registry
 const conceptIds = new Set<string>();
 if (existsSync(CONCEPTS_FILE)) {
@@ -88,6 +123,17 @@ for (const lesson of lessonsById.values()) {
   }
 }
 
+// Every puzzle's conceptIds should be registered concepts too — same
+// reasoning as lesson masteryTags above.
+for (const puzzle of puzzlesById.values()) {
+  for (const conceptId of puzzle.conceptIds) {
+    if (!conceptIds.has(conceptId)) {
+      failures += 1;
+      console.error(`\n✗ ${puzzle.id}\n  conceptIds entry "${conceptId}" is not a registered concept (packages/content/concepts.json)`);
+    }
+  }
+}
+
 // Principle groupings — cross-referential integrity
 if (existsSync(PRINCIPLES_ROOT)) {
   for (const file of readdirSync(PRINCIPLES_ROOT)) {
@@ -108,6 +154,13 @@ if (existsSync(PRINCIPLES_ROOT)) {
           failures += 1;
           fileOk = false;
           console.error(`\n✗ ${filePath}\n  [${principle.id}] subLessonIds references unknown lesson "${subLessonId}"`);
+        }
+      }
+      for (const puzzleId of principle.puzzleIds) {
+        if (!puzzlesById.has(puzzleId)) {
+          failures += 1;
+          fileOk = false;
+          console.error(`\n✗ ${filePath}\n  [${principle.id}] puzzleIds references unknown puzzle "${puzzleId}"`);
         }
       }
       if (principle.masteryChallengeLessonId) {
@@ -131,5 +184,5 @@ if (existsSync(PRINCIPLES_ROOT)) {
   }
 }
 
-console.log(`\n${checked} lesson file(s) checked, ${failures} issue(s) found.`);
+console.log(`\n${checked} lesson file(s), ${puzzlesChecked} puzzle(s) checked, ${failures} issue(s) found.`);
 if (failures > 0) process.exit(1);

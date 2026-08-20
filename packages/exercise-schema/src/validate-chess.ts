@@ -23,7 +23,7 @@ import {
   tryMove,
   type Square,
 } from "@movewise/chess-rules";
-import type { ExerciseStep, Lesson } from "./index";
+import type { ExerciseStep, Lesson, Puzzle } from "./index";
 
 export interface ValidationIssue {
   lessonId: string;
@@ -162,4 +162,28 @@ function checkStep(lessonId: string, step: ExerciseStep): ValidationIssue[] {
 
 export function validateLesson(lesson: Lesson): ValidationIssue[] {
   return lesson.steps.flatMap((step) => checkStep(lesson.id, step));
+}
+
+/**
+ * Same chess-legality checks as a move-piece step's `expectedMoves` (a
+ * Puzzle's `correctMoves` is the equivalent field, ADR-0008), applied to
+ * the pooled Puzzle content type instead of a lesson step.
+ */
+export function validatePuzzle(puzzle: Puzzle): ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const fail = (message: string) => issues.push({ lessonId: puzzle.id, stepId: puzzle.id, message });
+
+  if (!isLegalFen(puzzle.fen)) {
+    fail(`FEN is not legal: ${puzzle.fen}`);
+    return issues;
+  }
+
+  for (const candidate of puzzle.correctMoves) {
+    const legal = legalMoves(puzzle.fen).some((m) => moveMatches(m, [candidate]));
+    if (!legal) {
+      fail(`correct move "${candidate}" is not legal from this FEN`);
+    }
+  }
+
+  return issues;
 }

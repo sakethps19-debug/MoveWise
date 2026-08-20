@@ -71,23 +71,42 @@ two followed the same pattern.
   `check-and-checkmate` and `basic-tactics` followed the identical
   pattern once it was proven out — no app code changes were needed,
   `lib/principles.ts` and `LearningPath.tsx` were already data-driven off
-  file presence. **`Puzzle` is still not built** — no puzzle content
-  authored yet, so every principle's `puzzleIds` is empty; puzzle-pool
-  accuracy isn't part of the unlock signal yet (see below).
+  file presence. ~~`Puzzle` is still not built.~~ **Started**:
+  `packages/content/puzzles/meet-the-pieces.json` has 14 real,
+  chess-legality-validated puzzles (2 per principle) for the pilot unit —
+  `check-and-checkmate` and `basic-tactics` still have empty `puzzleIds`,
+  same "restructure one unit fully before generalizing" order as the
+  Principle hierarchy above. Puzzles are served from
+  `apps/web/lib/puzzles.ts`, played at `/practice/[principleId]`
+  (`components/PuzzleRunner.tsx`, reachable from `LearningPath.tsx` once
+  a principle's sub-lessons are done, gated server-side too — not just
+  hidden from the UI), and each attempt is a real `ExerciseAttempt` row
+  feeding the same mastery computation lessons do. Puzzle-pool accuracy
+  still isn't part of the *unlock* signal (see below and
+  `lib/masteryModel.ts`'s own comment on why that's deliberate) — and the
+  shared `Practice` aggregation page ADR-0008 describes (course puzzles +
+  game-derived positions + weak-skill training + spaced repetition, one
+  pool) is still not built; today's `/practice/[principleId]` is a single
+  principle's pool, not that aggregate.
 - ~~Implement concept-level mastery and controlled unlocking.~~ **Done,
   with an honest scope cut**: `UserConceptMastery`/`ExerciseAttempt`
   (real Postgres tables) and `lib/masteryModel.ts`'s
-  `computeMasteryStatus` implement 5 of the 9 states reachable from
+  `computeMasteryStatus` implement 7 of the 9 states reachable from
   exercise-attempt evidence alone (`not-started`, `learning`,
-  `proficient`, `struggling`, `recovered`). Unlocking a principle's
-  first sub-lesson now requires the *previous* principle's concept to be
-  proficient — not just its lessons completed — enforced server-side on
-  the lesson route and mirrored in the learning-path UI so a locked
-  lesson never shows as available. `practising`/`ready-for-assessment`
-  (need the `Puzzle` pool above) and `mastered`/`revision-due` (need
-  Phase B's `gameApplicationScore` and Phase C's spaced repetition) are
-  correctly *not* reachable yet — not an oversight, see
-  `lib/masteryModel.ts`'s own comment.
+  `practising`, `ready-for-assessment`, `proficient`, `struggling`,
+  `recovered`). Unlocking a principle's first sub-lesson now requires the
+  *previous* principle's concept to be proficient — not just its lessons
+  completed — enforced server-side on the lesson route and mirrored in
+  the learning-path UI so a locked lesson never shows as available.
+  `practising`/`ready-for-assessment` are evidenced by puzzle-pool
+  attempts specifically (docs/learner-model.md), deliberately layered in
+  *before* the pre-existing proficient/struggling/learning logic so
+  `proficient` still fires from overall accuracy exactly as before,
+  regardless of attempt source — every learner who was already proficient
+  before this pass stays proficient, unaffected. `mastered`/
+  `revision-due` (need Phase B's `gameApplicationScore` and Phase C's
+  spaced repetition) are correctly *not* reachable yet — not an
+  oversight, see `lib/masteryModel.ts`'s own comment.
 - **Not done**: the struggling-learner remediation flow beyond
   ADR-0007's per-exercise recovery (a concept-level reteach cycle, per
   `docs/learner-model.md`), and a per-unit placement assessment.

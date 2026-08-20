@@ -118,6 +118,21 @@ describe("ADR-0008 content-hierarchy schemas (Principle, Concept, Puzzle)", () =
     ).not.toThrow();
   });
 
+  it("parses a Puzzle with a successExplanation", () => {
+    expect(() =>
+      parsePuzzle({
+        id: "test-unit.puzzle-2",
+        conceptIds: ["rook-movement"],
+        fen: "7k/8/8/8/4R3/8/8/K7 w - - 0 1",
+        prompt: "Find the rook's best move.",
+        correctMoves: ["e4e8"],
+        difficulty: 1,
+        feedback: { default: "Not quite." },
+        successExplanation: "Re8 uses the rook's full range along the open e-file.",
+      }),
+    ).not.toThrow();
+  });
+
   it("rejects a Puzzle with no correct moves declared", () => {
     expect(() =>
       parsePuzzle({

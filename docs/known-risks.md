@@ -39,6 +39,37 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **ADR-0008's `Puzzle` pool, previously unbuilt, now real for the pilot
+  unit**: `packages/content/puzzles/meet-the-pieces.json` has 14
+  chess-legality-validated puzzles (2 per principle), served at
+  `/practice/[principleId]` (`components/PuzzleRunner.tsx`), gated
+  server-side on the principle's sub-lessons being complete (mirroring
+  `app/learn/[lessonId]/page.tsx`'s pattern, not just hidden from the UI
+  — confirmed live: direct URL navigation before completing the
+  sub-lessons redirects). Each attempt is a real `ExerciseAttempt` row
+  (`ExerciseAttempt.lessonId` made nullable, `puzzleId` added — additive
+  migration, `packages/db/prisma/migrations/20260818033803_add_puzzle_attempts`)
+  feeding the same per-concept mastery recompute lessons use
+  (`recomputeMasteryForConcepts` in `app/actions.ts`, extracted from what
+  was lesson-only logic). This is also what finally makes
+  `practising`/`ready-for-assessment` reachable in
+  `lib/masteryModel.ts`'s `computeMasteryStatus` — previously
+  structurally unreachable for lack of puzzle evidence, not a bug. The
+  extension is additive by construction: an `AttemptEvidence.source` tag
+  defaults to "lesson" when absent, `proficient` still fires from overall
+  accuracy exactly as before regardless of source, and every one of the
+  9 pre-existing unit tests (plus a new one asserting the no-`source` and
+  explicit-`source:"lesson"` cases produce identical results) passes
+  unmodified. Verified end to end with Playwright against a real
+  Postgres row, not just unit-tested in isolation:
+  `e2e/puzzle-practice.spec.ts` signs up, completes real lessons, solves
+  a puzzle through the actual board UI, and a direct `psql` query
+  confirmed the `ExerciseAttempt` row and resulting `proficient` status
+  landed correctly. `check-and-checkmate` and `basic-tactics` still have
+  empty `puzzleIds` (same "one unit fully before generalizing" order the
+  Principle hierarchy itself followed), and the shared `Practice`
+  aggregation page ADR-0008 describes is still not built — today's route
+  is one principle's pool, not the cross-source aggregate.
 - **Two real progression bugs, found via direct Playwright reproduction of a
   user-reported "lesson 3 stays locked after a perfect run" report, not
   assumed from reading code**: the reported scenario didn't reproduce for
