@@ -6,16 +6,17 @@ type NavKey = "learn" | "play" | "practice" | "progress" | "profile";
 const ITEMS: { key: NavKey; label: string; href: string | null; icon: string }[] = [
   { key: "learn", label: "Learn & Play", href: "/", icon: "♟" },
   { key: "play", label: "Play & Learn", href: "/play", icon: "▲" },
-  { key: "practice", label: "Practice", href: null, icon: "●" },
+  { key: "practice", label: "Practice", href: "/practice", icon: "●" },
   { key: "progress", label: "Progress", href: null, icon: "▪" },
   { key: "profile", label: "Profile", href: "/account", icon: "◐" },
 ];
 
 /**
  * Desktop left rail + mobile bottom bar, same 5 items in the same order
- * (docs/design/system.md's acceptance criteria). Practice/Progress have
- * no real page yet (docs/prd.md) — shown disabled with a "Soon" badge
- * rather than linking to a 404 or a fake page.
+ * (docs/design/system.md's acceptance criteria). Progress has no real
+ * page yet (docs/prd.md) — shown disabled with a "Soon" badge rather
+ * than linking to a 404 or a fake page. Practice now links to the real
+ * `/practice` aggregation hub (ADR-0008).
  */
 export function Nav({
   active,
