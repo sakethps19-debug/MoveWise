@@ -1,5 +1,7 @@
 /**
- * Test-only DB helper for e2e/cross-unit-progression.spec.ts. Importing
+ * Test-only DB helper, shared across several e2e specs (originally
+ * written for cross-unit-progression.spec.ts, now also used by
+ * puzzle-practice.spec.ts and remediation.spec.ts). Importing
  * `@movewise/db` directly from a `.spec.ts` file fails under Playwright's
  * own test transform ("Cannot use 'import.meta' outside a module" —
  * Prisma 7's generated client is ESM, and Playwright's transform doesn't
@@ -10,6 +12,7 @@
  * imported by application code.
  */
 import { prisma } from "@movewise/db";
+import bcrypt from "bcryptjs";
 
 const [, , command, argJson] = process.argv;
 const args = argJson ? JSON.parse(argJson) : {};
@@ -19,6 +22,30 @@ async function main() {
     case "get-user-id": {
       const user = await prisma.user.findUniqueOrThrow({ where: { email: args.email } });
       process.stdout.write(user.id);
+      break;
+    }
+    case "create-user": {
+      // Creates a real account directly (bcrypt-hashed, same as
+      // hashPassword in lib/auth.ts — duplicated here rather than
+      // imported since lib/auth.ts pulls in "server-only"/"next/headers"
+      // and can't be imported outside the Next.js runtime). Used to log
+      // a test straight into an account via the /login form instead of
+      // /signup, so tests that only need a signed-in session (not the
+      // signup flow itself) don't spend from signupAction's own
+      // rate-limit budget (SIGNUP_LIMIT = 20/hour per IP,
+      // lib/rate-limit.ts) — a real, shared-with-every-other-spec
+      // constraint, not a synthetic test-only concern.
+      const passwordHash = await bcrypt.hash(args.password, 10);
+      const user = await prisma.user.create({ data: { email: args.email, passwordHash } });
+      process.stdout.write(user.id);
+      break;
+    }
+    case "set-mastery": {
+      await prisma.userConceptMastery.upsert({
+        where: { userId_conceptId: { userId: args.userId, conceptId: args.conceptId } },
+        update: { status: args.status },
+        create: { userId: args.userId, conceptId: args.conceptId, status: args.status },
+      });
       break;
     }
     case "seed-completions": {

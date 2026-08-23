@@ -22,11 +22,23 @@ export function PuzzleRunner({
   puzzles,
   principleTitle,
   onAttempt,
+  heading,
+  completionTitle = "Practice complete!",
+  completionMessage,
+  completionHref = "/",
+  completionLinkText = "Back to learning path",
 }: {
   puzzles: Puzzle[];
   principleTitle: string;
   /** Bound server action recording (puzzleId, correct) — omitted for a guest, whose puzzle practice is session-local only (see app/actions.ts's recordPuzzleAttemptAction). */
   onAttempt?: (puzzleId: string, correct: boolean) => void;
+  /** Overrides the header's "{principleTitle} — Practice" label — used by the remediation flow (RemediationRunner.tsx), which reuses this same puzzle-solving UI for its easier-puzzle round under a "Review" framing instead. */
+  heading?: string;
+  /** The four completion-screen overrides below default to the plain practice-pool experience; RemediationRunner overrides them to close its own flow with a "try it again" link back to the lesson instead of home. */
+  completionTitle?: string;
+  completionMessage?: string;
+  completionHref?: string;
+  completionLinkText?: string;
 }) {
   const [index, setIndex] = useState(0);
   const [status, setStatus] = useState<StepStatus>("active");
@@ -50,15 +62,16 @@ export function PuzzleRunner({
   if (finished) {
     return (
       <div className="mw-completion" style={{ maxWidth: 440, margin: "var(--mw-space-7) auto" }}>
-        <h1 className="mw-completion-title">Practice complete!</h1>
+        <h1 className="mw-completion-title">{completionTitle}</h1>
+        {completionMessage && <p className="mw-completion-explanation">{completionMessage}</p>}
         <p className="mw-completion-explanation">
           {solved} of {puzzles.length} solved on the first try.
         </p>
         <p role="status" className="mw-completion-xp">
           +{solved * PUZZLE_XP} XP
         </p>
-        <Link href="/" className="mw-btn mw-btn--primary mw-btn--full">
-          Back to learning path
+        <Link href={completionHref} className="mw-btn mw-btn--primary mw-btn--full">
+          {completionLinkText}
         </Link>
       </div>
     );
@@ -112,7 +125,7 @@ export function PuzzleRunner({
         <Link href="/" className="mw-lesson-exit" aria-label="Exit practice">
           ✕ Exit
         </Link>
-        <span className="mw-lesson-title">{principleTitle} — Practice</span>
+        <span className="mw-lesson-title">{heading ?? `${principleTitle} — Practice`}</span>
         <span className="mw-lesson-step-count">
           Puzzle {index + 1}/{puzzles.length}
         </span>
