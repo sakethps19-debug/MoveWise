@@ -5,7 +5,6 @@ import {
   gameStatus,
   inCheck,
   isGameOver,
-  legalMoves,
   legalTargetsFrom,
   parseUci,
   pieceNameOf,
@@ -17,13 +16,14 @@ import {
 } from "@movewise/chess-rules";
 import { sideToMove } from "@movewise/engine";
 import { useStockfishEngine } from "../lib/useStockfishEngine";
-import { buildMoveAnalysis, summarize, type GameReview, type MoveAnalysis } from "../lib/gameAnalysis";
-import { saveCompletedGameAction, saveGameAnalysisAction, type SubmittedMoveAnalysis } from "../app/actions";
+import type { GameReview } from "../lib/gameAnalysis";
+import { useGameAnalysisRunner } from "../lib/useGameAnalysisRunner";
+import { saveCompletedGameAction } from "../app/actions";
 import { computeGameResult } from "../lib/gameResult";
 import { Board } from "./Board";
 import { Button } from "./ui/Button";
 import { GameReviewPanel } from "./GameReviewPanel";
-import { RetryPositionPanel } from "./RetryPositionPanel";
+import { GameReviewWithRetry } from "./GameReviewWithRetry";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -85,16 +85,19 @@ export function PlayRunner({
   const [resigned, setResigned] = useState(false);
 
   const [gameId, setGameId] = useState<string | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [analysisProgress, setAnalysisProgress] = useState<{ done: number; total: number } | null>(null);
-  const [realReview, setRealReview] = useState<GameReview | null>(null);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
-  const [retryMoveIndex, setRetryMoveIndex] = useState<number | null>(null);
   const gameSavedRef = useRef(false);
 
   const { engineRef, ready: engineReady, error: engineLoadError } = useStockfishEngine(true);
   const engineError = engineLoadError ?? engineFailure;
   const gameOver = resigned || isGameOver(fen);
+  const {
+    analyzing,
+    progress: analysisProgress,
+    review: realReview,
+    error: analysisError,
+    runAnalysis,
+    reset: resetAnalysis,
+  } = useGameAnalysisRunner(engineRef);
 
   function recordMove(move: Move, color: PlayerColor, fenBefore: string, fenAfter: string) {
     setMoves((prev) => [
@@ -176,67 +179,16 @@ export function PlayRunner({
     setResigned(false);
     setShowReview(false);
     setGameId(null);
-    setRealReview(null);
-    setAnalysisError(null);
-    setAnalysisProgress(null);
-    setRetryMoveIndex(null);
+    resetAnalysis();
     gameSavedRef.current = false;
   }
 
-  /**
-   * The real (non-demo) analysis pass: for every played ply, ask the same
-   * browser-side Stockfish Worker Play mode already uses for both the
-   * pre-move evaluation + best move (one call) and the post-move
-   * evaluation (a second call) — "visible progress" (ADR-0008) via
-   * `analysisProgress`, updated after every ply rather than blocking
-   * silently until the whole game is done. No background-job
-   * infrastructure exists in this codebase (no queue, no worker
-   * process) — this client-driven pass against the existing Worker is
-   * the honest substitute, not a stopgap pretending to be the real thing.
-   */
-  async function runRealAnalysis() {
-    const engine = engineRef.current;
-    if (!engine || !gameId) return;
-    setAnalyzing(true);
-    setAnalysisError(null);
-    setAnalysisProgress({ done: 0, total: moves.length });
-
-    try {
-      const analyses: SubmittedMoveAnalysis[] = [];
-      for (let i = 0; i < moves.length; i++) {
-        const recorded = moves[i];
-        const legalCountBefore = legalMoves(recorded.fenBefore).length;
-        const before = await engine.bestMove(recorded.fenBefore, { depth: 10 });
-        const after = await engine.evaluate(recorded.fenAfter, { depth: 10 });
-        const bestAttempt = parseUci(before.bestMove);
-        const bestMoveSan = tryMove(recorded.fenBefore, bestAttempt)?.move.san ?? before.bestMove;
-
-        analyses.push(
-          buildMoveAnalysis({
-            moveNumber: Math.floor(i / 2) + 1,
-            color: recorded.color,
-            move: recorded.move,
-            fenAfter: recorded.fenAfter,
-            evalBefore: before.score,
-            evalAfter: after.score,
-            bestMoveSan,
-            legalMoveCountBefore: legalCountBefore,
-          }),
-        );
-        setAnalysisProgress({ done: i + 1, total: moves.length });
-      }
-
-      const saved = await saveGameAnalysisAction(gameId, analyses);
-      if ("error" in saved) {
-        setAnalysisError(saved.error);
-      } else {
-        setRealReview({ isDemo: false, moves: saved.moves, summary: summarize(saved.moves), recommendedLessonIds: saved.recommendedLessonIds });
-      }
-    } catch {
-      setAnalysisError("Analysis failed — the engine stopped responding.");
-    } finally {
-      setAnalyzing(false);
-    }
+  function analyzeThisGame() {
+    if (!gameId) return;
+    runAnalysis(
+      gameId,
+      moves.map((m) => ({ move: m.move, fenBefore: m.fenBefore, fenAfter: m.fenAfter })),
+    );
   }
 
   const capturedByPlayer = moves.filter((m) => m.color === playerColor && m.captured).map((m) => m.captured!);
@@ -255,10 +207,6 @@ export function PlayRunner({
       movePairs.push({ number: movePairs.length + 1, black: move });
     }
   }
-
-  const retryMove: MoveAnalysis | null =
-    retryMoveIndex !== null && realReview ? (realReview.moves[retryMoveIndex] ?? null) : null;
-  const retryFenBefore = retryMoveIndex !== null ? (moves[retryMoveIndex]?.fenBefore ?? null) : null;
 
   return (
     <div className="mw-play-shell">
@@ -391,7 +339,7 @@ export function PlayRunner({
                   ? `Analyzing move ${analysisProgress?.done ?? 0}/${analysisProgress?.total ?? moves.length}…`
                   : "See a real, move-by-move engine review of the game you just played, with lesson recommendations for what to work on."}
               </p>
-              <Button variant="ghost" fullWidth onClick={runRealAnalysis} disabled={analyzing || !gameId}>
+              <Button variant="ghost" fullWidth onClick={analyzeThisGame} disabled={analyzing || !gameId}>
                 {analyzing ? "Analyzing…" : "Analyze this game"}
               </Button>
             </div>
@@ -413,15 +361,10 @@ export function PlayRunner({
 
       {showReview && <GameReviewPanel review={demoReview} lessonTitleById={lessonTitleById} />}
       {realReview && (
-        <GameReviewPanel review={realReview} lessonTitleById={lessonTitleById} onRetryPosition={setRetryMoveIndex} />
-      )}
-
-      {retryMove && retryFenBefore && (
-        <RetryPositionPanel
-          fenBefore={retryFenBefore}
-          move={retryMove}
+        <GameReviewWithRetry
+          review={realReview}
           lessonTitleById={lessonTitleById}
-          onClose={() => setRetryMoveIndex(null)}
+          fenBeforeByPly={moves.map((m) => m.fenBefore)}
         />
       )}
     </div>

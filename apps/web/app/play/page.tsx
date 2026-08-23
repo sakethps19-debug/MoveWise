@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@movewise/db";
 import { Nav } from "../../components/Nav";
 import { PlayRunner } from "../../components/PlayRunner";
@@ -27,6 +28,13 @@ export default async function PlayPage() {
     <div className="mw-app-shell">
       <Nav active="play" user={user ? { email: user.email } : null} totalXp={totalXp} />
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: "var(--mw-space-6) var(--mw-space-4)" }}>
+        {user && (
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "var(--mw-space-3)" }}>
+            <Link href="/play/history" className="mw-btn mw-btn--ghost">
+              Past games
+            </Link>
+          </div>
+        )}
         <PlayRunner demoReview={demoReview} lessonTitleById={lessonTitleById} signedIn={user !== null} />
       </main>
     </div>

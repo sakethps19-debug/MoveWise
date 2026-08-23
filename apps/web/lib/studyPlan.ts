@@ -1,7 +1,7 @@
 import "server-only";
 import { findPrincipleByConceptId } from "./principles";
 import type { MasteryStatus } from "./masteryModel";
-import type { MoveAnalysis } from "./gameAnalysis";
+import { summarize, type GameReview, type MoveAnalysis } from "./gameAnalysis";
 import { rankConcepts } from "./studyPlanRanking";
 
 /**
@@ -42,4 +42,30 @@ export function buildStudyPlan(
     if (lessonIds.length >= 4) break;
   }
   return lessonIds;
+}
+
+/**
+ * The full server-side composition: raw classified moves (either just-
+ * computed client-side by lib/gameAnalysis.ts's buildMoveAnalysis, or
+ * read back from stored MoveAnalysis rows for a previously-analyzed
+ * game) plus per-move and aggregate lesson recommendations, assembled
+ * into one real GameReview. Shared by app/actions.ts's
+ * saveGameAnalysisAction (a freshly-analyzed game) and
+ * app/play/history/[gameId]/page.tsx (revisiting a stored one) so
+ * neither re-implements this composition.
+ */
+export function buildStoredGameReview(
+  moves: Omit<MoveAnalysis, "recommendedLessonIds">[],
+  conceptMastery: Map<string, MasteryStatus> | null,
+): GameReview {
+  const enrichedMoves: MoveAnalysis[] = moves.map((m) => ({
+    ...m,
+    recommendedLessonIds: lessonIdsForConcepts(m.conceptIds),
+  }));
+  return {
+    isDemo: false,
+    moves: enrichedMoves,
+    summary: summarize(enrichedMoves),
+    recommendedLessonIds: buildStudyPlan(moves, conceptMastery),
+  };
 }

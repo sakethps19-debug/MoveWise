@@ -39,6 +39,32 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **A completed game's analysis was only ever visible right after playing
+  it, previously unbuilt**: `/play/history` (the `Game`/`GameAnalysis`
+  rows below were already persisted, per Phase B, but nothing let a
+  learner revisit one after leaving the page) now lists every game a
+  signed-in learner has played. `/play/history/[gameId]` either
+  reassembles a stored analysis server-side or, for a game left
+  unanalyzed, reconstructs it from the stored PGN and runs the same real
+  analysis pipeline PlayRunner uses — extracted into
+  `lib/useGameAnalysisRunner.ts` (a new shared hook) so the two callers
+  don't drift into two copies of the same per-ply engine-calling loop.
+  `packages/chess-rules` gained `replayPgn`, the exact inverse of the
+  existing `buildPgn`: chess.js's own `history({ verbose: true })`
+  already carries `before`/`after` FEN once a PGN is loaded, so no manual
+  replay loop was needed. Also refactored `saveGameAnalysisAction` and
+  the client hook to share one `GameReview`-assembly function
+  (`lib/studyPlan.ts`'s new `buildStoredGameReview`) instead of the
+  Action building a narrower ad hoc shape the hook then had to re-wrap —
+  a real duplication this pass's own second consumer surfaced. Verified
+  end to end (`e2e/game-history.spec.ts`): an unanalyzed game shows in
+  the list, gets analyzed from its detail page, and — the actual point of
+  this feature — a second visit to that same detail page renders the
+  stored review directly with **zero** new `GameAnalysis` rows created
+  (queried directly against Postgres, not inferred from the UI), proving
+  the "never re-run the engine" cache guarantee ADR-0008 specifies
+  against a real return visit, not just within one browser session like
+  the prior pass could only exercise.
 - **ADR-0008 Phase B (Play & Learn's real post-game analysis), previously
   pure architecture with a clearly-labeled demo, now has a real first
   slice**: a signed-in learner's completed game persists (`Game`, real
