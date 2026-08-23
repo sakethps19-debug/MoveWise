@@ -3,15 +3,15 @@ import type { MoveClassification } from "./gameAnalysis";
 import { isSacrifice } from "./moveClassification";
 
 /**
- * Detects 4 of docs/concept-taxonomy.md's 8 mapping-table rows — the ones
+ * Detects 5 of docs/concept-taxonomy.md's 8 mapping-table rows — the ones
  * checkable from a single move's board state (plus, for
- * `queen-development-timing`, its own move number — not a full move-
- * history pattern) alone. Still out of reach: static-exchange
+ * `queen-development-timing`, its own move number, and for
+ * `back-rank-safety`, one ply of the opponent's own legal replies — not a
+ * full move-history pattern) alone. Still out of reach: static-exchange
  * sophistication beyond raw material (`trade-evaluation`), endgame-
- * specific logic (`opposition-key-squares`), a real back-rank mate-
- * pattern detector (`back-rank-safety`), or clock data this app doesn't
- * track at all (`candidate-move-routine` / "time trouble"). Those 4
- * remain undetected on purpose — a mistake/blunder simply gets no
+ * specific logic (`opposition-key-squares`), or clock data this app
+ * doesn't track at all (`candidate-move-routine` / "time trouble"). Those
+ * 3 remain undetected on purpose — a mistake/blunder simply gets no
  * `conceptIds` if none of the detectors below match. See
  * docs/known-risks.md for the full honest-scope-cut writeup.
  *
@@ -117,6 +117,28 @@ export function detectKingLeftInCenter(fenAfter: string, color: "w" | "b", moveN
 }
 
 /**
+ * `back-rank-safety`: after the mover's mistake, does the opponent have a
+ * legal rook or queen move to the mover's own back rank that delivers
+ * checkmate right now? Verified via the real move-legality/checkmate
+ * engine — chess.js's own verbose moves already carry proper SAN mate
+ * notation ("#"), computed by its own check/mate detection, so this is a
+ * genuine one-ply-forward mate check, not a static "king behind pawns"
+ * shape guess. That distinction matters: a castled king behind a normal
+ * pawn shield is extremely common and isn't itself a mistake, so a shape-
+ * only heuristic would flag most ordinary positions. Known, documented
+ * limitation (same honesty as the other detectors' own noted gaps): only
+ * catches an immediately-available mate-in-1 along the back rank itself —
+ * not a slower "weak but not yet punishable" back rank, and not a
+ * knight/bishop-assisted or smothered-mate variant.
+ */
+export function detectBackRankVulnerability(fenAfter: string, moverColor: "w" | "b"): boolean {
+  const backRank = moverColor === "w" ? "1" : "8";
+  return legalMoves(fenAfter).some(
+    (m) => (m.piece === "r" || m.piece === "q") && m.to[1] === backRank && m.san.includes("#"),
+  );
+}
+
+/**
  * `queen-development-timing`: the played move is a queen move, this early
  * (by `moveNumber`, a fixed, documented-as-a-guess threshold — same
  * honesty as `KING_SAFETY_MOVE_THRESHOLD`), while at least one minor
@@ -159,5 +181,6 @@ export function detectConcepts(input: DetectConceptsInput): string[] {
   if (detectPrematureQueenDevelopment(input.move, input.fenAfter, input.color, input.moveNumber)) {
     found.push("queen-development-timing");
   }
+  if (detectBackRankVulnerability(input.fenAfter, input.color)) found.push("back-rank-safety");
   return found;
 }

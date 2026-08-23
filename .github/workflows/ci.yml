@@ -82,6 +82,13 @@ jobs:
           --health-retries 5
     env:
       DATABASE_URL: postgresql://movewise:movewise_ci@localhost:5432/movewise_ci
+      # The full suite performs ~20 real signups across its spec files —
+      # right at production's own 20/hour-per-IP anti-abuse limit (see
+      # apps/web/app/actions.ts's SIGNUP_LIMIT) — and every request in
+      # this job comes from the single runner IP, so the suite's own
+      # traffic collides with its own budget. Doesn't touch production's
+      # tuning, which stays at its default whenever this var is unset.
+      SIGNUP_RATE_LIMIT: "200"
     steps:
       - uses: actions/checkout@v4
 

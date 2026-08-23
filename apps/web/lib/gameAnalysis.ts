@@ -240,6 +240,9 @@ export function explanationFor(classification: MoveClassification, conceptIds: s
     if (conceptIds.includes("queen-development-timing")) {
       return "Bringing the queen out this early, before your minor pieces, lets the opponent attack it and gain time developing their own pieces.";
     }
+    if (conceptIds.includes("back-rank-safety")) {
+      return "Your back rank is undefended and your king has no escape square — the opponent has an immediate back-rank checkmate available.";
+    }
   }
   switch (classification) {
     case "forced":
