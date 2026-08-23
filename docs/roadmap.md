@@ -88,12 +88,26 @@ two followed the same pattern.
   server-side too — not just hidden from the UI), and each attempt is a
   real `ExerciseAttempt` row feeding the same mastery computation lessons
   do. Puzzle-pool accuracy still isn't part of the *unlock* signal (see
-  below and `lib/masteryModel.ts`'s own comment on why that's deliberate)
-  — and the shared `Practice` aggregation page ADR-0008 describes (course
-  puzzles + game-derived positions + weak-skill training + spaced
-  repetition, one pool) is still not built; today's
-  `/practice/[principleId]` is a single principle's pool, not that
-  aggregate.
+  below and `lib/masteryModel.ts`'s own comment on why that's deliberate).
+  ~~The shared `Practice` aggregation page ADR-0008 describes is still
+  not built.~~ **Done, for the sources that exist today**: `/practice`
+  (`components/PracticeHub.tsx`) gathers every unit's puzzle pool onto
+  one page — unlocked pools linking straight to `/practice/[principleId]`,
+  locked ones showing why — plus the same "Review needed" section
+  `LearningPath.tsx`'s home page already surfaces, so a struggling
+  concept is reachable from either page. Built by extracting the unlock
+  computation LearningPath already had (`statusOf`/`unlockReason` into
+  `lib/lessonStatus.ts`, the guest-completions fallback into
+  `lib/useEffectiveCompletions.ts`) into shared modules both surfaces
+  consume, rather than duplicating it a second time — verified
+  behavior-preserving by rerunning `learning-path.spec.ts` unmodified
+  after each extraction (all 8 tests, both times) before building the
+  new page on top. `Nav.tsx`'s "Practice" item now links here instead of
+  showing a disabled "Soon" badge. Still not the *full* aggregate ADR-0008
+  ultimately describes: game-derived positions, spaced-repetition
+  exercises, weak-skill training, and saved positions aren't sources yet
+  (Phase B/C territory, see below) — today's pool is course puzzles plus
+  mastery reviews only.
 - ~~Implement concept-level mastery and controlled unlocking.~~ **Done,
   with an honest scope cut**: `UserConceptMastery`/`ExerciseAttempt`
   (real Postgres tables) and `lib/masteryModel.ts`'s

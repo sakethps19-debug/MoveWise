@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Lesson, Principle } from "@movewise/exercise-schema";
 import { starsForPerformance } from "../lib/mastery";
-import { PROFICIENT_STATUSES, type MasteryStatus } from "../lib/masteryModel";
-import { clearGuestProgress, readGuestProgress } from "../lib/guestProgress";
+import type { MasteryStatus } from "../lib/masteryModel";
+import { statusOf, unlockReason } from "../lib/lessonStatus";
+import { useEffectiveCompletions, type CompletionRecord } from "../lib/useEffectiveCompletions";
 import { readStartedLessons } from "../lib/lessonProgressUI";
 import { Stars } from "./ui/Stars";
 import { MasteryBadge } from "./ui/MasteryBadge";
@@ -23,101 +24,18 @@ export interface UnitWithLessons {
 
 /**
  * Five-state progression model (Phase 4). "locked"/"available"/"completed"
- * are the real, server-verifiable states everything else (gating,
- * `nextUp`) is computed against — see `statusOf` below, unchanged in
- * meaning from before this pass. "in-progress" and "mastered" are display
- * refinements layered on top, computed in the render loop from data
- * `statusOf` doesn't need: "in-progress" from the client-only "started"
- * signal (lib/lessonProgressUI.ts, never gates anything), "mastered" from
- * a completed lesson's own 3-star performance — a *lesson-level*
+ * (see `CoreStatus`, lib/lessonStatus.ts) are the real, server-verifiable
+ * states everything else (gating, `nextUp`) is computed against.
+ * "in-progress" and "mastered" are display refinements layered on top,
+ * computed in the render loop from data `statusOf` doesn't need:
+ * "in-progress" from the client-only "started" signal
+ * (lib/lessonProgressUI.ts, never gates anything), "mastered" from a
+ * completed lesson's own 3-star performance — a *lesson-level*
  * distinction, not to be confused with `MasteryStatus`'s "mastered"
  * concept-level state (masteryModel.ts), which is Phase C/gameApplication-
  * Score territory and not reachable yet.
  */
 type LessonStatus = "locked" | "available" | "in-progress" | "completed" | "mastered";
-type CoreStatus = "locked" | "available" | "completed";
-
-/**
- * Mirrors the server-side gate in app/learn/[lessonId]/page.tsx exactly —
- * a lesson that would redirect when opened must not show as "available"
- * here, or the learner sees an inviting ▶ that just bounces them back.
- * Lesson completion alone (the old `prerequisites`-only check) is not
- * sufficient once a lesson is a principle's first sub-lesson (ADR-0008).
- *
- * `conceptMastery` must be the raw per-session value here — `null` means
- * "no signed-in session, no UserConceptMastery to check" (a guest),
- * `Map` (even an empty one) means "signed in, real tracking exists".
- * Collapsing that distinction away (as an earlier version of this
- * function did, via a derived "effective" value that went `null` once
- * *any* progress existed, guest or not) meant a guest's missing mastery
- * data read as "checked and not proficient" instead of "nothing to
- * check" — a real bug: a guest who aced a principle's lessons still saw
- * its next principle's first lesson as locked, even though the
- * server-side route guard (below, already correctly scoped to
- * `if (user && ...)`) would have let them straight in by URL. Confirmed
- * live via Playwright before this fix, not assumed from reading the code.
- */
-function statusOf(
-  lesson: Lesson,
-  completedIds: Set<string> | null,
-  principlesById: Map<string, Principle>,
-  principlesInOrder: Principle[],
-  conceptMastery: Map<string, MasteryStatus> | null,
-): CoreStatus {
-  if (completedIds === null) return "available"; // guest: no progress tracked, nothing to lock against
-  if (completedIds.has(lesson.id)) return "completed";
-  if (!lesson.prerequisites.every((p) => completedIds.has(p))) return "locked";
-
-  // No signed-in session to check proficiency against at all (a guest) —
-  // skip the principle gate entirely rather than reading "no data" as
-  // "not proficient". Matches the server-side guard's own `if (user && ...)`.
-  if (lesson.principleId && conceptMastery !== null) {
-    const principle = principlesById.get(lesson.principleId);
-    if (principle && principle.subLessonIds[0] === lesson.id) {
-      const index = principlesInOrder.findIndex((p) => p.id === principle.id);
-      const previous = index > 0 ? principlesInOrder[index - 1] : undefined;
-      if (previous) {
-        const status = conceptMastery.get(previous.conceptId);
-        if (!status || !PROFICIENT_STATUSES.has(status)) return "locked";
-      }
-    }
-  }
-
-  return "available";
-}
-
-/**
- * What a locked lesson needs before it opens — shown on the row itself
- * (Phase 4: "clearly show what is required to unlock a lesson"), not just
- * as a banner after a bounced direct-URL attempt.
- */
-function unlockReason(
-  lesson: Lesson,
-  completedIds: Set<string> | null,
-  lessonsById: Map<string, Lesson>,
-  principlesById: Map<string, Principle>,
-  principlesInOrder: Principle[],
-  hasConceptMasteryTracking: boolean,
-): string | null {
-  if (completedIds === null) return null; // guest: no per-row reason, matches statusOf's "everything open" treatment
-  const missingPrereq = lesson.prerequisites.find((p) => !completedIds.has(p));
-  if (missingPrereq) {
-    const title = lessonsById.get(missingPrereq)?.title ?? missingPrereq;
-    return `Unlocks after "${title}"`;
-  }
-  // No session to check proficiency against — same reasoning as statusOf:
-  // a guest is never locked by the principle gate, so there's no reason
-  // to report for it either.
-  if (lesson.principleId && hasConceptMasteryTracking) {
-    const principle = principlesById.get(lesson.principleId);
-    if (principle && principle.subLessonIds[0] === lesson.id) {
-      const index = principlesInOrder.findIndex((p) => p.id === principle.id);
-      const previous = index > 0 ? principlesInOrder[index - 1] : undefined;
-      if (previous) return `Unlocks once "${previous.title}" is proficient`;
-    }
-  }
-  return null;
-}
 
 /**
  * The default home screen: a status-aware syllabus (locked / available /
@@ -139,41 +57,20 @@ export function LearningPath({
   conceptMastery,
 }: {
   units: UnitWithLessons[];
-  completions: Map<string, { xpEarned: number; mistakes: number; hintsUsed: number }> | null;
+  completions: Map<string, CompletionRecord> | null;
   /** Null for a guest — concept mastery isn't tracked server-side without a session (ADR-0008). */
   conceptMastery: Map<string, MasteryStatus> | null;
 }) {
-  const [guestCompletions, setGuestCompletions] = useState<Map<
-    string,
-    { xpEarned: number; mistakes: number; hintsUsed: number }
-  > | null>(null);
   // "In progress" (Phase 4) is a client-only UI signal (lib/lessonProgressUI.ts)
-  // — read after mount, same reasoning as guestCompletions below: it must
-  // match the server's first paint (nothing "in progress" yet) to avoid a
-  // hydration mismatch.
+  // — read after mount, same reasoning as effectiveCompletions below: it
+  // must match the server's first paint (nothing "in progress" yet) to
+  // avoid a hydration mismatch.
   const [startedIds, setStartedIds] = useState<Set<string>>(new Set());
   useEffect(() => {
     setStartedIds(readStartedLessons());
   }, []);
 
-  // Server-rendered `completions` is only non-null for a signed-in user.
-  // For a guest, fall back to whatever this browser has recorded locally
-  // (read after mount, so the first paint matches the server's guest
-  // render and avoids a hydration mismatch). Once signed in, any
-  // lingering local guest data has already been migrated into the
-  // account (see migrateGuestProgress in app/actions.ts) and is now
-  // stale, so clear it rather than let it resurface after a future
-  // logout.
-  useEffect(() => {
-    if (completions === null) {
-      setGuestCompletions(new Map(Object.entries(readGuestProgress())));
-    } else {
-      clearGuestProgress();
-    }
-  }, [completions]);
-
-  const effectiveCompletions = completions ?? guestCompletions;
-  const completedIds = effectiveCompletions ? new Set(effectiveCompletions.keys()) : null;
+  const { effectiveCompletions, completedIds } = useEffectiveCompletions(completions);
   // `conceptMastery` itself is already the right "do we have a real
   // session to check proficiency against" signal — `null` for a guest
   // (no UserConceptMastery rows exist without a session), a real Map

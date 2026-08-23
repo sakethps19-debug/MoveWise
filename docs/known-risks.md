@@ -39,6 +39,35 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **The `Practice` aggregation page ADR-0008 describes, previously unbuilt
+  beyond a single principle's pool (`/practice/[principleId]`), now
+  real**: `/practice` (`components/PracticeHub.tsx`) lists every unit's
+  puzzle pool in one place — unlocked ones linking to
+  `/practice/[principleId]`, locked ones showing why (mirroring
+  `LearningPath.tsx`'s own per-principle "Practice puzzles" row, not a
+  reimplementation of its logic) — plus a "Review needed" section for any
+  concept that's regressed to `struggling`, the same signal
+  `LearningPath.tsx`'s home page already surfaces. Built by extracting
+  two pieces of `LearningPath.tsx` logic into shared modules rather than
+  duplicating them for a second consumer: `statusOf`/`unlockReason`/
+  `CoreStatus` into `lib/lessonStatus.ts`, and the guest-progress
+  localStorage fallback effect into `lib/useEffectiveCompletions.ts`.
+  Both extractions were verified behavior-preserving by rerunning
+  `e2e/learning-path.spec.ts` unmodified immediately after each one (all
+  8 tests passing both times) before building `PracticeHub` on top of
+  them — a refactor is only as trustworthy as the regression check run
+  right after it, not assumed safe because the diff looks mechanical.
+  `Nav.tsx`'s "Practice" item now links to the real route instead of
+  showing a disabled "Soon" badge (Progress is unchanged — still no real
+  page). New E2E coverage (`e2e/practice-hub.spec.ts`) uses the
+  established login-based `db-helper.mjs` pattern (`create-user` +
+  `/login`, `seed-completions`, `set-mastery`) to stay under the shared
+  signup rate-limit budget, same reasoning as `remediation.spec.ts`.
+  Honest scope cut, unchanged from before this pass: this is course
+  puzzles + mastery reviews only — ADR-0008's fuller pool (game-derived
+  positions, spaced repetition, weak-skill training, saved positions)
+  still needs Phase B's game analysis and Phase C's spaced repetition
+  infrastructure, neither of which exists yet.
 - **`docs/learner-model.md`'s struggling-learner remediation flow, previously
   unbuilt beyond ADR-0007's per-exercise recovery, now real**:
   `/review/[principleId]` (`components/RemediationRunner.tsx`) — a
