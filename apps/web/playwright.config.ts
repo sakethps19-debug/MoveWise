@@ -12,12 +12,19 @@ const executablePath = existsSync(PREINSTALLED_CHROMIUM) ? PREINSTALLED_CHROMIUM
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false,
-  workers: 1, // shared SQLite dev.db across tests; avoid write races
+  workers: 1, // one shared dev-mode Postgres database across tests; avoid write races
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
+  timeout: 45_000, // a full lesson flow is several navigations + engine waits; the 30s default is too tight on a loaded CI runner
   use: {
     baseURL: "http://localhost:3000",
     trace: "retain-on-failure",
+    // Screenshots and video are the artifacts a human (or a future Claude
+    // session) actually looks at first when a CI run is red — "only on
+    // failure" so a green run doesn't pay the disk/upload cost for
+    // hundreds of screenshots nobody will open.
+    screenshot: "only-on-failure",
+    video: "retain-on-failure",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], launchOptions: { executablePath } } }],
   webServer: {

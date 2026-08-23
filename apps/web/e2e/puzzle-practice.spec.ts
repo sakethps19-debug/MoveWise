@@ -65,7 +65,7 @@ test("puzzle pool is locked until the principle's sub-lessons are complete", asy
   await expect(page).toHaveURL(/^http:\/\/localhost:3000\/\?locked=/);
 });
 
-test("completing a principle's sub-lessons unlocks its puzzle pool, and solving a puzzle persists real progress", async ({
+test("completing a principle's sub-lessons unlocks its puzzle pool, and solving a puzzle persists real progress @smoke", async ({
   page,
 }) => {
   const email = `puzzlesolve${Date.now()}@example.com`;

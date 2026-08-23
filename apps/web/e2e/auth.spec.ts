@@ -15,7 +15,7 @@ test("under-13 signup is blocked with an explanatory message, birth year is neve
   await expect(page.locator('p[role="alert"]').first()).toContainText("under 13");
 });
 
-test("signup, duplicate email rejected, wrong password rejected, logout, XP persists across re-login", async ({
+test("signup, duplicate email rejected, wrong password rejected, logout, XP persists across re-login @smoke", async ({
   page,
 }) => {
   const email = uniqueEmail("auth");
