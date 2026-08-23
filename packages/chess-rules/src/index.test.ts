@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildPgn,
+  replayPgn,
   describeMove,
   gameStatus,
   isCheckmateMove,
@@ -138,5 +139,28 @@ describe("buildPgn", () => {
 
   it("throws on an illegal move in the list, same as chess.js itself", () => {
     expect(() => buildPgn(["e4", "e4"])).toThrow();
+  });
+});
+
+describe("replayPgn", () => {
+  it("reconstructs each ply's move and FEN before/after from a stored PGN", () => {
+    const pgn = buildPgn(["e4", "e5", "Bc4", "Nc6", "Qh5", "Nf6", "Qxf7#"], "1-0");
+    const plies = replayPgn(pgn);
+    expect(plies).toHaveLength(7);
+    expect(plies[0].move.san).toBe("e4");
+    expect(plies[0].fenBefore).toBe(START_FEN);
+    expect(plies[0].fenAfter).not.toBe(START_FEN);
+    // Each ply's fenAfter feeds the next ply's fenBefore, same chain tryMove produces live.
+    expect(plies[1].fenBefore).toBe(plies[0].fenAfter);
+    const last = plies[6];
+    expect(last.move.san).toBe("Qxf7#");
+    expect(gameStatus(last.fenAfter)).toBe("checkmate");
+  });
+
+  it("round-trips through buildPgn for every move in a real lesson-style short game", () => {
+    const moves = ["d4", "d5", "c4", "e6", "Nc3", "Nf6"];
+    const pgn = buildPgn(moves);
+    const plies = replayPgn(pgn);
+    expect(plies.map((p) => p.move.san)).toEqual(moves);
   });
 });

@@ -82,6 +82,11 @@ async function main() {
       process.stdout.write(String(count));
       break;
     }
+    case "count-game-analysis": {
+      const count = await prisma.gameAnalysis.count({ where: { gameId: args.gameId } });
+      process.stdout.write(String(count));
+      break;
+    }
     case "count-progress": {
       const [completions, mastery, attempts] = await Promise.all([
         prisma.lessonCompletion.count({ where: { userId: args.userId } }),

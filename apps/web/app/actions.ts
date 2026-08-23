@@ -9,8 +9,8 @@ import { checkRateLimit, formatRetryAfter } from "../lib/rate-limit";
 import { loadLesson } from "../lib/lessons";
 import { findPuzzle } from "../lib/puzzles";
 import { computeMasteryStatus, type MasteryStatus } from "../lib/masteryModel";
-import { canAnalyze, summarize, type MoveAnalysis } from "../lib/gameAnalysis";
-import { buildStudyPlan, lessonIdsForConcepts } from "../lib/studyPlan";
+import { canAnalyze, summarize, type GameReview, type MoveAnalysis } from "../lib/gameAnalysis";
+import { buildStoredGameReview } from "../lib/studyPlan";
 import type { AttemptRecord } from "../components/LessonRunner";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -400,17 +400,13 @@ export async function saveCompletedGameAction(input: SaveCompletedGameInput): Pr
 
 export type SubmittedMoveAnalysis = Omit<MoveAnalysis, "recommendedLessonIds">;
 
-export interface GameAnalysisResult {
-  moves: MoveAnalysis[];
-  recommendedLessonIds: string[];
-}
-
 /**
  * Persists the result of a client-side analysis pass (lib/moveClassification.ts
  * + lib/conceptDetection.ts, run in-browser against the same Stockfish Web
- * Worker Play mode already uses — see components/PlayRunner.tsx) and
- * resolves each move's `conceptIds` into real lesson recommendations, a
- * step that needs filesystem access the client doesn't have (lib/studyPlan.ts).
+ * Worker Play mode already uses — see components/PlayRunner.tsx and
+ * lib/useGameAnalysisRunner.ts) and resolves each move's `conceptIds`
+ * into real lesson recommendations, a step that needs filesystem access
+ * the client doesn't have (lib/studyPlan.ts's buildStoredGameReview).
  *
  * Cached by construction: a `GameAnalysis` already existing for this game
  * is returned as-is rather than re-persisted — "re-viewing an already-
@@ -423,7 +419,7 @@ export interface GameAnalysisResult {
 export async function saveGameAnalysisAction(
   gameId: string,
   moves: SubmittedMoveAnalysis[],
-): Promise<GameAnalysisResult | { error: string }> {
+): Promise<GameReview | { error: string }> {
   const user = await getSession();
   if (!user) return { error: "You must be signed in to save a game analysis." };
 
@@ -477,11 +473,5 @@ export async function saveGameAnalysisAction(
     });
   }
 
-  const enrichedMoves: MoveAnalysis[] = storedMoves.map((m) => ({
-    ...m,
-    recommendedLessonIds: lessonIdsForConcepts(m.conceptIds),
-  }));
-  const recommendedLessonIds = buildStudyPlan(storedMoves, conceptMastery);
-
-  return { moves: enrichedMoves, recommendedLessonIds };
+  return buildStoredGameReview(storedMoves, conceptMastery);
 }

@@ -166,3 +166,22 @@ export function buildPgn(sanMoves: string[], result: "1-0" | "0-1" | "1/2-1/2" |
   game.header("Result", result);
   return game.pgn();
 }
+
+/**
+ * The inverse of buildPgn: reconstructs each ply's move plus its FEN
+ * before/after from a stored PGN (ADR-0008 Phase B — a persisted `Game`
+ * row only keeps the PGN, not a live FEN-history array, so revisiting an
+ * old game's analysis, or analyzing one for the first time after leaving
+ * the page it was played on, needs to replay it). chess.js's own
+ * `history({ verbose: true })` already carries `before`/`after` FEN per
+ * move once a PGN is loaded — no manual replay loop needed.
+ */
+export function replayPgn(pgn: string): { move: Move; fenBefore: string; fenAfter: string }[] {
+  const game = new Chess();
+  game.loadPgn(pgn);
+  return (game.history({ verbose: true }) as Move[]).map((move) => ({
+    move,
+    fenBefore: move.before,
+    fenAfter: move.after,
+  }));
+}

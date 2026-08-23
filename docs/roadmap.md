@@ -232,15 +232,29 @@ half-finished attempt at everything.
   (Stockfish is the only source), but the field and check exist now, not
   bolted on once a PvP mode arrives.
 
+~~Any UI to revisit a *previously*-analyzed game later.~~ **Done**:
+`/play/history` lists every game a signed-in learner has played
+(analyzed or not); `/play/history/[gameId]` either reassembles a stored
+analysis server-side (`lib/studyPlan.ts`'s `buildStoredGameReview` —
+recommendations are recomputed at read time, not stored, so improved
+lesson content later surfaces without a backfill) or, for a game left
+unanalyzed, reconstructs it client-side from the stored PGN
+(`packages/chess-rules`' new `replayPgn`, the inverse of `buildPgn`) and
+runs the identical analysis pipeline PlayRunner uses right after a game
+— extracted into `lib/useGameAnalysisRunner.ts` specifically so both
+callers share one implementation instead of two drifting copies. This is
+also what finally proves the "never re-run the engine" cache guarantee
+against a real return visit, not just within one browser session — an
+E2E test (`e2e/game-history.spec.ts`) confirms revisiting an analyzed
+game's detail page renders the stored review with no second
+`GameAnalysis` row created.
+
 **Not done, on purpose**: PGN import (still only real Stockfish games —
-ADR-0008 explicitly scopes Phase B to "no PGN import yet"), a persisted
-`StudyPlan` table for recommendations generated without a specific game
-(ADR-0008 speculates this for a broader system this pass doesn't need),
-and any UI to revisit a *previously*-analyzed game later (no game-
-history list page exists yet — the review only appears inline right
-after the game that was just played, so the "never re-run the engine"
-cache guarantee is real but currently only exercisable within one
-session, not proven against a return visit days later).
+ADR-0008 explicitly scopes Phase B to "no PGN import yet"), and a
+persisted `StudyPlan` table for recommendations generated without a
+specific game (ADR-0008 speculates this for a broader system this pass
+doesn't need — `/play/history`'s recommendations are still always
+computed per-game, on demand).
 
 ## Phase C — Unified adaptation (ADR-0008)
 
