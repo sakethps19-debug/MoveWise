@@ -34,7 +34,33 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
-- **All 6 of `lib/conceptDetection.ts`'s detected concepts now have
+- **A 7th concept-taxonomy mapping row, `opposition-key-squares`,
+  previously undetected**: `lib/conceptDetection.ts`'s
+  `detectPawnEndgame` tags a `mistake`/`blunder` that happened in a
+  position with nothing but kings and pawns on the board for both
+  sides. Deliberately the narrowest detector in the file: real
+  opposition/key-square theory (was this exact king-and-pawn position
+  actually winning, drawing, or losing, and did the move throw that
+  away) would need a hand-verified or tablebase-backed pawn-endgame
+  solver — building and verifying that correctly is a much larger,
+  riskier undertaking than this pass takes on, and a subtly wrong
+  implementation would violate the one rule that matters most here
+  (never teach incorrect chess). Instead of guessing at that theory,
+  the detector leans on ground truth that's already Stockfish-verified
+  elsewhere — `detectConcepts` only ever calls it for a move already
+  classified `mistake`/`blunder` by the real centipawn-loss classifier
+  (`lib/moveClassification.ts`) — and only recognizes *where* that
+  already-real mistake happened. It doesn't explain *why* the move was
+  wrong the way the other detectors' geometric checks do; it also
+  doesn't have matching lesson content yet, and deliberately isn't
+  paired with any this pass — a real pawn-endgame lesson needs its own
+  curriculum-placement decision (this app's documented 19-lesson
+  beginner sequence doesn't currently include a pawn-endgame topic at
+  all), not something to bolt on unilaterally alongside the detector.
+  This leaves exactly 1 of `docs/concept-taxonomy.md`'s 8 mapping-table
+  rows undetected: `candidate-move-routine` ("time trouble"), which
+  needs clock data this app doesn't track at all.
+- **All 6 of `lib/conceptDetection.ts`'s then-6 detected concepts had
   matching lesson content.** `back-rank-safety` and `trade-evaluation`
   were the last 2 gaps (see the two entries below this one) — added
   `check-and-checkmate.04-back-rank-safety` and `basic-tactics.04-is-

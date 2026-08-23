@@ -197,24 +197,36 @@ half-finished attempt at everything.
   finished. An honest substitute for the ADR's server-side async
   pipeline, not a disguised version of it.
 - ~~Identify the 3 most instructive moments per game, map to `Concept`
-  IDs, generate a `StudyPlan`.~~ **Done, scoped to 6 of
+  IDs, generate a `StudyPlan`.~~ **Done, scoped to 7 of
   `docs/concept-taxonomy.md`'s 8 mapping-table rows**:
   `lib/conceptDetection.ts` detects `hanging-pieces`, `knight-fork`,
   `king-safety-castling`, `queen-development-timing`, `back-rank-safety`,
-  and `trade-evaluation` — the ones checkable from a single move's board
-  state (plus, for `queen-development-timing`, its own move number, for
-  `back-rank-safety`, one ply of the opponent's real legal replies —
-  chess.js's own checkmate detection on a genuine mate-in-1, not a
-  static "king behind pawns" shape guess that would misfire on every
-  ordinary castled position — and for `trade-evaluation`, a real static
-  exchange evaluation (`staticExchangeEval`, `packages/chess-rules`) that
-  actually plays out the full recapture sequence with both sides stopping
-  exactly when continuing would lose more, not a rough "bigger piece took
-  a smaller one" guess — not a full move-history pattern) alone.
-  The remaining 2 (`opposition-key-squares`, `candidate-move-routine`)
-  need endgame-specific logic or clock data this app doesn't track at
-  all — not fabricated with weak heuristics, left honestly undetected.
-  All 6 detected concepts now have matching authored
+  `trade-evaluation`, and `opposition-key-squares` — the ones checkable
+  from a single move's board state (plus, for `queen-development-timing`,
+  its own move number, for `back-rank-safety`, one ply of the opponent's
+  real legal replies — chess.js's own checkmate detection on a genuine
+  mate-in-1, not a static "king behind pawns" shape guess that would
+  misfire on every ordinary castled position, for `trade-evaluation`, a
+  real static exchange evaluation (`staticExchangeEval`,
+  `packages/chess-rules`) that actually plays out the full recapture
+  sequence with both sides stopping exactly when continuing would lose
+  more, not a rough "bigger piece took a smaller one" guess, and for
+  `opposition-key-squares`, the resulting position's material
+  signature — not a full move-history pattern) alone.
+  `opposition-key-squares` is deliberately the narrowest of the 7:
+  real opposition/key-square theory (was this specific king-and-pawn
+  position actually winning/drawing/losing, and did the move throw
+  that away) would need a hand-verified or tablebase-backed pawn-
+  endgame solver, out of scope for this pass and too risky to guess at
+  — instead it leans on the real Stockfish-backed centipawn-loss
+  classifier (`lib/moveClassification.ts`) as ground truth for "this
+  was actually a mistake," and only recognizes *where* it happened: a
+  position with nothing but kings and pawns for both sides, the
+  material signature a pawn ending always has.
+  The remaining 1 (`candidate-move-routine` / "time trouble") needs
+  clock data this app doesn't track at all — not fabricated with a
+  weak heuristic, left honestly undetected.
+  6 of the 7 detected concepts have matching authored
   `Concept`/`Principle` content: `hanging-pieces` and
   `queen-development-timing` (`basic-tactics.02-hanging-pieces`,
   `basic-tactics.03-opening-development`), `king-safety-castling`
@@ -228,6 +240,12 @@ half-finished attempt at everything.
   the back-rank position's mate-in-1 threat and every listed "create
   luft" pawn push that defuses it, the trade-evaluation position's
   defended-vs-undefended capture pair) before being written as content.
+  `opposition-key-squares` doesn't have matching content yet — same
+  honest gap the other 4 had before their content was authored, and
+  deliberately not closed alongside them this pass: a real pawn-
+  endgame lesson needs its own curriculum-placement decision (this app's
+  documented 19-lesson beginner sequence doesn't currently include one),
+  not something to bolt on unilaterally in the same pass as the detector.
   `lib/studyPlanRanking.ts` implements 3 of `docs/concept-taxonomy.md`'s
   5 ranking rules (never-studied, learned-but-not-transferred, repeated-
   within-this-game as the inverse of "one-time oversight") capped at 4
