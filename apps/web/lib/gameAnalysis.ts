@@ -152,7 +152,7 @@ export function buildDemoGameReview(): GameReview {
     {
       moveNumber: 6,
       color: "w",
-      playedMove: "Qxf7#??",
+      playedMove: "Qxf7#",
       bestMove: "d3",
       evalBefore: -30,
       evalAfter: 900,

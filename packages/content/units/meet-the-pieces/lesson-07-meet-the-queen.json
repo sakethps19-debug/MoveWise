@@ -50,6 +50,8 @@
         "e4b1",
         "e4c2"
       ],
+      "acceptAnyLegalMove": true,
+      "acceptAnyLegalMove": true,
       "hints": [
         {
           "level": 1,

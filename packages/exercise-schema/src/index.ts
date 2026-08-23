@@ -58,6 +58,17 @@ export const MovePieceStepSchema = BaseStep.extend({
   fen: z.string().min(1),
   expectedMoves: z.array(z.string().min(1)).min(1),
   altValid: z.array(z.string()).default([]),
+  /**
+   * When true, any chess-legal move of the piece named in `expectedMoves[0]`
+   * is accepted — not just the moves enumerated in expectedMoves/altValid.
+   * For steps whose own prompt says "any legal destination" rather than
+   * asking for a specific target (a capture, a specific direction), a
+   * hand-authored move list can never stay complete: every square the board
+   * highlights as legal must be accepted (see docs/known-risks.md).
+   * expectedMoves/altValid still drive hints and stay as the documented
+   * "primary"/"alternate" example moves; this flag only widens validation.
+   */
+  acceptAnyLegalMove: z.boolean().default(false),
   hints: z.array(HintSchema),
   feedback: FeedbackMapSchema,
   successExplanation: z.string().min(1).optional(),

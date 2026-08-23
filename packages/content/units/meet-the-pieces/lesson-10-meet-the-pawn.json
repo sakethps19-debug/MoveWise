@@ -38,6 +38,7 @@
       "altValid": [
         "e2e3"
       ],
+      "acceptAnyLegalMove": true,
       "hints": [
         { "level": 1, "text": "A pawn on its starting square may move one or two squares straight ahead." },
         { "level": 2, "text": "Try the full two-square advance.", "highlightSquares": ["e4"] },
