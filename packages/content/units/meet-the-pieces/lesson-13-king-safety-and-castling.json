@@ -1,0 +1,59 @@
+{
+  "id": "meet-the-pieces.13-king-safety-and-castling",
+  "version": 1,
+  "unitId": "meet-the-pieces",
+  "title": "King safety and castling",
+  "objectives": [
+    "Understand why a king left in the centre is exposed",
+    "Castle to bring the king to safety and connect the rooks"
+  ],
+  "prerequisites": ["meet-the-pieces.12-unit-mastery-challenge"],
+  "xpReward": 15,
+  "masteryTags": ["king-safety-castling"],
+  "difficulty": 2,
+  "estimatedDurationSec": 150,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "A king stuck in the centre of the board is exposed to attacks from many directions at once. Castling is a special move that repositions the king and a rook together in one go — it tucks the king safely behind its own pawns and brings a rook into play. It's legal only if neither piece has moved yet, nothing sits between them, and the king isn't in check, doesn't pass through check, and doesn't land in check.",
+      "boardFen": "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
+      "highlights": ["e1", "h1", "a1"]
+    },
+    {
+      "id": "step-2",
+      "type": "move-piece",
+      "prompt": "Castle kingside — move your king two squares toward the h-file rook.",
+      "fen": "4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+      "expectedMoves": ["e1g1"],
+      "altValid": [],
+      "acceptAnyLegalMove": false,
+      "hints": [
+        { "level": 1, "text": "Castling moves the king two squares toward one of your rooks — pick the h-file side." },
+        { "level": 2, "text": "Select the king, then choose the square two files to its right.", "highlightSquares": ["e1"] },
+        { "level": 3, "text": "Move the king here.", "arrowFrom": "e1", "arrowTo": "g1" },
+        { "level": 4, "text": "O-O — the king slides two squares toward the h-file rook, which hops over to f1." }
+      ],
+      "feedback": {
+        "default": "That's not castling kingside. Select the king, then move it exactly two squares toward the h-file rook."
+      },
+      "successExplanation": "O-O — the king reaches safety on g1, and the rook joins the action on f1, both in a single move."
+    },
+    {
+      "id": "step-3",
+      "type": "true-false",
+      "prompt": "True or false: you can still castle even if your king is currently in check.",
+      "correct": false,
+      "feedback": {
+        "default": "False — you can never castle out of check. The king also can't pass through or land on a square that's under attack."
+      },
+      "successExplanation": "False — castling is illegal whenever the king is in check, or would pass through or land on an attacked square."
+    },
+    {
+      "id": "step-4",
+      "type": "review",
+      "summary": "A centralized king is a target — castling early gets it to safety and activates a rook in the same move."
+    }
+  ],
+  "principleId": "meet-the-pieces.king-safety-and-castling"
+}

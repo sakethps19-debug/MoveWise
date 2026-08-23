@@ -1,0 +1,63 @@
+{
+  "id": "basic-tactics.02-hanging-pieces",
+  "version": 1,
+  "unitId": "basic-tactics",
+  "title": "Hanging pieces",
+  "objectives": [
+    "Recognize when a piece is attacked and undefended",
+    "Capture an opponent's undefended piece"
+  ],
+  "prerequisites": ["basic-tactics.01-the-knight-fork"],
+  "xpReward": 15,
+  "masteryTags": ["hanging-pieces"],
+  "difficulty": 2,
+  "estimatedDurationSec": 150,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "A piece is \"hanging\" when it's attacked and nothing defends it. Leave a hanging piece where it is, and your opponent captures it for free — before you move, always check whether the square you're leaving a piece on (or moving it to) is actually defended.",
+      "boardFen": "3rk3/8/8/8/3n4/8/8/3RK3 w - - 0 1",
+      "highlights": ["d1", "d4"]
+    },
+    {
+      "id": "step-2",
+      "type": "capture",
+      "prompt": "Capture the undefended black knight.",
+      "fen": "3rk3/8/8/8/3n4/8/8/3RK3 w - - 0 1",
+      "expectedMoves": ["d1d4"],
+      "hints": [
+        { "level": 1, "text": "One of Black's pieces has no defender at all — find it." },
+        { "level": 2, "text": "Your rook already lines up with the undefended knight.", "highlightSquares": ["d4"] },
+        { "level": 3, "text": "Capture it here.", "arrowFrom": "d1", "arrowTo": "d4" },
+        { "level": 4, "text": "Rxd4 wins the knight — nothing was defending it." }
+      ],
+      "feedback": {
+        "default": "That doesn't win any material. Which black piece is attacked and has no defender at all?"
+      },
+      "successExplanation": "Rxd4 wins the knight for free — nothing defended it."
+    },
+    {
+      "id": "step-3",
+      "type": "mcq",
+      "prompt": "Your knight attacks an enemy bishop, but the bishop is also defended by their queen. What does that mean?",
+      "options": [
+        "The bishop is hanging — capture it for free",
+        "The bishop is defended — capturing it starts a trade, not a free win",
+        "You should never capture a defended piece",
+        "The bishop can't be captured at all"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "A defended piece isn't hanging. Capturing it just trades your piece for theirs — worth doing sometimes, but it's not free material."
+      },
+      "successExplanation": "Right — a defended piece isn't \"hanging.\" Capturing it just trades your piece for theirs, not a free win."
+    },
+    {
+      "id": "step-4",
+      "type": "review",
+      "summary": "A hanging piece is attacked and undefended — check both before deciding a piece, yours or theirs, is actually safe."
+    }
+  ],
+  "principleId": "basic-tactics.hanging-pieces"
+}

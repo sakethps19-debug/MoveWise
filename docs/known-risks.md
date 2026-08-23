@@ -39,6 +39,23 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **All 4 of `lib/conceptDetection.ts`'s detected concepts now have
+  matching lesson content.** `hanging-pieces`, `king-safety-castling`,
+  and `queen-development-timing` previously had no authored
+  `Concept`/`Principle`, so a real detected mistake had nothing for
+  `lib/studyPlan.ts`'s lesson lookup to recommend. Added 3 real lessons
+  (`basic-tactics.02-hanging-pieces`, `basic-tactics.03-opening-
+  development`, `meet-the-pieces.13-king-safety-and-castling` — the
+  last one also the first lesson to teach castling itself, a mechanic
+  no earlier lesson covered), each with its own `Principle`
+  (`conceptId` matching the detector's tag), 2 puzzles, and `Concept`
+  entries in `concepts.json`. No code changes were needed for the
+  lookup itself — `findPrincipleByConceptId` already resolves any
+  `Principle` whose `conceptId` matches; only the content was missing.
+  `king-safety-castling`'s lesson sits after the existing unit mastery
+  challenge (`meet-the-pieces.12-...`) rather than renumbering the
+  whole unit, so no existing lesson id, prerequisite chain, or `order`
+  changed.
 - **Real, user-reported defect: `move-piece` steps rejected several of
   their own board's highlighted-as-legal destinations.** Root cause was
   two-fold, both in `components/exercises/MoveStep.tsx`: (1) the step

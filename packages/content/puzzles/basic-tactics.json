@@ -22,5 +22,53 @@
       "default": "A knight move that only checks the king isn't the goal here — you're looking for the square that attacks the king AND the queen at the same time."
     },
     "successExplanation": "Nd5 forks the king on e7 and the queen on c7 — a much bigger prize than a plain check."
+  },
+  {
+    "id": "basic-tactics.puzzle-hanging-1",
+    "conceptIds": ["hanging-pieces"],
+    "fen": "r3k3/8/8/8/3n4/8/8/3RK3 w - - 0 1",
+    "prompt": "One of Black's pieces is hanging — capture it.",
+    "correctMoves": ["d1d4"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't win any material. Which black piece is attacked and has no defender at all?"
+    },
+    "successExplanation": "Rxd4 wins the knight for free — nothing defended it."
+  },
+  {
+    "id": "basic-tactics.puzzle-hanging-2",
+    "conceptIds": ["hanging-pieces"],
+    "fen": "4k3/8/8/8/8/2n5/8/1N2K3 w - - 0 1",
+    "prompt": "Capture the undefended knight.",
+    "correctMoves": ["b1c3"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That doesn't capture anything hanging. Which square can your knight jump to that lands on an undefended black piece?"
+    },
+    "successExplanation": "Nxc3 wins the knight — nothing was defending it."
+  },
+  {
+    "id": "basic-tactics.puzzle-opening-development-1",
+    "conceptIds": ["queen-development-timing"],
+    "fen": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+    "prompt": "Develop a minor piece instead of rushing your queen out.",
+    "correctMoves": ["g1f3"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That's not a developing move for a minor piece yet. Bring a knight or bishop out before touching the queen."
+    },
+    "successExplanation": "Nf3 develops a piece toward the center and prepares to castle — no target for Black's minor pieces to attack."
+  },
+  {
+    "id": "basic-tactics.puzzle-opening-development-2",
+    "conceptIds": ["queen-development-timing"],
+    "fen": "rnbqk1nr/pppp1ppp/8/2b1p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 2 3",
+    "prompt": "Develop your kingside bishop instead of moving the queen out early.",
+    "correctMoves": ["f1c4"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That's not developing the bishop. Bring it out to an active diagonal before the queen enters the game."
+    },
+    "successExplanation": "Bc4 develops the bishop onto an active diagonal, eyeing f7 — a much sounder plan than an early queen move."
   }
 ]

@@ -61,5 +61,14 @@
     "order": 6,
     "subLessonIds": ["meet-the-pieces.10-meet-the-pawn", "meet-the-pieces.11-capturing-piece-values"],
     "puzzleIds": ["meet-the-pieces.puzzle-pawn-1", "meet-the-pieces.puzzle-pawn-2"]
+  },
+  {
+    "id": "meet-the-pieces.king-safety-and-castling",
+    "unitId": "meet-the-pieces",
+    "title": "King safety and castling",
+    "conceptId": "king-safety-castling",
+    "order": 7,
+    "subLessonIds": ["meet-the-pieces.13-king-safety-and-castling"],
+    "puzzleIds": ["meet-the-pieces.puzzle-castling-1", "meet-the-pieces.puzzle-castling-2"]
   }
 ]
