@@ -39,6 +39,57 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **`docs/learner-model.md`'s struggling-learner remediation flow, previously
+  unbuilt beyond ADR-0007's per-exercise recovery, now real**:
+  `/review/[principleId]` (`components/RemediationRunner.tsx`) — a
+  shortened reteach (reusing `ExplainStep`, capped at 2 steps pulled from
+  the struggling concept's own sub-lessons) followed by 2-3 easier
+  puzzles (reusing `PuzzleRunner`, now with optional
+  `heading`/`completionTitle`/`completionMessage`/`completionHref`/
+  `completionLinkText` props so a second caller can reframe its
+  completion screen without duplicating the component), then a link back
+  to retry the principle. Gated server-side on the concept having *any*
+  `UserConceptMastery` evidence at all — not, as first built, strictly
+  `status === "struggling"`. That stricter gate caused a real, live bug:
+  recording a puzzle attempt is a Server Action, and Next.js refreshes
+  the current route's Server Components after one resolves, so a learner
+  answering the very first easier puzzle correctly could immediately
+  flip status struggling → recovered (or, one puzzle later, all the way
+  to proficient — `computeMasteryStatus`'s ordinary accuracy-based
+  branches, doing exactly what they're supposed to) and get redirected
+  to "/" mid-round before ever seeing the second puzzle or the
+  completion screen — confirmed live via Playwright (four consecutive
+  deterministic reproductions, not a one-off flake) before landing on
+  the fix actually shipped: gate on evidence existing at all, then treat
+  `/review` the same way `/practice/[principleId]` already treats its
+  own pool — reachable once relevant, repeatable afterward, not a
+  one-shot gate — since extra reteach-and-practice for a concept already
+  engaged with is harmless even once no longer struggling. Required zero
+  changes to `lib/masteryModel.ts` itself — `struggling → recovered →
+  proficient` was already reachable and unit-tested; this flow is the
+  delivery mechanism that helps a learner actually produce the correct
+  follow-up attempts those transitions trigger on, not a second
+  implementation of them. One adaptation from the doc's literal wording:
+  it describes remediation as
+  following "failing a Principle's mastery challenge," but no principle
+  in this codebase has its own distinct mastery-challenge lesson (only
+  whole *units* do, e.g. `meet-the-pieces.12-unit-mastery-challenge`) —
+  so this implementation triggers off the already-real, already-tracked
+  `struggling` status instead (evidenced by repeated wrong answers, the
+  9-state table's other documented entry path for that state), and
+  "retry" means the principle's own first sub-lesson, not an
+  as-yet-nonexistent per-principle challenge.
+- **New db-helper.mjs commands (`create-user`, `set-mastery`) avoid
+  spending from the signup rate-limit budget for tests that only need a
+  signed-in session**, not the signup flow itself: the E2E suite's total
+  signup count across every spec file was already at exactly
+  `SIGNUP_LIMIT`'s cap (20/hour) after the puzzle-pool work — confirmed
+  by two separate real CI failures this session when new signup-based
+  tests pushed a full run over it (see the two prior "Resolved this
+  session" entries below). Rather than trim further, `create-user`
+  creates an account directly (bcrypt-hashed, matching `hashPassword`)
+  and the test logs in via `/login` instead of `/signup`, drawing from
+  the separate, much-less-utilized login rate-limit budget instead.
 - **ADR-0008's `Puzzle` pool extended to all three curated units**
   (`check-and-checkmate`, `basic-tactics` — `meet-the-pieces` was the
   prior session's pilot): 6 puzzles for `check-and-checkmate` (2 per

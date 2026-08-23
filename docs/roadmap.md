@@ -113,9 +113,41 @@ two followed the same pattern.
   `revision-due` (need Phase B's `gameApplicationScore` and Phase C's
   spaced repetition) are correctly *not* reachable yet — not an
   oversight, see `lib/masteryModel.ts`'s own comment.
-- **Not done**: the struggling-learner remediation flow beyond
-  ADR-0007's per-exercise recovery (a concept-level reteach cycle, per
-  `docs/learner-model.md`), and a per-unit placement assessment.
+- ~~Not done: the struggling-learner remediation flow beyond ADR-0007's
+  per-exercise recovery.~~ **Done**: `/review/[principleId]`
+  (`components/RemediationRunner.tsx`) implements
+  `docs/learner-model.md`'s concept-level cycle — a shortened reteach
+  (up to 2 `explain` steps pulled from the struggling concept's own
+  sub-lessons, capped rather than the whole lesson replayed, same
+  "reuse existing content" move ADR-0007's per-exercise recovery
+  interstitial already makes one level down), then 2-3 easier puzzles
+  from that principle's own pool (falling back to whatever difficulty
+  exists where no difficulty-1 puzzles are authored yet — see the
+  Puzzle-pool entry above), then a link back to retry the principle's
+  first sub-lesson. Gated server-side on the concept having *any*
+  `UserConceptMastery` evidence at all, not on `status` being exactly
+  `struggling` — that stricter version caused a real, reproduced-live
+  bug (a puzzle attempt is a Server Action, and Next's post-action route
+  refresh could flip status straight past `struggling` mid-round and
+  bounce the learner home before they finished), fixed by treating
+  `/review` the same "reachable once relevant, repeatable after" way
+  `/practice/[principleId]` already treats its own pool — see
+  `docs/known-risks.md` for the full diagnosis. Not reachable
+  speculatively for a principle with zero evidence at all. No changes to
+  `lib/masteryModel.ts` were needed: `struggling → recovered` already
+  fires correctly once the learner's next few real attempts (from
+  retrying the lesson after remediation) show strong recent accuracy;
+  this flow is the on-ramp that helps produce those attempts, not a
+  second implementation of the transition itself. One honest gap: the
+  spec's own "on success, explain specifically what improved" (step 5)
+  is only partially done — the completion screen reports the puzzle
+  round's own result, not a live-detected mastery-transition narrative,
+  since that would need a mastery re-check this component doesn't make;
+  the transition surfaces naturally next time the learner sees the
+  learning path instead (the "Review needed" section drops the
+  principle, `MasteryBadge` shows "Recovered"). Also not done: a
+  per-unit placement assessment (`docs/learner-model.md`'s other
+  remaining item).
 
 ## Phase B — Play & Learn foundation (ADR-0008)
 

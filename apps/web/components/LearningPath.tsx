@@ -239,18 +239,14 @@ export function LearningPath({
         <div className="mw-review-needed">
           <h2 className="mw-review-needed-title">Review needed</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-2)" }}>
-            {needsReview.map(({ unit, principle }) => {
-              const firstLesson = unit.lessons.find((l) => l.id === principle.subLessonIds[0]);
-              if (!firstLesson) return null;
-              return (
-                <Link key={principle.id} href={`/learn/${firstLesson.id}`} className="mw-review-needed-item">
-                  <span className="mw-review-needed-item-title">{principle.title}</span>
-                  <span className="mw-review-needed-item-detail">
-                    A few recent attempts went wrong — a quick revisit will help this stick.
-                  </span>
-                </Link>
-              );
-            })}
+            {needsReview.map(({ principle }) => (
+              <Link key={principle.id} href={`/review/${principle.id}`} className="mw-review-needed-item">
+                <span className="mw-review-needed-item-title">{principle.title}</span>
+                <span className="mw-review-needed-item-detail">
+                  A few recent attempts went wrong — a quick refresher and some easier practice will help this stick.
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
       )}
