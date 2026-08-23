@@ -237,6 +237,9 @@ export function explanationFor(classification: MoveClassification, conceptIds: s
     if (conceptIds.includes("king-safety-castling")) {
       return "Your king is still in the centre this late in the game, and this move doesn't address it — an exposed king is a real, ongoing risk.";
     }
+    if (conceptIds.includes("queen-development-timing")) {
+      return "Bringing the queen out this early, before your minor pieces, lets the opponent attack it and gain time developing their own pieces.";
+    }
   }
   switch (classification) {
     case "forced":

@@ -197,16 +197,21 @@ half-finished attempt at everything.
   finished. An honest substitute for the ADR's server-side async
   pipeline, not a disguised version of it.
 - ~~Identify the 3 most instructive moments per game, map to `Concept`
-  IDs, generate a `StudyPlan`.~~ **Done, scoped to 3 of
+  IDs, generate a `StudyPlan`.~~ **Done, scoped to 4 of
   `docs/concept-taxonomy.md`'s 8 mapping-table rows**:
-  `lib/conceptDetection.ts` detects `hanging-pieces`, `knight-fork`, and
-  `king-safety-castling` — the ones checkable from a single move's board
-  state alone. The other 5 (`queen-development-timing`,
-  `trade-evaluation`, `back-rank-safety`, `opposition-key-squares`,
-  `candidate-move-routine`) need move-history-pattern analysis, static-
-  exchange sophistication, a real back-rank mate-pattern detector,
-  endgame-specific logic, or clock data this app doesn't track at all —
-  not fabricated with weak heuristics, left honestly undetected.
+  `lib/conceptDetection.ts` detects `hanging-pieces`, `knight-fork`,
+  `king-safety-castling`, and `queen-development-timing` — the ones
+  checkable from a single move's board state (plus, for the last one,
+  its own move number — not a full move-history pattern) alone. The
+  other 4 (`trade-evaluation`, `back-rank-safety`, `opposition-key-squares`,
+  `candidate-move-routine`) need static-exchange sophistication, a real
+  back-rank mate-pattern detector, endgame-specific logic, or clock data
+  this app doesn't track at all — not fabricated with weak heuristics,
+  left honestly undetected. `queen-development-timing` and
+  `hanging-pieces`/`king-safety-castling` also have no matching authored
+  `Concept`/`Principle` content yet — the detector still tags the raw
+  `MoveAnalysis` row truthfully, `lib/studyPlan.ts`'s lesson lookup just
+  has nothing to recommend for it until that content exists.
   `lib/studyPlanRanking.ts` implements 3 of `docs/concept-taxonomy.md`'s
   5 ranking rules (never-studied, learned-but-not-transferred, repeated-
   within-this-game as the inverse of "one-time oversight") capped at 4

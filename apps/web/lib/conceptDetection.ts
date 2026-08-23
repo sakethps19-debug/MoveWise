@@ -3,15 +3,16 @@ import type { MoveClassification } from "./gameAnalysis";
 import { isSacrifice } from "./moveClassification";
 
 /**
- * Detects 3 of docs/concept-taxonomy.md's 8 mapping-table rows — the ones
- * checkable from a single move's board state alone, without move-history
- * pattern analysis (`queen-development-timing` needs to know it's still
- * the opening phase), static-exchange sophistication beyond raw material
- * (`trade-evaluation`), endgame-specific logic (`opposition-key-squares`),
- * a real back-rank mate-pattern detector (`back-rank-safety`), or clock
- * data this app doesn't track at all (`candidate-move-routine` / "time
- * trouble"). Those 5 remain undetected on purpose — a mistake/blunder
- * simply gets no `conceptIds` if none of the 3 below match. See
+ * Detects 4 of docs/concept-taxonomy.md's 8 mapping-table rows — the ones
+ * checkable from a single move's board state (plus, for
+ * `queen-development-timing`, its own move number — not a full move-
+ * history pattern) alone. Still out of reach: static-exchange
+ * sophistication beyond raw material (`trade-evaluation`), endgame-
+ * specific logic (`opposition-key-squares`), a real back-rank mate-
+ * pattern detector (`back-rank-safety`), or clock data this app doesn't
+ * track at all (`candidate-move-routine` / "time trouble"). Those 4
+ * remain undetected on purpose — a mistake/blunder simply gets no
+ * `conceptIds` if none of the detectors below match. See
  * docs/known-risks.md for the full honest-scope-cut writeup.
  *
  * Only meaningful for a `mistake`/`blunder` move — `detectConcepts` gates
@@ -20,6 +21,11 @@ import { isSacrifice } from "./moveClassification";
 
 const PIECE_VALUE: Record<PieceSymbol, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
 const KING_SAFETY_MOVE_THRESHOLD = 10;
+const QUEEN_DEVELOPMENT_MOVE_THRESHOLD = 6;
+const MINOR_PIECE_HOME_SQUARES: Record<"w" | "b", string[]> = {
+  w: ["b1", "c1", "f1", "g1"],
+  b: ["b8", "c8", "f8", "g8"],
+};
 
 function parseFenBoard(fen: string): (({ color: "w" | "b"; type: PieceSymbol }) | null)[][] {
   const rows = fen.split(" ")[0].split("/");
@@ -110,6 +116,31 @@ export function detectKingLeftInCenter(fenAfter: string, color: "w" | "b", moveN
   return occupant !== null && occupant.color === color && occupant.type === "k";
 }
 
+/**
+ * `queen-development-timing`: the played move is a queen move, this early
+ * (by `moveNumber`, a fixed, documented-as-a-guess threshold — same
+ * honesty as `KING_SAFETY_MOVE_THRESHOLD`), while at least one minor
+ * piece is still sitting on its own home square. No matching `Concept`
+ * content exists yet (see docs/known-risks.md) — this still tags the raw
+ * `MoveAnalysis` row truthfully, `lib/studyPlan.ts`'s lesson lookup just
+ * has nothing to recommend for it until that content is authored, same
+ * as `hanging-pieces`/`king-safety-castling` today.
+ */
+export function detectPrematureQueenDevelopment(
+  move: Move,
+  fenAfter: string,
+  moverColor: "w" | "b",
+  moveNumber: number,
+): boolean {
+  if (move.piece !== "q") return false;
+  if (moveNumber > QUEEN_DEVELOPMENT_MOVE_THRESHOLD) return false;
+  const board = parseFenBoard(fenAfter);
+  return MINOR_PIECE_HOME_SQUARES[moverColor].some((square) => {
+    const occupant = pieceAt(board, square);
+    return occupant !== null && occupant.color === moverColor && (occupant.type === "n" || occupant.type === "b");
+  });
+}
+
 export interface DetectConceptsInput {
   move: Move;
   fenAfter: string;
@@ -125,5 +156,8 @@ export function detectConcepts(input: DetectConceptsInput): string[] {
   if (detectHangingPiece(input.move, input.fenAfter)) found.push("hanging-pieces");
   if (detectMissedKnightFork(input.fenAfter, input.color)) found.push("knight-fork");
   if (detectKingLeftInCenter(input.fenAfter, input.color, input.moveNumber)) found.push("king-safety-castling");
+  if (detectPrematureQueenDevelopment(input.move, input.fenAfter, input.color, input.moveNumber)) {
+    found.push("queen-development-timing");
+  }
   return found;
 }
