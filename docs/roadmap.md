@@ -71,23 +71,29 @@ two followed the same pattern.
   `check-and-checkmate` and `basic-tactics` followed the identical
   pattern once it was proven out — no app code changes were needed,
   `lib/principles.ts` and `LearningPath.tsx` were already data-driven off
-  file presence. ~~`Puzzle` is still not built.~~ **Started**:
-  `packages/content/puzzles/meet-the-pieces.json` has 14 real,
-  chess-legality-validated puzzles (2 per principle) for the pilot unit —
-  `check-and-checkmate` and `basic-tactics` still have empty `puzzleIds`,
-  same "restructure one unit fully before generalizing" order as the
-  Principle hierarchy above. Puzzles are served from
-  `apps/web/lib/puzzles.ts`, played at `/practice/[principleId]`
-  (`components/PuzzleRunner.tsx`, reachable from `LearningPath.tsx` once
-  a principle's sub-lessons are done, gated server-side too — not just
-  hidden from the UI), and each attempt is a real `ExerciseAttempt` row
-  feeding the same mastery computation lessons do. Puzzle-pool accuracy
-  still isn't part of the *unlock* signal (see below and
-  `lib/masteryModel.ts`'s own comment on why that's deliberate) — and the
-  shared `Practice` aggregation page ADR-0008 describes (course puzzles +
-  game-derived positions + weak-skill training + spaced repetition, one
-  pool) is still not built; today's `/practice/[principleId]` is a single
-  principle's pool, not that aggregate.
+  file presence. ~~`Puzzle` is still not built.~~ **Done for all three
+  curated units**: `packages/content/puzzles/{unitId}.json` — 14 puzzles
+  for `meet-the-pieces` (2 per principle), 6 for `check-and-checkmate`
+  (2 per principle), 2 for `basic-tactics` (its one principle) — all
+  chess-legality-validated, and the "check"/"checkmate"/"fork" ones
+  additionally verified against the engine directly (not just that the
+  move is legal, but that it actually delivers check/mate/a fork, since
+  the chess-legality validator only checks move legality, not tactical
+  claims). `meet-the-pieces` was the pilot; `check-and-checkmate` and
+  `basic-tactics` followed once the pattern was proven out — no app code
+  changes were needed, same as the Principle hierarchy's own rollout.
+  Puzzles are served from `apps/web/lib/puzzles.ts`, played at
+  `/practice/[principleId]` (`components/PuzzleRunner.tsx`, reachable
+  from `LearningPath.tsx` once a principle's sub-lessons are done, gated
+  server-side too — not just hidden from the UI), and each attempt is a
+  real `ExerciseAttempt` row feeding the same mastery computation lessons
+  do. Puzzle-pool accuracy still isn't part of the *unlock* signal (see
+  below and `lib/masteryModel.ts`'s own comment on why that's deliberate)
+  — and the shared `Practice` aggregation page ADR-0008 describes (course
+  puzzles + game-derived positions + weak-skill training + spaced
+  repetition, one pool) is still not built; today's
+  `/practice/[principleId]` is a single principle's pool, not that
+  aggregate.
 - ~~Implement concept-level mastery and controlled unlocking.~~ **Done,
   with an honest scope cut**: `UserConceptMastery`/`ExerciseAttempt`
   (real Postgres tables) and `lib/masteryModel.ts`'s

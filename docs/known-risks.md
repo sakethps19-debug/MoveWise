@@ -39,6 +39,27 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **ADR-0008's `Puzzle` pool extended to all three curated units**
+  (`check-and-checkmate`, `basic-tactics` — `meet-the-pieces` was the
+  prior session's pilot): 6 puzzles for `check-and-checkmate` (2 per
+  principle: recognizing check, recognizing checkmate, thinking under
+  check) and 2 for `basic-tactics` (its one principle, the knight fork —
+  reusing the exact two fork positions already proven in
+  `lesson-01-the-knight-fork.json`, not new/unverified ones). No app code
+  changes were needed — `lib/puzzles.ts`, the `/practice/[principleId]`
+  route, and `LearningPath.tsx`'s puzzle-pool row are all unit-agnostic,
+  same as `lib/principles.ts` was when the Principle hierarchy itself
+  generalized. Beyond the standard chess-legality check (move is legal),
+  the check/checkmate/fork claims were independently verified against
+  the engine (`inCheck`/`gameStatus` after the move, and the resulting
+  knight's attacked-square list for the forks) since `validatePuzzle`
+  only confirms a move is *legal*, not that it delivers what the prompt
+  claims. New E2E coverage (`puzzle-practice.spec.ts`) proves the pattern
+  generalizes across units using DB-seeded lesson completions rather than
+  re-driving each unit's real lessons through the UI a second time (their
+  own content is already covered by other specs) — one additional
+  signup, not three, for the same rate-limit reasons as the pilot's own
+  test consolidation.
 - **ADR-0008's `Puzzle` pool, previously unbuilt, now real for the pilot
   unit**: `packages/content/puzzles/meet-the-pieces.json` has 14
   chess-legality-validated puzzles (2 per principle), served at

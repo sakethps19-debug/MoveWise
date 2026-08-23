@@ -6,7 +6,7 @@
     "conceptId": "check",
     "order": 0,
     "subLessonIds": ["check-and-checkmate.01-what-is-check"],
-    "puzzleIds": []
+    "puzzleIds": ["check-and-checkmate.puzzle-check-1", "check-and-checkmate.puzzle-check-2"]
   },
   {
     "id": "check-and-checkmate.recognizing-checkmate",
@@ -15,7 +15,7 @@
     "conceptId": "checkmate",
     "order": 1,
     "subLessonIds": ["check-and-checkmate.02-what-is-checkmate"],
-    "puzzleIds": []
+    "puzzleIds": ["check-and-checkmate.puzzle-checkmate-1", "check-and-checkmate.puzzle-checkmate-2"]
   },
   {
     "id": "check-and-checkmate.thinking-under-check",
@@ -24,6 +24,6 @@
     "conceptId": "decision-making",
     "order": 2,
     "subLessonIds": ["check-and-checkmate.03-thinking-under-check"],
-    "puzzleIds": []
+    "puzzleIds": ["check-and-checkmate.puzzle-decision-1", "check-and-checkmate.puzzle-decision-2"]
   }
 ]

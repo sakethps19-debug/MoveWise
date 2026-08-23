@@ -1,0 +1,74 @@
+[
+  {
+    "id": "check-and-checkmate.puzzle-check-1",
+    "conceptIds": ["check"],
+    "fen": "k7/8/8/8/8/8/8/4K2R w - - 0 1",
+    "prompt": "Move your rook to put the black king in check.",
+    "correctMoves": ["h1h8"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "Not check yet. The rook needs a clear line straight to the black king — which square lines up with it?"
+    },
+    "successExplanation": "Rh8 puts the black king in check — the rook has a clear line straight down the h-file to it."
+  },
+  {
+    "id": "check-and-checkmate.puzzle-check-2",
+    "conceptIds": ["check"],
+    "fen": "k7/8/8/8/3Q4/8/8/4K3 w - - 0 1",
+    "prompt": "Move your queen along the rank so it lines up on the same file as the black king, delivering check.",
+    "correctMoves": ["d4a4"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "The queen needs to land somewhere with a clear line to the black king — same rank, same file, or same diagonal. Which square on rank 4 shares a file with a8?"
+    },
+    "successExplanation": "Qa4 lines up on the a-file with a clear path straight to the black king on a8 — that's check."
+  },
+  {
+    "id": "check-and-checkmate.puzzle-checkmate-1",
+    "conceptIds": ["checkmate"],
+    "fen": "6k1/5ppp/8/8/8/8/8/4R1K1 w - - 0 1",
+    "prompt": "Move your rook to deliver checkmate.",
+    "correctMoves": ["e1e8"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That would give check, but the black king could still escape along the back rank. Find the rook move that controls the entire rank, with the king's own pawns blocking every square in front of it."
+    },
+    "successExplanation": "Re8 is checkmate — it controls the entire back rank, and the king's own pawns block every escape square on the 7th rank."
+  },
+  {
+    "id": "check-and-checkmate.puzzle-checkmate-2",
+    "conceptIds": ["checkmate"],
+    "fen": "7k/6pp/8/8/8/8/8/Q6K w - - 0 1",
+    "prompt": "Move your queen to deliver checkmate.",
+    "correctMoves": ["a1a8"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "A queen move that only checks the king isn't enough — find the square that controls the whole back rank, the same way a rook mate would, so there's no escape."
+    },
+    "successExplanation": "Qa8 is checkmate — it controls the whole 8th rank so the king can't step aside, and its own pawns block every square on the 7th rank."
+  },
+  {
+    "id": "check-and-checkmate.puzzle-decision-1",
+    "conceptIds": ["decision-making", "check"],
+    "fen": "4k3/8/8/8/8/5n2/8/4KR2 w - - 0 1",
+    "prompt": "Your king is in check from the knight. Capture the checking piece.",
+    "correctMoves": ["f1f3"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "Moving the king isn't necessary here — check first whether you can simply capture the piece giving check. Which of your pieces attacks the knight on f3?"
+    },
+    "successExplanation": "Rxf3 captures the checking knight outright — always check for a capture first, since it removes the threat completely."
+  },
+  {
+    "id": "check-and-checkmate.puzzle-decision-2",
+    "conceptIds": ["decision-making", "check"],
+    "fen": "k3r3/8/8/8/8/8/8/4K3 w - - 0 1",
+    "prompt": "Your king is in check from the rook, with no way to capture or block. Move it to d2, out of the rook's line.",
+    "correctMoves": ["e1d2"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "There's no piece that can capture the rook or block its file from here — the king has to step off the e-file itself. Try moving to d2."
+    },
+    "successExplanation": "Kd2 steps off the e-file, out of the rook's line of attack — when capture and block aren't options, moving the king is the response left."
+  }
+]
