@@ -1,19 +1,20 @@
-import { legalMoves, type Move, type PieceSymbol, type Square } from "@movewise/chess-rules";
+import { legalMoves, staticExchangeEval, type Move, type PieceSymbol, type Square } from "@movewise/chess-rules";
 import type { MoveClassification } from "./gameAnalysis";
 import { isSacrifice } from "./moveClassification";
 
 /**
- * Detects 5 of docs/concept-taxonomy.md's 8 mapping-table rows — the ones
+ * Detects 7 of docs/concept-taxonomy.md's 8 mapping-table rows — the ones
  * checkable from a single move's board state (plus, for
- * `queen-development-timing`, its own move number, and for
- * `back-rank-safety`, one ply of the opponent's own legal replies — not a
- * full move-history pattern) alone. Still out of reach: static-exchange
- * sophistication beyond raw material (`trade-evaluation`), endgame-
- * specific logic (`opposition-key-squares`), or clock data this app
- * doesn't track at all (`candidate-move-routine` / "time trouble"). Those
- * 3 remain undetected on purpose — a mistake/blunder simply gets no
- * `conceptIds` if none of the detectors below match. See
- * docs/known-risks.md for the full honest-scope-cut writeup.
+ * `queen-development-timing`, its own move number, for `back-rank-safety`,
+ * one ply of the opponent's own legal replies, for `trade-evaluation`,
+ * a real static exchange evaluation of the capture sequence, and for
+ * `opposition-key-squares`, the material signature of the resulting
+ * position — not a full move-history pattern) alone. Still out of reach:
+ * clock data this app doesn't track at all (`candidate-move-routine` /
+ * "time trouble") — that 1 remains undetected on purpose — a
+ * mistake/blunder simply gets no `conceptIds` if none of the detectors
+ * below match. See docs/known-risks.md for the full honest-scope-cut
+ * writeup, including why `opposition-key-squares` is scoped the way it is.
  *
  * Only meaningful for a `mistake`/`blunder` move — `detectConcepts` gates
  * on that itself so callers don't have to duplicate the check.
@@ -163,6 +164,47 @@ export function detectPrematureQueenDevelopment(
   });
 }
 
+/**
+ * `trade-evaluation`: the played move was a capture, and a real static
+ * exchange evaluation (`staticExchangeEval`, packages/chess-rules) of the
+ * full recapture sequence on that square nets a material loss — a
+ * genuinely bad trade, verified by actually playing out the exchange with
+ * both sides recapturing with their least valuable piece and stopping
+ * exactly when continuing would lose more, not a rough "did a bigger
+ * piece take a smaller one" guess. `move.before` (chess.js's own field on
+ * every verbose move, already relied on elsewhere — see `replayPgn`) is
+ * the position immediately before this move, which is what the exchange
+ * needs to evaluate from.
+ */
+export function detectUnfavorableTrade(move: Move): boolean {
+  if (!move.captured) return false;
+  return staticExchangeEval(move.before, move.from, move.to) < 0;
+}
+
+/**
+ * `opposition-key-squares`: deliberately narrow scope, documented here and
+ * in docs/known-risks.md. Real opposition/key-square theory (is this
+ * particular king-and-pawn position actually winning, drawing, or losing,
+ * and did the played move throw that away) needs a hand-verified or
+ * tablebase-backed pawn-endgame solver — a much larger and riskier
+ * undertaking than this pass takes on, and getting it subtly wrong would
+ * violate the one rule that matters most here (never teach incorrect
+ * chess). Instead of guessing at that theory, this leans on ground truth
+ * that's already Stockfish-verified elsewhere: `detectConcepts` only ever
+ * calls this for a move already classified `mistake`/`blunder` by the real
+ * centipawn-loss classifier (`lib/moveClassification.ts`). This function's
+ * only job is recognizing *where* that already-real mistake happened —
+ * specifically, a position with nothing but kings and pawns on the board
+ * for both sides, the material signature of a pawn ending, where
+ * opposition and key squares are the standard reason a king-and-pawn
+ * mistake happens. It does not explain *why* the move was wrong the way
+ * the other detectors' geometric checks do.
+ */
+export function detectPawnEndgame(fenAfter: string): boolean {
+  const board = parseFenBoard(fenAfter);
+  return board.every((row) => row.every((cell) => cell === null || cell.type === "k" || cell.type === "p"));
+}
+
 export interface DetectConceptsInput {
   move: Move;
   fenAfter: string;
@@ -182,5 +224,7 @@ export function detectConcepts(input: DetectConceptsInput): string[] {
     found.push("queen-development-timing");
   }
   if (detectBackRankVulnerability(input.fenAfter, input.color)) found.push("back-rank-safety");
+  if (detectUnfavorableTrade(input.move)) found.push("trade-evaluation");
+  if (detectPawnEndgame(input.fenAfter)) found.push("opposition-key-squares");
   return found;
 }

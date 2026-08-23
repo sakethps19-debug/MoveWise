@@ -10,6 +10,11 @@ import { test, expect } from "@playwright/test";
  * findPrincipleByConceptId) needed no code changes — it already resolves
  * any Principle whose own conceptId matches, so adding these 3 Principles
  * is what closes the gap.
+ *
+ * The last 2 tests below close the same kind of gap for the 2 concepts
+ * that were still missing content after that pass: `back-rank-safety`
+ * and `trade-evaluation` (see docs/known-risks.md). Same story — no
+ * code changes needed, just the missing Principle/lesson/puzzle content.
  */
 
 test("move-piece step with castling: King safety and castling", async ({ page }) => {
@@ -72,6 +77,48 @@ test("mcq and true-false steps: Develop your minor pieces first", async ({ page 
 
   // step-4: review — this is the lesson's last step.
   await expect(page.getByText("Develop your minor pieces before your queen")).toBeVisible();
+  await page.getByRole("button", { name: "Complete unit" }).click();
+  await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
+});
+
+test("move-piece step: Back-rank safety", async ({ page }) => {
+  await page.goto("/learn/check-and-checkmate.04-back-rank-safety");
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // step-2: move-piece, create luft with h2-h3.
+  await page.locator('[aria-label*="h2,"]').click();
+  await page.locator('[aria-label*="h3,"]').click();
+  await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // step-3: mcq, correctIndex 1.
+  await page.getByRole("button", { name: "Giving your king an escape square by moving a pawn off its second rank" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // step-4: review — this is the lesson's last step.
+  await expect(page.getByText("A castled king with an untouched pawn shield")).toBeVisible();
+  await page.getByRole("button", { name: "Complete unit" }).click();
+  await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
+});
+
+test("capture step: Is this trade worth it?", async ({ page }) => {
+  await page.goto("/learn/basic-tactics.04-is-this-trade-worth-it");
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // step-2: capture, Qxg4 (the undefended knight, not the defended pawn on d4).
+  await page.locator('[aria-label*="d1,"]').click();
+  await page.locator('[aria-label*="g4,"]').click();
+  await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // step-3: mcq, correctIndex 1.
+  await page.getByRole("button", { name: "You trade your bishop for their knight — roughly even material" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // step-4: review — this is the lesson's last step.
+  await expect(page.getByText("Before capturing, count what you actually get")).toBeVisible();
   await page.getByRole("button", { name: "Complete unit" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
 });

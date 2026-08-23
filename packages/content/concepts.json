@@ -91,6 +91,13 @@
     "unitId": "check-and-checkmate"
   },
   {
+    "id": "back-rank-safety",
+    "name": "Back-rank safety",
+    "description": "Recognizing when a castled king has no escape from a check along its own back rank, and creating luft before it's forced.",
+    "parentId": "checkmate",
+    "unitId": "check-and-checkmate"
+  },
+  {
     "id": "tactics",
     "name": "Tactics",
     "description": "Forcing sequences that win material or deliver checkmate.",
@@ -121,6 +128,13 @@
     "id": "queen-development-timing",
     "name": "Opening development: minor pieces before the queen",
     "description": "Bringing knights and bishops out before the queen, so an early queen move isn't just chased around and loses tempo.",
+    "parentId": "tactics",
+    "unitId": "basic-tactics"
+  },
+  {
+    "id": "trade-evaluation",
+    "name": "Trade evaluation",
+    "description": "Counting what a capture actually wins, and what the opponent wins back, before playing it — recognizing a losing trade even when the move itself is legal.",
     "parentId": "tactics",
     "unitId": "basic-tactics"
   },

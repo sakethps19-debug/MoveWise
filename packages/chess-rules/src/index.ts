@@ -185,3 +185,86 @@ export function replayPgn(pgn: string): { move: Move; fenBefore: string; fenAfte
     fenAfter: move.after,
   }));
 }
+
+const SEE_PIECE_VALUE: Record<PieceSymbol, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 1000 };
+
+/**
+ * Static exchange evaluation: the net material result (positive favors the
+ * side capturing on `from`) if the piece on `from` captures the piece on
+ * `to`, and both sides then recapture with their least valuable available
+ * piece — stopping the sequence exactly when continuing would lose
+ * material, the way a competent player would (a standard minimax "swap
+ * algorithm" over the gain at each ply, not a naive sum of every possible
+ * recapture). Uses chess.js's own `attackers()` for attacker geometry,
+ * recomputed fresh after each virtual capture via `remove`/`put` — so a
+ * rook or bishop revealed behind a piece that's just been traded away
+ * (an "x-ray" attacker) is correctly picked up, not just the attackers
+ * visible before the sequence started.
+ *
+ * The king is valued at 1000 here (not its usual 0) purely to order which
+ * piece captures next — this ensures the king is only ever "used" as a
+ * last resort, exactly as a real player would, without needing to special-
+ * case it. Known limitation, same simplification classical SEE
+ * implementations make: attacker geometry ignores pins and "moving into
+ * check" — a piece that's geometrically able to capture on `to` but would
+ * expose its own king is still counted as available. Verifying full
+ * legality at every step of the sequence would need a much slower
+ * fully-legal search instead of pure attack geometry, for a case (a pinned
+ * piece being the *only* attacker available) narrow enough that every
+ * other detector in this codebase accepts an equivalent simplification.
+ */
+export function staticExchangeEval(fen: string, from: Square, to: Square): number {
+  const game = new Chess(fen);
+  const initialAttacker = game.get(from);
+  let initialVictim = game.get(to);
+  if (!initialAttacker) return 0;
+
+  // En passant: a pawn moving diagonally onto an empty square is only ever
+  // legal as an en passant capture — the actual captured pawn sits behind
+  // `to` (same file, `from`'s rank), not on `to` itself.
+  let enPassantVictimSquare: Square | null = null;
+  if (!initialVictim && initialAttacker.type === "p" && from[0] !== to[0]) {
+    enPassantVictimSquare = `${to[0]}${from[1]}` as Square;
+    initialVictim = game.get(enPassantVictimSquare);
+  }
+
+  const gains: number[] = [initialVictim ? SEE_PIECE_VALUE[initialVictim.type] : 0];
+  let sideToCapture: "w" | "b" = initialAttacker.color === "w" ? "b" : "w";
+  let capturingValue = SEE_PIECE_VALUE[initialAttacker.type];
+
+  game.remove(from);
+  if (enPassantVictimSquare) game.remove(enPassantVictimSquare);
+  game.remove(to);
+  game.put({ type: initialAttacker.type, color: initialAttacker.color }, to);
+
+  let depth = 0;
+  while (true) {
+    const attackerSquares = game.attackers(to, sideToCapture);
+    if (attackerSquares.length === 0) break;
+
+    let leastSquare = attackerSquares[0]!;
+    let leastValue = SEE_PIECE_VALUE[game.get(leastSquare)!.type];
+    for (const square of attackerSquares.slice(1)) {
+      const value = SEE_PIECE_VALUE[game.get(square)!.type];
+      if (value < leastValue) {
+        leastValue = value;
+        leastSquare = square;
+      }
+    }
+
+    depth++;
+    gains[depth] = capturingValue - gains[depth - 1]!;
+
+    const leastPiece = game.get(leastSquare)!;
+    game.remove(leastSquare);
+    game.remove(to);
+    game.put({ type: leastPiece.type, color: leastPiece.color }, to);
+    capturingValue = leastValue;
+    sideToCapture = sideToCapture === "w" ? "b" : "w";
+  }
+
+  for (let i = depth; i > 0; i--) {
+    gains[i - 1] = -Math.max(-gains[i - 1]!, gains[i]!);
+  }
+  return gains[0]!;
+}

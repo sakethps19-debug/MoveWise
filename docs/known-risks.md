@@ -34,12 +34,84 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **A 7th concept-taxonomy mapping row, `opposition-key-squares`,
+  previously undetected**: `lib/conceptDetection.ts`'s
+  `detectPawnEndgame` tags a `mistake`/`blunder` that happened in a
+  position with nothing but kings and pawns on the board for both
+  sides. Deliberately the narrowest detector in the file: real
+  opposition/key-square theory (was this exact king-and-pawn position
+  actually winning, drawing, or losing, and did the move throw that
+  away) would need a hand-verified or tablebase-backed pawn-endgame
+  solver — building and verifying that correctly is a much larger,
+  riskier undertaking than this pass takes on, and a subtly wrong
+  implementation would violate the one rule that matters most here
+  (never teach incorrect chess). Instead of guessing at that theory,
+  the detector leans on ground truth that's already Stockfish-verified
+  elsewhere — `detectConcepts` only ever calls it for a move already
+  classified `mistake`/`blunder` by the real centipawn-loss classifier
+  (`lib/moveClassification.ts`) — and only recognizes *where* that
+  already-real mistake happened. It doesn't explain *why* the move was
+  wrong the way the other detectors' geometric checks do; it also
+  doesn't have matching lesson content yet, and deliberately isn't
+  paired with any this pass — a real pawn-endgame lesson needs its own
+  curriculum-placement decision (this app's documented 19-lesson
+  beginner sequence doesn't currently include a pawn-endgame topic at
+  all), not something to bolt on unilaterally alongside the detector.
+  This leaves exactly 1 of `docs/concept-taxonomy.md`'s 8 mapping-table
+  rows undetected: `candidate-move-routine` ("time trouble"), which
+  needs clock data this app doesn't track at all.
+- **All 6 of `lib/conceptDetection.ts`'s then-6 detected concepts had
+  matching lesson content.** `back-rank-safety` and `trade-evaluation`
+  were the last 2 gaps (see the two entries below this one) — added
+  `check-and-checkmate.04-back-rank-safety` and `basic-tactics.04-is-
+  this-trade-worth-it`, each with its own `Principle` (`conceptId`
+  matching the detector's tag), 2 puzzles, and a `Concept` entry. Same
+  care as the earlier 3 lessons: every interactive position and puzzle
+  answer set was verified directly against chess.js before being
+  written as content, not just checked for chess-legality — confirming
+  the back-rank position's mate-in-1 threat is real and every listed
+  "create luft" pawn push actually defuses it, and confirming the
+  trade-evaluation position's two captures really are one defended
+  (bad) and one undefended (good) target. `back-rank-safety`'s lesson
+  sits after the existing 3-lesson `check-and-checkmate` unit;
+  `trade-evaluation`'s sits after the existing 3-lesson `basic-tactics`
+  unit — neither renumbers or touches an existing lesson id,
+  prerequisite chain, or `order`. No app code changes were needed —
+  same as the earlier 3 lessons, `lib/principles.ts`/`LearningPath.tsx`
+  are already data-driven off file presence.
 - **`.github/workflows/ci.yml` didn't run `pnpm lint`.** The command
   itself was already runnable (this was the "resolved this session" —
   now several sessions ago — item this note used to point at), but the
   workflow file was never updated to add the step, so nothing stopped a
   lint regression from merging. Added `pnpm lint` to the `verify` job,
   right after `pnpm typecheck` and before `pnpm test`.
+- **A 6th concept-taxonomy mapping row, `trade-evaluation`, previously
+  undetected**: `lib/conceptDetection.ts`'s `detectUnfavorableTrade` tags
+  a `mistake`/`blunder` capture that actually loses material once the
+  full recapture sequence plays out. This is a real static exchange
+  evaluation (`staticExchangeEval`, new in `packages/chess-rules`), not
+  a "bigger piece took a smaller one" guess: it iteratively simulates
+  both sides recapturing with their least-valuable attacker on the
+  target square, using chess.js's own `attackers()` (confirmed via a
+  direct test to be purely geometric — it ignores pins, the same
+  simplification classical SEE implementations use industry-wide) and
+  `.remove()`/`.put()`/`.get()` board mutation, recomputing attackers
+  fresh after each virtual capture so x-ray attackers revealed by a
+  removed blocker are found correctly rather than assumed from a stale
+  list. A backward minimax pass (`gain[i-1] = -max(-gain[i-1], gain[i])`)
+  makes the sequence stop exactly where continuing would lose more
+  material, rather than naively summing every possible recapture. En
+  passant is special-cased, since the pawn actually captured isn't on
+  the destination square. The king is given an inflated internal value
+  (1000) purely so it's never chosen as a recapturer ahead of a real
+  piece. 7 unit tests in `packages/chess-rules/src/index.test.ts` cover
+  a free capture, a forced even-ish trade, a defended-pawn grab, a
+  multi-attacker sequence verified from both possible first-recapture
+  orders, x-ray discovery, king-as-last-resort, and en passant. Like
+  `back-rank-safety` before it, `trade-evaluation` has no matching
+  authored `Concept`/`Principle` content yet — the detector tags the
+  row truthfully; `lib/studyPlan.ts`'s lesson lookup just has nothing to
+  recommend until that content exists.
 - **A 5th concept-taxonomy mapping row, `back-rank-safety`, previously
   undetected**: `lib/conceptDetection.ts`'s `detectBackRankVulnerability`
   tags a `mistake`/`blunder` where the opponent has a real, engine-

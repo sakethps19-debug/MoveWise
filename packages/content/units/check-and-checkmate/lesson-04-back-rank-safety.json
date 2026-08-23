@@ -1,0 +1,64 @@
+{
+  "id": "check-and-checkmate.04-back-rank-safety",
+  "version": 1,
+  "unitId": "check-and-checkmate",
+  "title": "Back-rank safety",
+  "objectives": [
+    "Recognize when a castled king has no escape from a check along its own back rank",
+    "Create luft (an escape square) before a back-rank checkmate is forced"
+  ],
+  "prerequisites": ["check-and-checkmate.03-thinking-under-check"],
+  "xpReward": 15,
+  "masteryTags": ["back-rank-safety"],
+  "difficulty": 2,
+  "estimatedDurationSec": 150,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "A castled king boxed in by its own untouched pawns can be checkmated by a single rook or queen reaching the back rank — the king simply has nowhere to go. This is exactly what just happened here: White's king has no escape square, so ...Re1 isn't just check, it's checkmate.",
+      "boardFen": "6k1/5ppp/8/3R4/8/8/5PPP/4r1K1 w - - 1 2",
+      "highlights": ["g1", "e1"]
+    },
+    {
+      "id": "step-2",
+      "type": "move-piece",
+      "prompt": "One move earlier: White's king has no escape square, and Black threatens ...Re1#. Give your king an escape square (create \"luft\") before it's forced on you.",
+      "fen": "4r1k1/5ppp/8/3R4/8/8/5PPP/6K1 w - - 0 1",
+      "expectedMoves": ["h2h3"],
+      "altValid": ["h2h4", "g2g3", "g2g4", "f2f3", "f2f4"],
+      "hints": [
+        { "level": 1, "text": "Nothing defends White's back rank, and Black threatens ...Re1# next move." },
+        { "level": 2, "text": "Look at your king's own pawn shield — moving one of those pawns opens an escape square.", "highlightSquares": ["f2", "g2", "h2"] },
+        { "level": 3, "text": "Push a kingside pawn one square.", "arrowFrom": "h2", "arrowTo": "h3" },
+        { "level": 4, "text": "h3 gives the king a square to step to — now a back-rank check is just check, not mate." }
+      ],
+      "feedback": {
+        "default": "That doesn't fix the back-rank problem — the king still has no escape square if a rook or queen reaches the back rank. Move a kingside pawn to open an escape hole."
+      },
+      "successExplanation": "Moving a kingside pawn opens an escape square for the king — now if a rook reaches the back rank, it's check, not checkmate."
+    },
+    {
+      "id": "step-3",
+      "type": "mcq",
+      "prompt": "Which of these actually prevents a back-rank checkmate?",
+      "options": [
+        "Keeping your rook on the back rank",
+        "Giving your king an escape square by moving a pawn off its second rank",
+        "Trading queens whenever possible",
+        "Castling earlier in the game, no matter what"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "That doesn't address a boxed-in king directly. The fix is giving the king somewhere to go — \"luft.\""
+      },
+      "successExplanation": "Right — an escape square (luft) means that even if a rook or queen reaches your back rank, it's check, not checkmate."
+    },
+    {
+      "id": "step-4",
+      "type": "review",
+      "summary": "A castled king with an untouched pawn shield can be mated by a single rook or queen reaching the back rank. Make a habit of asking: if a rook landed on my back rank right now, does my king have anywhere to go? If not, spend a move creating luft before it's forced on you."
+    }
+  ],
+  "principleId": "check-and-checkmate.back-rank-safety"
+}

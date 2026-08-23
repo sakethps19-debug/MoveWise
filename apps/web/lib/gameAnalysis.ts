@@ -243,6 +243,12 @@ export function explanationFor(classification: MoveClassification, conceptIds: s
     if (conceptIds.includes("back-rank-safety")) {
       return "Your back rank is undefended and your king has no escape square — the opponent has an immediate back-rank checkmate available.";
     }
+    if (conceptIds.includes("trade-evaluation")) {
+      return "Playing out this capture loses material once the opponent recaptures — the exchange isn't worth it.";
+    }
+    if (conceptIds.includes("opposition-key-squares")) {
+      return "This is a pure king-and-pawn ending, where precise technique decides the result — a single inaccurate move here can turn a win into a draw, or a draw into a loss.";
+    }
   }
   switch (classification) {
     case "forced":

@@ -6,7 +6,9 @@ import {
   detectHangingPiece,
   detectKingLeftInCenter,
   detectMissedKnightFork,
+  detectPawnEndgame,
   detectPrematureQueenDevelopment,
+  detectUnfavorableTrade,
 } from "./conceptDetection";
 
 // Same verified queen sacrifice as moveClassification.test.ts.
@@ -121,6 +123,56 @@ describe("detectBackRankVulnerability", () => {
   });
 });
 
+describe("detectUnfavorableTrade", () => {
+  it("flags a capture that loses material once the real exchange plays out", () => {
+    // Queen d1 takes a pawn on d4 that's defended by a pawn on e5 (pawns
+    // capture diagonally toward the mover) — queen(9) for pawn(1), then
+    // the recapture costs the queen. A genuinely bad trade.
+    const fen = "4k3/8/8/4p3/3p4/8/8/3QK3 w - - 0 1";
+    const result = tryMove(fen, { from: "d1", to: "d4" })!;
+    expect(detectUnfavorableTrade(result.move)).toBe(true);
+  });
+
+  it("does not flag a free capture with no recapture available", () => {
+    const fen = "4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1";
+    const result = tryMove(fen, { from: "e4", to: "d5" })!;
+    expect(detectUnfavorableTrade(result.move)).toBe(false);
+  });
+
+  it("does not flag an exactly-even trade (equal piece for equal piece)", () => {
+    // White knight b3 takes a black knight on d4, defended by another
+    // black knight on f5 — knight(3) for knight(3), net zero.
+    const fen = "4k3/8/8/5n2/3n4/1N6/8/4K3 w - - 0 1";
+    const result = tryMove(fen, { from: "b3", to: "d4" })!;
+    expect(detectUnfavorableTrade(result.move)).toBe(false);
+  });
+
+  it("does not flag a non-capture move", () => {
+    const result = tryMove(SACRIFICE_FEN_BEFORE, { from: "g2", to: "g5" })!;
+    expect(detectUnfavorableTrade(result.move)).toBe(false);
+  });
+});
+
+describe("detectPawnEndgame", () => {
+  it("flags a position with nothing but kings and pawns on the board", () => {
+    expect(detectPawnEndgame("8/8/4k3/8/4P3/4K3/8/8 w - - 0 1")).toBe(true);
+  });
+
+  it("does not flag a position with any other piece still on the board", () => {
+    // Same shape as the sacrifice tests above: a queen and a bishop present.
+    expect(detectPawnEndgame(SACRIFICE_FEN_BEFORE)).toBe(false);
+  });
+
+  it("flags a bare king-vs-king position too — no pieces beyond kings and pawns, trivially satisfied with zero pawns", () => {
+    expect(detectPawnEndgame("8/8/4k3/8/8/4K3/8/8 w - - 0 1")).toBe(true);
+  });
+
+  it("stops flagging a pawn ending the moment a pawn promotes into a new piece", () => {
+    const promoted = tryMove("8/4P3/4k3/8/8/4K3/8/8 w - - 0 1", { from: "e7", to: "e8", promotion: "q" })!;
+    expect(detectPawnEndgame(promoted.fenAfter)).toBe(false);
+  });
+});
+
 describe("detectConcepts", () => {
   it("only detects concepts for a mistake/blunder — never for a good move", () => {
     const result = tryMove(SACRIFICE_FEN_BEFORE, { from: "g2", to: "f2" })!;
@@ -139,5 +191,29 @@ describe("detectConcepts", () => {
       classification: "blunder",
     });
     expect(found).toContain("hanging-pieces");
+  });
+
+  it("tags opposition-key-squares for a blunder in a bare king-and-pawns endgame", () => {
+    const result = tryMove("8/8/4k3/8/4P3/4K3/8/8 w - - 0 1", { from: "e4", to: "e5" })!;
+    const found = detectConcepts({
+      move: result.move,
+      fenAfter: result.fenAfter,
+      color: "w",
+      moveNumber: 40,
+      classification: "blunder",
+    });
+    expect(found).toContain("opposition-key-squares");
+  });
+
+  it("does not tag opposition-key-squares once a piece other than king/pawn is on the board", () => {
+    const result = tryMove(SACRIFICE_FEN_BEFORE, { from: "g2", to: "f2" })!;
+    const found = detectConcepts({
+      move: result.move,
+      fenAfter: result.fenAfter,
+      color: "w",
+      moveNumber: 5,
+      classification: "blunder",
+    });
+    expect(found).not.toContain("opposition-key-squares");
   });
 });
