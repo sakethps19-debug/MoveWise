@@ -27,7 +27,15 @@ const MIN_SIGNUP_AGE = 13;
 // available against that until this moves to a real per-user/session
 // signal — see lib/rate-limit.ts for why this is a stopgap, not the
 // final answer.
-const SIGNUP_LIMIT = { limit: 20, windowMs: 60 * 60 * 1000 }; // 20/hour per IP
+// The count is overridable via SIGNUP_RATE_LIMIT (falls back to 20,
+// production's real anti-abuse tuning, when unset or invalid) — CI runs
+// the full E2E suite from a single IP, and the suite's own total real
+// signups across every spec file sits right at 20, so any retry or added
+// signup-dependent test pushes it over its own budget and fails with no
+// connection to an actual regression. Widening the window/count here
+// would weaken real abuse protection; widening it only for CI's own
+// traffic (ci.yml sets this explicitly) doesn't.
+const SIGNUP_LIMIT = { limit: Number(process.env.SIGNUP_RATE_LIMIT) || 20, windowMs: 60 * 60 * 1000 }; // 20/hour per IP by default
 const LOGIN_IP_LIMIT = { limit: 15, windowMs: 15 * 60 * 1000 }; // 15/15min per IP
 const LOGIN_EMAIL_LIMIT = { limit: 8, windowMs: 15 * 60 * 1000 }; // 8/15min per email, catches distributed attempts against one account
 
