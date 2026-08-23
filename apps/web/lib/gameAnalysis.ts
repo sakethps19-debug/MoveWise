@@ -1,30 +1,50 @@
 /**
- * Phase 6 (Play & Learn game review): the typed data model for a
- * completed game's move-by-move analysis, plus a deterministic demo
- * generator. This is architecture, not a working analysis engine — see
- * the "remaining integration work" note at the bottom of this file and
- * docs/roadmap.md's Phase B for what's actually still required.
- *
- * `EngineAnalysis.score` (packages/engine) is already the exact
- * centipawn-from-White's-perspective shape `evalBefore`/`evalAfter`
- * below are modeled on — a real implementation calls
- * `engine.bestMove(fenBeforeMove)` and `engine.bestMove(fenAfterMove)`
- * for each ply and derives `evalLoss`/`classification` from the two
- * scores, relative to the side that moved. Nothing here talks to the
- * engine; it exists so the UI and the eventual analysis pass share one
- * contract from the start.
+ * Phase 6 / ADR-0008 Phase B (Play & Learn game review): the typed data
+ * model for a completed game's move-by-move analysis, a deterministic
+ * demo generator, and — now — the real, engine-driven builder
+ * (`buildMoveAnalysis`) that replaces the hand-picked demo values for an
+ * actually-played game. Deliberately fs-free and Worker-free: this file
+ * only combines numbers/strings the caller already has (an
+ * `EngineAnalysis.score` from `packages/engine`, `lib/moveClassification.ts`,
+ * `lib/conceptDetection.ts`) into a `MoveAnalysis`/`GameReview`, so it's
+ * safe to import from both a Client Component (the live analysis pass,
+ * which runs against the browser's own Stockfish Worker) and a Server
+ * Component. Mapping a mistake's `conceptIds` to a real recommended
+ * lesson needs filesystem access (`lib/principles.ts`) and so is
+ * deliberately kept out of this file — see `lib/studyPlan.ts`, imported
+ * only server-side.
  */
 
-export type MoveClassification = "brilliant" | "great" | "best" | "good" | "inaccuracy" | "mistake" | "blunder";
+import type { Move } from "@movewise/chess-rules";
+import { detectConcepts } from "./conceptDetection";
+import { classifyMove, computeEvalLoss } from "./moveClassification";
+
+/**
+ * ADR-0008's fixed 8-value enum ("Decision — move classification"). This
+ * previously drifted from the ADR (a "great" value with no "excellent" or
+ * "forced") since it was written before Phase B's real classifier existed
+ * to test it against — corrected here now that lib/moveClassification.ts
+ * is the real implementation.
+ */
+export type MoveClassification =
+  | "brilliant"
+  | "best"
+  | "excellent"
+  | "good"
+  | "inaccuracy"
+  | "mistake"
+  | "blunder"
+  | "forced";
 
 export const CLASSIFICATION_LABEL: Record<MoveClassification, string> = {
   brilliant: "Brilliant",
-  great: "Great",
   best: "Best",
+  excellent: "Excellent",
   good: "Good",
   inaccuracy: "Inaccuracy",
   mistake: "Mistake",
   blunder: "Blunder",
+  forced: "Forced",
 };
 
 export interface MoveAnalysis {
@@ -44,7 +64,9 @@ export interface MoveAnalysis {
   explanation: string;
   /** A tactical or strategic motif, e.g. "Fork", "Development", "King safety". Optional — not every move has one. */
   theme?: string;
-  /** Real packages/content lesson ids this mistake maps to, ranked, capped short (docs/concept-taxonomy.md's ranking rules). */
+  /** docs/concept-taxonomy.md's real join point — zero or more, populated only when lib/conceptDetection.ts recognizes the mistake. Empty for demo data's hand-authored moves (their recommendedLessonIds are set directly instead). */
+  conceptIds: string[];
+  /** Real packages/content lesson ids this mistake maps to, ranked, capped short (docs/concept-taxonomy.md's ranking rules). Empty on a freshly-built real MoveAnalysis until lib/studyPlan.ts (server-side, fs-based) fills it in. */
   recommendedLessonIds: string[];
 }
 
@@ -57,15 +79,17 @@ export interface GameReview {
   recommendedLessonIds: string[];
 }
 
-function summarize(moves: MoveAnalysis[]): Record<MoveClassification, number> {
+/** Exported for app/actions.ts to persist as GameAnalysis.summary. */
+export function summarize(moves: MoveAnalysis[]): Record<MoveClassification, number> {
   const summary: Record<MoveClassification, number> = {
     brilliant: 0,
-    great: 0,
     best: 0,
+    excellent: 0,
     good: 0,
     inaccuracy: 0,
     mistake: 0,
     blunder: 0,
+    forced: 0,
   };
   for (const move of moves) summary[move.classification]++;
   return summary;
@@ -93,6 +117,7 @@ export function buildDemoGameReview(): GameReview {
       classification: "best",
       explanation: "A strong, principled opening move — it claims the center and opens lines for the bishop and queen.",
       theme: "Development",
+      conceptIds: [],
       recommendedLessonIds: [],
     },
     {
@@ -106,6 +131,7 @@ export function buildDemoGameReview(): GameReview {
       classification: "best",
       explanation: "Develops a piece toward the center and eyes the f7 square, a common early target.",
       theme: "Development",
+      conceptIds: [],
       recommendedLessonIds: [],
     },
     {
@@ -120,6 +146,7 @@ export function buildDemoGameReview(): GameReview {
       explanation:
         "Bringing the queen out this early lets Black attack it and gain time. Developing a knight first keeps more pieces working together.",
       theme: "Development",
+      conceptIds: [],
       recommendedLessonIds: [],
     },
     {
@@ -134,6 +161,7 @@ export function buildDemoGameReview(): GameReview {
       explanation:
         "This particular line ends in a real checkmate pattern (the beginner 'Scholar's Mate') — included here to show what a genuinely great move looks like in review, not just a safe one.",
       theme: "Checkmate pattern",
+      conceptIds: [],
       recommendedLessonIds: ["check-and-checkmate.02-what-is-checkmate"],
     },
     {
@@ -147,6 +175,7 @@ export function buildDemoGameReview(): GameReview {
       classification: "good",
       explanation: "A reasonable developing move, though bringing the kingside knight out first slightly better defends against threats to f7.",
       theme: "Development",
+      conceptIds: [],
       recommendedLessonIds: [],
     },
     {
@@ -161,6 +190,7 @@ export function buildDemoGameReview(): GameReview {
       explanation:
         "This blocks Black's own bishop and knight from developing naturally, and hands White a much easier game — a small positional slip, not a losing blunder on its own.",
       theme: "Piece coordination",
+      conceptIds: [],
       recommendedLessonIds: ["meet-the-pieces.09-meet-the-knight"],
     },
     {
@@ -175,6 +205,7 @@ export function buildDemoGameReview(): GameReview {
       explanation:
         "This walks the knight into a fork — one white piece now attacks two undefended black pieces at once, and Black can only save one of them.",
       theme: "Fork",
+      conceptIds: [],
       recommendedLessonIds: ["basic-tactics.01-the-knight-fork"],
     },
   ];
@@ -185,26 +216,110 @@ export function buildDemoGameReview(): GameReview {
 }
 
 /**
- * Remaining integration work for a real (non-demo) GameReview — not built
- * in this pass:
- *
- * 1. Persist completed Play-mode games (a `Game` row: FEN history, PGN,
- *    player color, result) — Play mode is currently stateless once the
- *    page unmounts. See docs/roadmap.md's Phase B.
- * 2. For every played ply, call `engine.bestMove(fenBeforeMove)` and
- *    `engine.bestMove(fenAfterMove)` (packages/engine, already built) to
- *    get real `EngineAnalysis.score` values for `evalBefore`/`evalAfter`.
- *    Async, cached per docs/roadmap.md (a `GameAnalysis` row), never
- *    blocking the request.
- * 3. Classify each move from the eval swing using fixed thresholds (the
- *    8-value scale already named in ADR-0008/docs/testing-strategy.md
- *    row 4) instead of this file's hand-picked demo values.
- * 4. Map instructive mistakes to real `Concept` ids via
- *    docs/concept-taxonomy.md's mapping table (unit tested directly
- *    against that table per docs/testing-strategy.md row 6), then to
- *    `recommendedLessonIds` — this demo hardcodes that mapping by hand
- *    for its 8 fixed moves instead.
- * 5. Rank recommendations by recency/repetition, capped at 3-4 items
- *    (docs/concept-taxonomy.md's ranking rules), not just first-seen
- *    order like `buildDemoGameReview` does above.
+ * Beginner-safe, plain-language explanation for a classified move — no
+ * notation-only text (Phase 2's language bar applies here too, same as
+ * every lesson's own feedback copy). `conceptIds` sharpens generic
+ * classification-level text into the specific detected problem when one
+ * of lib/conceptDetection.ts's 3 detectors fired; otherwise falls back to
+ * a classification-level explanation. Every `mistake`/`blunder`/
+ * `inaccuracy` branch returns a non-empty string — see
+ * docs/testing-strategy.md row 5, unit tested directly against this
+ * invariant in gameAnalysis.test.ts.
  */
+export function explanationFor(classification: MoveClassification, conceptIds: string[]): string {
+  if (classification === "blunder" || classification === "mistake") {
+    if (conceptIds.includes("hanging-pieces")) {
+      return "This leaves a piece where the opponent can capture it for free — a costly way to lose material.";
+    }
+    if (conceptIds.includes("knight-fork")) {
+      return "This lets the opponent's knight fork two of your pieces at once — only one can be saved.";
+    }
+    if (conceptIds.includes("king-safety-castling")) {
+      return "Your king is still in the centre this late in the game, and this move doesn't address it — an exposed king is a real, ongoing risk.";
+    }
+  }
+  switch (classification) {
+    case "forced":
+      return "The only legal move available in this position.";
+    case "brilliant":
+      return "A non-obvious move — giving up material here leads to a much stronger position than a safer alternative would have.";
+    case "best":
+      return "The strongest move available in this position.";
+    case "excellent":
+      return "A very strong move, just a touch short of the engine's own top choice.";
+    case "good":
+      return "A solid, reasonable move.";
+    case "inaccuracy":
+      return "A small slip — there was a noticeably stronger option here.";
+    case "mistake":
+      return "This loses meaningful ground — there was a clearly better option here.";
+    case "blunder":
+      return "A costly mistake — this loses significant material or position.";
+  }
+}
+
+export interface BuildMoveAnalysisInput {
+  moveNumber: number;
+  color: "w" | "b";
+  /** From chess-rules' tryMove — carries the SAN, piece, and destination square this analysis needs. */
+  move: Move;
+  fenAfter: string;
+  /** White-relative centipawns (packages/engine's own convention), the engine's evaluation of the position before this move. */
+  evalBefore: number;
+  /** White-relative centipawns, the engine's evaluation of the position after this move was played. */
+  evalAfter: number;
+  bestMoveSan: string;
+  /** Number of legal moves available in the position before this move. */
+  legalMoveCountBefore: number;
+}
+
+/**
+ * The real (non-demo) counterpart to buildDemoGameReview's hand-picked
+ * entries — combines lib/moveClassification.ts and lib/conceptDetection.ts
+ * into one `MoveAnalysis` row. Deliberately does not resolve
+ * `recommendedLessonIds` (needs filesystem access — see this file's own
+ * top doc comment and lib/studyPlan.ts); callers get an empty array here
+ * and fill it in server-side afterward.
+ */
+export function buildMoveAnalysis(input: BuildMoveAnalysisInput): MoveAnalysis {
+  const classification = classifyMove({
+    move: input.move,
+    fenAfter: input.fenAfter,
+    color: input.color,
+    evalBefore: input.evalBefore,
+    evalAfter: input.evalAfter,
+    legalMoveCountBefore: input.legalMoveCountBefore,
+  });
+  const conceptIds = detectConcepts({
+    move: input.move,
+    fenAfter: input.fenAfter,
+    color: input.color,
+    moveNumber: input.moveNumber,
+    classification,
+  });
+  return {
+    moveNumber: input.moveNumber,
+    color: input.color,
+    playedMove: input.move.san,
+    bestMove: input.bestMoveSan,
+    evalBefore: input.evalBefore,
+    evalAfter: input.evalAfter,
+    evalLoss: computeEvalLoss(input.evalBefore, input.evalAfter, input.color),
+    classification,
+    explanation: explanationFor(classification, conceptIds),
+    conceptIds,
+    recommendedLessonIds: [],
+  };
+}
+
+/**
+ * ADR-0008's fair-play invariant ("Decision — fair play"), a real,
+ * directly-tested check rather than something trusted to code review —
+ * see `Game.analysisAllowed`'s own doc comment in schema.prisma for why
+ * this field exists now, before any human-vs-human mode is even
+ * scaffolded. Trivially true for every game this codebase can produce
+ * today (Stockfish is the only source).
+ */
+export function canAnalyze(game: { analysisAllowed: boolean }): boolean {
+  return game.analysisAllowed;
+}

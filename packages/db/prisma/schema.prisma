@@ -17,6 +17,7 @@ model User {
   completions       LessonCompletion[]
   conceptMasteries  UserConceptMastery[]
   exerciseAttempts  ExerciseAttempt[]
+  games             Game[]
 }
 
 /// Opaque database-backed session tokens (not JWTs) — the cookie holds
@@ -122,6 +123,94 @@ model ExerciseAttempt {
   @@index([userId, lessonId])
   @@index([userId, puzzleId])
   @@index([userId, createdAt])
+}
+
+/// ADR-0008 Phase B: a completed Play & Learn game, persisted so it can be
+/// analyzed after the fact — Play mode was previously stateless once the
+/// page unmounted. `source` is a string, not an enum, so a later source
+/// (PGN import, a human-vs-human mode) is additive; only "stockfish" is
+/// reachable today (Play mode's only opponent).
+model Game {
+  id     String @id @default(cuid())
+  userId String
+
+  /// "stockfish" is the only value produced by this codebase today.
+  /// "training-bot" | "pgn-import" | "otb-manual" | "platform-import" are
+  /// reserved, per ADR-0008, for sources that don't exist yet.
+  source      String
+  pgn         String
+  /// The learner's own color for this game — needed to interpret `result`
+  /// and to orient move-by-move analysis from the learner's perspective.
+  playerColor String
+  /// From the learner's own perspective: "win" | "loss" | "draw" | "resigned".
+  result      String
+  /// The specific way the game ended — chess-rules' own GameStatus values,
+  /// plus "resigned" (which isn't a GameStatus, since it's not a board
+  /// state). Kept separate from `result` so "how" and "who won" don't have
+  /// to be re-derived from one overloaded string later.
+  endReason   String
+  playedAt    DateTime @default(now())
+
+  /// Fair-play invariant (ADR-0008, "Decision — fair play"): whether this
+  /// game is even eligible for post-game analysis at all. True for every
+  /// source reachable today (Stockfish games are always analyzable) — the
+  /// field exists now, before any human-vs-human mode is even scaffolded,
+  /// so a future PvP source can default it false rather than the check
+  /// being bolted on after the fact. See lib/gameAnalysis.ts's canAnalyze.
+  analysisAllowed Boolean @default(true)
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analysis GameAnalysis?
+
+  @@index([userId])
+}
+
+/// One row per analyzed `Game`. `status` is always "complete" today — this
+/// codebase has no background-job infrastructure (no queue, no worker
+/// process), so analysis runs client-side against the same Stockfish Web
+/// Worker Play mode already uses (packages/engine), synchronously from the
+/// caller's perspective, and is persisted only once finished. "pending" /
+/// "running" / "failed" are reserved for a real async pipeline, not
+/// reachable yet — see docs/roadmap.md's Phase B entry for the honest
+/// scope cut this represents versus ADR-0008's originally-specified
+/// server-side async pipeline.
+model GameAnalysis {
+  id        String   @id @default(cuid())
+  gameId    String   @unique
+  status    String
+  /// Classification counts (lib/gameAnalysis.ts's `summarize`) — cheap,
+  /// genuinely useful today; ADR-0008's fuller "opening/middlegame/endgame
+  /// assessment, strong-move %, recurring patterns" summary is aspirational,
+  /// not built this pass.
+  summary   Json
+  createdAt DateTime @default(now())
+
+  game  Game           @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  moves MoveAnalysis[]
+}
+
+/// One row per ply. `conceptIds` mirrors ExerciseAttempt's own
+/// denormalized-string-array convention (docs/concept-taxonomy.md's join
+/// point) — populated only when one of lib/conceptDetection.ts's
+/// detectors actually recognizes the mistake, empty for most moves.
+model MoveAnalysis {
+  id             String @id @default(cuid())
+  gameAnalysisId String
+  ply            Int
+  moveNumber     Int
+  color          String
+  playedMove     String
+  bestMove       String
+  evalBefore     Float
+  evalAfter      Float
+  evalLoss       Float
+  classification String
+  conceptIds     String[]
+  explanation    String?
+
+  gameAnalysis GameAnalysis @relation(fields: [gameAnalysisId], references: [id], onDelete: Cascade)
+
+  @@index([gameAnalysisId])
 }
 
 /// Backs apps/web/lib/rate-limit.ts's sliding-window limiter. One row per

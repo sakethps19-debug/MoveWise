@@ -9,6 +9,8 @@ import { checkRateLimit, formatRetryAfter } from "../lib/rate-limit";
 import { loadLesson } from "../lib/lessons";
 import { findPuzzle } from "../lib/puzzles";
 import { computeMasteryStatus, type MasteryStatus } from "../lib/masteryModel";
+import { canAnalyze, summarize, type MoveAnalysis } from "../lib/gameAnalysis";
+import { buildStudyPlan, lessonIdsForConcepts } from "../lib/studyPlan";
 import type { AttemptRecord } from "../components/LessonRunner";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -362,4 +364,124 @@ export async function recordPuzzleAttemptAction(puzzleId: string, correct: boole
 
   await recomputeMasteryForConcepts(user.id, puzzle.conceptIds);
   revalidatePath("/");
+}
+
+export interface SaveCompletedGameInput {
+  pgn: string;
+  playerColor: "w" | "b";
+  /** From the learner's own perspective. */
+  result: "win" | "loss" | "draw" | "resigned";
+  /** chess-rules' own GameStatus values, plus "resigned" (not a board state). */
+  endReason: string;
+}
+
+/**
+ * ADR-0008 Phase B: persists a completed Play-mode game so it can be
+ * analyzed after the fact — Play mode was previously stateless once the
+ * page unmounted. Guest games aren't persisted (no session to own the
+ * row), same "session-local only" reasoning as completeLessonAction.
+ */
+export async function saveCompletedGameAction(input: SaveCompletedGameInput): Promise<{ gameId: string } | null> {
+  const user = await getSession();
+  if (!user) return null;
+
+  const game = await prisma.game.create({
+    data: {
+      userId: user.id,
+      source: "stockfish", // the only opponent Play mode has today
+      pgn: input.pgn,
+      playerColor: input.playerColor,
+      result: input.result,
+      endReason: input.endReason,
+    },
+  });
+  return { gameId: game.id };
+}
+
+export type SubmittedMoveAnalysis = Omit<MoveAnalysis, "recommendedLessonIds">;
+
+export interface GameAnalysisResult {
+  moves: MoveAnalysis[];
+  recommendedLessonIds: string[];
+}
+
+/**
+ * Persists the result of a client-side analysis pass (lib/moveClassification.ts
+ * + lib/conceptDetection.ts, run in-browser against the same Stockfish Web
+ * Worker Play mode already uses — see components/PlayRunner.tsx) and
+ * resolves each move's `conceptIds` into real lesson recommendations, a
+ * step that needs filesystem access the client doesn't have (lib/studyPlan.ts).
+ *
+ * Cached by construction: a `GameAnalysis` already existing for this game
+ * is returned as-is rather than re-persisted — "re-viewing an already-
+ * analysed game must never re-run the engine" (ADR-0008, "Decision —
+ * analysis pipeline"). Enforces the fair-play invariant server-side, not
+ * just trusting the client sent a legitimate game (ADR-0008, "Decision —
+ * fair play": "a fixed invariant to test directly ... not something to
+ * trust to code review").
+ */
+export async function saveGameAnalysisAction(
+  gameId: string,
+  moves: SubmittedMoveAnalysis[],
+): Promise<GameAnalysisResult | { error: string }> {
+  const user = await getSession();
+  if (!user) return { error: "You must be signed in to save a game analysis." };
+
+  const game = await prisma.game.findUnique({ where: { id: gameId } });
+  if (!game || game.userId !== user.id) return { error: "Game not found." };
+  if (!canAnalyze(game)) return { error: "This game isn't eligible for analysis." };
+
+  const masteryRows = await prisma.userConceptMastery.findMany({ where: { userId: user.id } });
+  const conceptMastery = new Map(masteryRows.map((m) => [m.conceptId, m.status as MasteryStatus]));
+
+  const existing = await prisma.gameAnalysis.findUnique({
+    where: { gameId },
+    include: { moves: { orderBy: { ply: "asc" } } },
+  });
+  const storedMoves: SubmittedMoveAnalysis[] =
+    existing?.moves.map((m) => ({
+      moveNumber: m.moveNumber,
+      color: m.color as "w" | "b",
+      playedMove: m.playedMove,
+      bestMove: m.bestMove,
+      evalBefore: m.evalBefore,
+      evalAfter: m.evalAfter,
+      evalLoss: m.evalLoss,
+      classification: m.classification as MoveAnalysis["classification"],
+      explanation: m.explanation ?? "",
+      conceptIds: m.conceptIds,
+    })) ?? moves;
+
+  if (!existing) {
+    await prisma.gameAnalysis.create({
+      data: {
+        gameId,
+        status: "complete",
+        summary: summarize(moves.map((m) => ({ ...m, recommendedLessonIds: [] }))),
+        moves: {
+          create: moves.map((m, i) => ({
+            ply: i,
+            moveNumber: m.moveNumber,
+            color: m.color,
+            playedMove: m.playedMove,
+            bestMove: m.bestMove,
+            evalBefore: m.evalBefore,
+            evalAfter: m.evalAfter,
+            evalLoss: m.evalLoss,
+            classification: m.classification,
+            conceptIds: m.conceptIds,
+            explanation: m.explanation,
+          })),
+        },
+      },
+    });
+  }
+
+  const enrichedMoves: MoveAnalysis[] = storedMoves.map((m) => ({
+    ...m,
+    recommendedLessonIds: lessonIdsForConcepts(m.conceptIds),
+  }));
+  const recommendedLessonIds = buildStudyPlan(storedMoves, conceptMastery);
+
+  return { moves: enrichedMoves, recommendedLessonIds };
 }

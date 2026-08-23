@@ -29,6 +29,18 @@ export function findPrincipleById(principleId: string): Principle | null {
   return null;
 }
 
+/** Finds a principle by the concept it's built around — the join point docs/concept-taxonomy.md describes between a Play & Learn mistake's conceptId and the SubLesson that teaches it. */
+export function findPrincipleByConceptId(conceptId: string): Principle | null {
+  if (!existsSync(PRINCIPLES_ROOT)) return null;
+  for (const file of readdirSync(PRINCIPLES_ROOT)) {
+    if (!file.endsWith(".json")) continue;
+    const unitId = file.replace(/\.json$/, "");
+    const match = loadUnitPrinciples(unitId).find((p) => p.conceptId === conceptId);
+    if (match) return match;
+  }
+  return null;
+}
+
 /** The principle immediately before this one in the same unit, by `order` — null if this is the first. */
 export function findPreviousPrinciple(principle: Principle): Principle | null {
   const siblings = loadUnitPrinciples(principle.unitId);

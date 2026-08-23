@@ -152,3 +152,17 @@ export function describeMove(_fen: string, move: Move): string {
 export function pieceNameOf(symbol: PieceSymbol): string {
   return PIECE_NAMES[symbol];
 }
+
+/**
+ * Replays a SAN move list from the starting position into a PGN string
+ * (ADR-0008 Phase B: persisting completed Play-mode games). The only
+ * function outside a fresh-position replay this module needs for
+ * serialization — kept here, not in apps/web, since this module is the
+ * only one allowed to import chess.js directly.
+ */
+export function buildPgn(sanMoves: string[], result: "1-0" | "0-1" | "1/2-1/2" | "*" = "*"): string {
+  const game = new Chess();
+  for (const san of sanMoves) game.move(san);
+  game.header("Result", result);
+  return game.pgn();
+}

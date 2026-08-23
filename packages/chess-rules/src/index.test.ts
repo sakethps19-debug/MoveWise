@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildPgn,
   describeMove,
   gameStatus,
   isCheckmateMove,
@@ -120,5 +121,22 @@ describe("parseUci", () => {
 
   it("parses a promotion move", () => {
     expect(parseUci("e7e8q")).toEqual({ from: "e7", to: "e8", promotion: "q" });
+  });
+});
+
+describe("buildPgn", () => {
+  it("replays a SAN move list into a PGN with the Scholar's Mate result", () => {
+    const pgn = buildPgn(["e4", "e5", "Bc4", "Nc6", "Qh5", "Nf6", "Qxf7#"], "1-0");
+    expect(pgn).toContain('[Result "1-0"]');
+    expect(pgn).toContain("1. e4 e5 2. Bc4 Nc6 3. Qh5 Nf6 4. Qxf7#");
+  });
+
+  it("defaults to an unfinished-game result tag", () => {
+    const pgn = buildPgn(["e4"]);
+    expect(pgn).toContain('[Result "*"]');
+  });
+
+  it("throws on an illegal move in the list, same as chess.js itself", () => {
+    expect(() => buildPgn(["e4", "e4"])).toThrow();
   });
 });
