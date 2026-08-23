@@ -56,6 +56,24 @@ mocked network, no mocked chess logic. It covers:
   refresh or replay; progress surviving refresh and re-login; a dev-only
   reset control used to prove state actually clears, not just that a
   success message appears (`dev-tools.spec.ts`, `learning-path.spec.ts`).
+- **Uncaught JS exceptions and real browser console errors** —
+  `e2e/fixtures.ts` wraps `@playwright/test`'s own `test`; every spec
+  imports from it instead of `@playwright/test` directly, and an
+  auto-fixture attaches a `console`/`pageerror` listener to every test's
+  page, failing the test (with the offending message in the assertion
+  text) if anything unexpected fires. The handful of specs that open
+  their own device context (`move-piece-alt-valid.spec.ts`,
+  `tablet-touch-interactions.spec.ts`) call the same exported
+  `watchForConsoleErrors(page)` helper manually, since the auto-fixture
+  only instruments the default `page` fixture. This is a real check, not
+  a formality — a forced `console.error()` reliably fails the test it
+  occurs in (verified by hand before this was trusted); a swallowed
+  exception that still leaves the right DOM/text behind (previously
+  invisible to every assertion in this suite) now fails loudly instead.
+  A pattern proven benign (verified against a real run, not guessed) can
+  be added to `IGNORED_CONSOLE_PATTERNS`/`IGNORED_PAGEERROR_PATTERNS` in
+  that file — kept short and specific on purpose, so a genuinely new
+  error still fails.
 - **Accessibility** — automated `axe-core` checks (WCAG 2.0/2.1 A/AA)
   against the home page (guest and signed-in), auth pages, a lesson
   mid-flow, lesson completion, Play mode, and account settings
@@ -173,6 +191,13 @@ mutate a real learner's data.
 ## Adding new tests
 
 - New spec files go in `apps/web/e2e/`, named `<area>.spec.ts`.
+- Import `test`/`expect` from `./fixtures`, not `@playwright/test`
+  directly — that's what wires up the automatic console/runtime-error
+  guard described above. If the test opens its own
+  `browser.newContext()` rather than using the default `page` fixture,
+  also call `watchForConsoleErrors(page)` (also exported from
+  `./fixtures`) on that page manually — see
+  `tablet-touch-interactions.spec.ts` for the pattern.
 - Prefer real user-facing selectors (`getByRole`, `getByText`) over CSS
   classes; the board itself exposes `aria-label` per square
   (`"e4, white pawn"` etc.) and `data-square` — use those rather than

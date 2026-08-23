@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test("play as White: engine replies to a played move @smoke", async ({ page }) => {
   await page.goto("/play");

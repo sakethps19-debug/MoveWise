@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test("explain, select-square, and true-false steps: click through Welcome to the chessboard, reach the completion screen @smoke", async ({
   page,

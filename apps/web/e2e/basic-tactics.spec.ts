@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test("the knight fork: a check-only trap move is rejected, the real fork is accepted", async ({ page }) => {
   await page.goto("/learn/basic-tactics.01-the-knight-fork");

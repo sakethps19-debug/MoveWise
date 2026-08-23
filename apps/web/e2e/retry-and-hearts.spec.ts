@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test("a wrong answer doesn't permanently block the exercise, and hearts decrement", async ({ page }) => {
   await page.goto("/learn/meet-the-pieces.01-welcome");

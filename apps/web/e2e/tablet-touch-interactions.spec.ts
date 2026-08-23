@@ -1,4 +1,4 @@
-import { test, expect, devices } from "@playwright/test";
+import { test, expect, devices, watchForConsoleErrors } from "./fixtures";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 
@@ -27,6 +27,7 @@ function dbHelper(command: string, args: Record<string, unknown> = {}): string {
 test("iPad landscape touch: Play mode — tap a pawn move and the engine replies", async ({ browser }) => {
   const context = await browser.newContext({ ...devices["iPad (gen 7) landscape"] });
   const page = await context.newPage();
+  const checkConsole = watchForConsoleErrors(page);
 
   await page.goto("/play");
   await expect(page.getByRole("status")).toContainText("Your move", { timeout: 15_000 });
@@ -40,12 +41,14 @@ test("iPad landscape touch: Play mode — tap a pawn move and the engine replies
     .count();
   expect(blackPawnAdvanced, "the engine's reply should have advanced a black pawn onto rank 4-6").toBeGreaterThan(0);
 
+  checkConsole();
   await context.close();
 });
 
 test("mobile touch (iPhone 14): Play mode as Black — board is usable and the engine opens", async ({ browser }) => {
   const context = await browser.newContext({ ...devices["iPhone 14"] });
   const page = await context.newPage();
+  const checkConsole = watchForConsoleErrors(page);
 
   await page.goto("/play");
   await page.getByRole("group", { name: "Choose your side" }).getByRole("button", { name: "Black" }).tap();
@@ -56,6 +59,7 @@ test("mobile touch (iPhone 14): Play mode as Black — board is usable and the e
     .count();
   expect(whitePawnAdvanced, "White's automatic opening move should have advanced a pawn onto rank 3-4").toBeGreaterThan(0);
 
+  checkConsole();
   await context.close();
 });
 
@@ -71,6 +75,7 @@ test("iPad portrait touch: solving a puzzle by tap records real progress", async
 
   const context = await browser.newContext({ ...devices["iPad (gen 7)"] });
   const page = await context.newPage();
+  const checkConsole = watchForConsoleErrors(page);
 
   await page.goto("/login");
   await page.fill("input[name=email]", email);
@@ -93,5 +98,6 @@ test("iPad portrait touch: solving a puzzle by tap records real progress", async
   await page.locator('[aria-label*="h8,"]').tap();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
 
+  checkConsole();
   await context.close();
 });

@@ -1,4 +1,4 @@
-import { test, expect, devices, type Page } from "@playwright/test";
+import { test, expect, devices, watchForConsoleErrors, type Page } from "./fixtures";
 
 /**
  * Regression coverage for a real, confirmed bug: MoveStep.tsx's answer
@@ -150,6 +150,7 @@ test("iPad landscape touch: tapping the rook then tapping a highlighted altValid
 }) => {
   const context = await browser.newContext({ ...devices["iPad (gen 7) landscape"] });
   const page = await context.newPage();
+  const checkConsole = watchForConsoleErrors(page);
   await enterMoveStep(page, "meet-the-pieces.03-meet-the-rook");
 
   await page.locator('[aria-label*="e4,"]').tap();
@@ -158,12 +159,14 @@ test("iPad landscape touch: tapping the rook then tapping a highlighted altValid
   await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
   await expect(page.locator('p[role="alert"]')).toHaveCount(0);
   await expect(page.getByText("♥♥♥♥♥")).toBeVisible();
+  checkConsole();
   await context.close();
 });
 
 test("iPad portrait touch: same altValid tap acceptance", async ({ browser }) => {
   const context = await browser.newContext({ ...devices["iPad (gen 7)"] });
   const page = await context.newPage();
+  const checkConsole = watchForConsoleErrors(page);
   await enterMoveStep(page, "meet-the-pieces.03-meet-the-rook");
 
   await page.locator('[aria-label*="e4,"]').tap();
@@ -171,12 +174,14 @@ test("iPad portrait touch: same altValid tap acceptance", async ({ browser }) =>
 
   await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
   await expect(page.getByText("♥♥♥♥♥")).toBeVisible();
+  checkConsole();
   await context.close();
 });
 
 test("mobile touch viewport: same altValid tap acceptance", async ({ browser }) => {
   const context = await browser.newContext({ ...devices["iPhone 14"] });
   const page = await context.newPage();
+  const checkConsole = watchForConsoleErrors(page);
   await enterMoveStep(page, "meet-the-pieces.03-meet-the-rook");
 
   await page.locator('[aria-label*="e4,"]').tap();
@@ -184,6 +189,7 @@ test("mobile touch viewport: same altValid tap acceptance", async ({ browser }) 
 
   await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
   await expect(page.getByText("♥♥♥♥♥")).toBeVisible();
+  checkConsole();
   await context.close();
 });
 
@@ -192,6 +198,7 @@ test("iPad touch: a diagonal destination is still correctly rejected, not accept
 }) => {
   const context = await browser.newContext({ ...devices["iPad (gen 7) landscape"] });
   const page = await context.newPage();
+  const checkConsole = watchForConsoleErrors(page);
   await enterMoveStep(page, "meet-the-pieces.03-meet-the-rook");
 
   await page.locator('[aria-label*="e4,"]').tap();
@@ -199,6 +206,7 @@ test("iPad touch: a diagonal destination is still correctly rejected, not accept
 
   await expect(page.locator('p[role="alert"]')).toBeVisible();
   await expect(page.getByText("The rook can't move diagonally")).toBeVisible();
+  checkConsole();
   await context.close();
 });
 
