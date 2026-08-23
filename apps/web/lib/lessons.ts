@@ -35,3 +35,18 @@ export function loadLesson(lessonId: string): Lesson | null {
   }
   return null;
 }
+
+/**
+ * Every lesson's title, across every unit — used where a recommendation
+ * might point at any lesson id (Play & Learn's real, engine-driven game
+ * review, ADR-0008 Phase B), not just a fixed, known-in-advance set the
+ * way the old demo-only recommendations were.
+ */
+export function allLessonTitles(): Record<string, string> {
+  return Object.fromEntries(
+    allLessonFiles().map((f) => {
+      const data = JSON.parse(readFileSync(f, "utf-8"));
+      return [data.id, data.title];
+    }),
+  );
+}

@@ -67,6 +67,21 @@ async function main() {
       process.stdout.write(String(count));
       break;
     }
+    case "count-games": {
+      const count = await prisma.game.count({ where: { userId: args.userId } });
+      process.stdout.write(String(count));
+      break;
+    }
+    case "get-latest-game-id": {
+      const game = await prisma.game.findFirst({ where: { userId: args.userId }, orderBy: { playedAt: "desc" } });
+      process.stdout.write(game?.id ?? "");
+      break;
+    }
+    case "count-move-analysis": {
+      const count = await prisma.moveAnalysis.count({ where: { gameAnalysis: { gameId: args.gameId } } });
+      process.stdout.write(String(count));
+      break;
+    }
     case "count-progress": {
       const [completions, mastery, attempts] = await Promise.all([
         prisma.lessonCompletion.count({ where: { userId: args.userId } }),

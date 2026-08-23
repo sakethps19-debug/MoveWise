@@ -165,30 +165,82 @@ two followed the same pattern.
 
 ## Phase B — Play & Learn foundation (ADR-0008)
 
-No longer blocked (Phase A's `Concept` taxonomy now covers all three
-curated units), but not functionally started either — what exists is
-architecture, not analysis: `apps/web/lib/gameAnalysis.ts`'s typed
-`MoveAnalysis`/`GameReview` model (matching `packages/engine`'s existing
-`EngineAnalysis.score` shape) and a clearly-labeled demo UI
-(`GameReviewDemo.tsx`) built from fixed sample data, wired into a real
-"1. Play / 2. Review / 3. Recommendations" hierarchy on the Play & Learn
-page. None of it reads a real game's moves or calls the engine for
-post-game analysis — see that file's own "remaining integration work"
-comment for the concrete list, superseding the bullets below where they
-overlap.
+First slice done, deliberately not the full spec — the ADR's own
+instruction was explicit ("Do not attempt to implement the entire
+personalised analysis system at once"), so this pass builds one real,
+working vertical slice and documents the honest gaps rather than a
+half-finished attempt at everything.
 
-- Persist completed Stockfish games (`Game`, ADR-0008) — Play mode is
-  currently freeform/stateless, this is the first real change to it.
-- Classify every move with the fixed 8-value scale (ADR-0008) —
-  async, cached (`GameAnalysis`), never blocking the request.
-- Identify the 3 most instructive moments per game, map to `Concept`
-  IDs, generate a `StudyPlan` (capped at ~3-4 items, ranked by
-  recency/repetition, not raw mistake count — `docs/concept-
-  taxonomy.md`'s recommendation-ranking section).
-- Allow retrying a critical position (retry move, progressive hint,
-  show best move, link to the relevant `SubLesson`).
-- Fair-play invariant (ADR-0008) implemented and tested before any
-  human-vs-human mode is even scaffolded, not after.
+- ~~Persist completed Stockfish games (`Game`, ADR-0008).~~ **Done** —
+  `Game` (PGN via a new `buildPgn` helper in `packages/chess-rules`,
+  result, `endReason`, `playerColor`) is persisted once a signed-in
+  learner's game ends (`saveCompletedGameAction`). Guests aren't
+  persisted — no session to own the row, same reasoning as
+  `completeLessonAction`.
+- ~~Classify every move with the fixed 8-value scale.~~ **Done**,
+  corrected against the ADR along the way: `lib/gameAnalysis.ts`'s
+  `MoveClassification` type had drifted from ADR-0008's own enum (a
+  `great` value, no `excellent`, no `forced`) since it predated any real
+  classifier to test it against — fixed to the real 8 values as part of
+  building `lib/moveClassification.ts`, a real centipawn-loss-based
+  decision procedure (fixed, documented-as-an-initial-guess thresholds,
+  same honesty as star tiers/ADR-0004) with two real decision points
+  layered on top: `forced` (no real choice existed) and `brilliant` (a
+  zero-loss move that also sacrifices material for a decisive result).
+  ~~Async, cached (`GameAnalysis`).~~ **Cached** (a `GameAnalysis`
+  already existing for a game is returned as-is, the engine never
+  re-runs) **but not async in the originally-specified sense** — this
+  codebase has no background-job infrastructure (no queue, no worker
+  process) to run it on, so analysis runs client-side against the same
+  browser Stockfish Worker Play mode already uses, with real visible
+  per-move progress, then persists via `saveGameAnalysisAction` once
+  finished. An honest substitute for the ADR's server-side async
+  pipeline, not a disguised version of it.
+- ~~Identify the 3 most instructive moments per game, map to `Concept`
+  IDs, generate a `StudyPlan`.~~ **Done, scoped to 3 of
+  `docs/concept-taxonomy.md`'s 8 mapping-table rows**:
+  `lib/conceptDetection.ts` detects `hanging-pieces`, `knight-fork`, and
+  `king-safety-castling` — the ones checkable from a single move's board
+  state alone. The other 5 (`queen-development-timing`,
+  `trade-evaluation`, `back-rank-safety`, `opposition-key-squares`,
+  `candidate-move-routine`) need move-history-pattern analysis, static-
+  exchange sophistication, a real back-rank mate-pattern detector,
+  endgame-specific logic, or clock data this app doesn't track at all —
+  not fabricated with weak heuristics, left honestly undetected.
+  `lib/studyPlanRanking.ts` implements 3 of `docs/concept-taxonomy.md`'s
+  5 ranking rules (never-studied, learned-but-not-transferred, repeated-
+  within-this-game as the inverse of "one-time oversight") capped at 4
+  items; "forgotten concept" (needs `revision-due`, Phase C) and the
+  calculation-vs-time-management distinction (needs clock data) are
+  deferred. Scoped to a single just-finished game — no
+  `RecurringMistakePattern`/cross-game history table exists yet, so
+  "repeated misconception" is approximated as "recurred within this one
+  game," not across a learner's full history.
+- ~~Allow retrying a critical position.~~ **Done, scoped down**:
+  `RetryPositionPanel.tsx` lets a learner replay any `mistake`/`blunder`
+  move's position and attempt the engine's best move, revealing it on
+  request, with a link to the concept's first sub-lesson when one's
+  detected. No progressive-hint ladder (a game position has no authored
+  hints the way a lesson/puzzle does) — "show best move" only, a smaller
+  honest scope than the lesson/puzzle hint system.
+- ~~Fair-play invariant (ADR-0008) implemented and tested before any
+  human-vs-human mode is even scaffolded, not after.~~ **Done**:
+  `Game.analysisAllowed` (defaults `true`) and `lib/gameAnalysis.ts`'s
+  `canAnalyze` are real, and `saveGameAnalysisAction` checks it server-
+  side before ever persisting an analysis — not just trusted to the
+  client. Trivially true for every game this codebase can produce today
+  (Stockfish is the only source), but the field and check exist now, not
+  bolted on once a PvP mode arrives.
+
+**Not done, on purpose**: PGN import (still only real Stockfish games —
+ADR-0008 explicitly scopes Phase B to "no PGN import yet"), a persisted
+`StudyPlan` table for recommendations generated without a specific game
+(ADR-0008 speculates this for a broader system this pass doesn't need),
+and any UI to revisit a *previously*-analyzed game later (no game-
+history list page exists yet — the review only appears inline right
+after the game that was just played, so the "never re-run the engine"
+cache guarantee is real but currently only exercisable within one
+session, not proven against a return visit days later).
 
 ## Phase C — Unified adaptation (ADR-0008)
 

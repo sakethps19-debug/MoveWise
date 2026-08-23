@@ -3,45 +3,51 @@
 import Link from "next/link";
 import type { GameReview, MoveClassification } from "../lib/gameAnalysis";
 import { CLASSIFICATION_LABEL } from "../lib/gameAnalysis";
+import { Button } from "./ui/Button";
 
 const CLASSIFICATION_BADGE_VARIANT: Record<MoveClassification, "success" | "warning" | "error" | "neutral"> = {
   brilliant: "success",
-  great: "success",
   best: "success",
+  excellent: "success",
   good: "neutral",
   inaccuracy: "warning",
   mistake: "warning",
   blunder: "error",
+  forced: "neutral",
 };
 
 /**
- * Phase 6: "build the interface ... for [post-game intelligence], create
- * a clearly labelled mock/demo analysis using deterministic sample data
- * only, do not present mock results as genuine engine analysis." The
- * "DEMO" banner below is not decorative — it's load-bearing: nothing else
- * in this component's copy claims this is analysis of the game the
- * learner just played (see lib/gameAnalysis.ts's buildDemoGameReview doc
- * comment for why the sample data is deliberately NOT derived from their
- * real moves).
+ * Renders a `GameReview` — demo or real, distinguished only by
+ * `review.isDemo` (previously two separate concerns bundled into one
+ * demo-only component, `GameReviewDemo.tsx`, generalized here now that a
+ * real engine-driven review exists too). The "DEMO" banner is load-
+ * bearing, not decorative, when `isDemo` is true — Phase 6's own
+ * instruction: "do not present mock results as genuine engine analysis."
+ * A real review never shows it.
  */
-export function GameReviewDemo({
+export function GameReviewPanel({
   review,
   lessonTitleById,
+  onRetryPosition,
 }: {
   review: GameReview;
   lessonTitleById: Record<string, string>;
+  /** Only offered for a real (non-demo) review — retrying a sample position teaches nothing about the learner's own game. */
+  onRetryPosition?: (moveIndex: number) => void;
 }) {
   return (
     <div className="mw-game-review">
-      <div className="mw-game-review-demo-banner" role="status">
-        <span className="mw-badge mw-badge--warning">DEMO</span>
-        <span>
-          Sample analysis with illustrative data — not a real engine review of the game you just played. See what
-          full game review will look like once it&apos;s built.
-        </span>
-      </div>
+      {review.isDemo && (
+        <div className="mw-game-review-demo-banner" role="status">
+          <span className="mw-badge mw-badge--warning">DEMO</span>
+          <span>
+            Sample analysis with illustrative data — not a real engine review of the game you just played. See what
+            full game review will look like once it&apos;s built.
+          </span>
+        </div>
+      )}
 
-      <h3 className="mw-game-review-heading">2. Review the game (sample)</h3>
+      <h3 className="mw-game-review-heading">2. Review the game{review.isDemo ? " (sample)" : ""}</h3>
       <div className="mw-game-review-table-wrap">
         <table className="mw-game-review-table">
           <thead>
@@ -52,10 +58,11 @@ export function GameReviewDemo({
               <th scope="col">Eval loss</th>
               <th scope="col">Rating</th>
               <th scope="col">Why</th>
+              {onRetryPosition && <th scope="col">Retry</th>}
             </tr>
           </thead>
           <tbody>
-            {review.moves.map((move) => (
+            {review.moves.map((move, index) => (
               <tr key={`${move.moveNumber}-${move.color}`}>
                 <td>
                   {move.moveNumber}
@@ -74,6 +81,16 @@ export function GameReviewDemo({
                   </span>
                 </td>
                 <td className="mw-game-review-explanation">{move.explanation}</td>
+                {onRetryPosition &&
+                  (move.classification === "mistake" || move.classification === "blunder" ? (
+                    <td>
+                      <Button variant="ghost" onClick={() => onRetryPosition(index)}>
+                        Retry
+                      </Button>
+                    </td>
+                  ) : (
+                    <td />
+                  ))}
               </tr>
             ))}
           </tbody>
@@ -82,7 +99,9 @@ export function GameReviewDemo({
 
       <h3 className="mw-game-review-heading">3. Recommended lessons</h3>
       {review.recommendedLessonIds.length === 0 ? (
-        <p className="mw-game-review-empty">No specific recommendations from this sample game.</p>
+        <p className="mw-game-review-empty">
+          {review.isDemo ? "No specific recommendations from this sample game." : "No specific recommendations from this game."}
+        </p>
       ) : (
         <ul className="mw-game-review-recs">
           {review.recommendedLessonIds.map((lessonId) => (

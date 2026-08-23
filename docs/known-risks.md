@@ -39,6 +39,37 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **ADR-0008 Phase B (Play & Learn's real post-game analysis), previously
+  pure architecture with a clearly-labeled demo, now has a real first
+  slice**: a signed-in learner's completed game persists (`Game`, real
+  PGN via a new `packages/chess-rules` `buildPgn` helper), and "Analyze
+  this game" runs a genuine engine-driven review — `lib/moveClassification.ts`
+  (the real 8-value classification scale, corrected from a stale 7-value
+  version that had drifted from ADR-0008's own enum), `lib/conceptDetection.ts`
+  (3 of `docs/concept-taxonomy.md`'s 8 mistake-mapping rows: hanging
+  pieces, missed knight forks, king left in the centre — the ones
+  checkable from board state alone), `lib/studyPlanRanking.ts` (a capped,
+  ranked recommendation list), and `RetryPositionPanel.tsx` (replay an
+  instructive position, attempt the engine's best move, reveal it on
+  request). No background-job infrastructure exists in this codebase (no
+  queue, no worker process) — analysis runs client-side against the same
+  browser Stockfish Worker Play mode already uses, with real per-move
+  progress, an honest substitute for ADR-0008's originally-specified
+  server-side async pipeline, not a disguised version of it. The fair-
+  play invariant (`Game.analysisAllowed`, `canAnalyze`) is real and
+  checked server-side before any analysis is persisted, even though only
+  one game source (Stockfish) exists today to exercise it. Guests still
+  see the labeled demo only — real analysis needs a signed-in session to
+  own the persisted `Game` row. Deliberately incomplete, matching
+  ADR-0008's own explicit instruction not to build the entire
+  personalised-analysis system in one pass: 5 of the taxonomy's 8
+  mistake detectors are undetected (need move-history-pattern analysis,
+  static-exchange sophistication, a back-rank mate-pattern detector,
+  endgame logic, or clock data this app doesn't track — not faked with
+  weak heuristics), recommendation ranking is scoped to a single game
+  (no cross-game `RecurringMistakePattern` table exists), and there's no
+  PGN import or game-history revisit page yet. See `docs/roadmap.md`'s
+  Phase B entry for the full breakdown.
 - **The `Practice` aggregation page ADR-0008 describes, previously unbuilt
   beyond a single principle's pool (`/practice/[principleId]`), now
   real**: `/practice` (`components/PracticeHub.tsx`) lists every unit's
