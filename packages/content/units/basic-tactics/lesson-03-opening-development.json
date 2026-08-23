@@ -1,0 +1,56 @@
+{
+  "id": "basic-tactics.03-opening-development",
+  "version": 1,
+  "unitId": "basic-tactics",
+  "title": "Develop your minor pieces first",
+  "objectives": [
+    "Understand why an early queen sortie is risky",
+    "Choose a solid developing move over a flashy queen move"
+  ],
+  "prerequisites": ["basic-tactics.02-hanging-pieces"],
+  "xpReward": 15,
+  "masteryTags": ["queen-development-timing"],
+  "difficulty": 2,
+  "estimatedDurationSec": 150,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "Moving your queen out early looks aggressive, but it's usually premature. Minor pieces — knights and bishops — can attack the queen for free, forcing it to retreat and costing you tempo while your opponent develops. Bring your knights and bishops out first; the queen joins the game later, once it has support.",
+      "boardFen": "rnbqkbnr/pppp1ppp/8/4p2Q/4P3/8/PPPP1PPP/RNB1KBNR b KQkq - 1 2",
+      "highlights": ["h5", "g8"]
+    },
+    {
+      "id": "step-2",
+      "type": "mcq",
+      "prompt": "It's early in the game. Which is the stronger opening priority?",
+      "options": [
+        "Bring the queen out to attack right away",
+        "Develop your knights and bishops first",
+        "Move the same pawn twice in a row",
+        "Castle before developing any pieces"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "An early queen move usually just gets chased around by minor pieces. Developing knights and bishops first is the stronger, more reliable plan."
+      },
+      "successExplanation": "Right — developing your knights and bishops first gets your whole army into the game before the queen becomes a target."
+    },
+    {
+      "id": "step-3",
+      "type": "true-false",
+      "prompt": "True or false: an early queen move is always a losing blunder.",
+      "correct": false,
+      "feedback": {
+        "default": "Not always — but without support from your other pieces, an early queen is usually just a target. It's rarely a game-losing blunder by itself, just an inefficient use of your first few moves."
+      },
+      "successExplanation": "False — it's not automatically losing, just usually inefficient: you spend moves retreating instead of developing."
+    },
+    {
+      "id": "step-4",
+      "type": "review",
+      "summary": "Develop your minor pieces before your queen — a queen without support just gets chased around, wasting the moves your opponent uses to develop."
+    }
+  ],
+  "principleId": "basic-tactics.opening-development"
+}

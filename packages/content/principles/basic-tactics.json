@@ -7,5 +7,23 @@
     "order": 0,
     "subLessonIds": ["basic-tactics.01-the-knight-fork"],
     "puzzleIds": ["basic-tactics.puzzle-knight-fork-1", "basic-tactics.puzzle-knight-fork-2"]
+  },
+  {
+    "id": "basic-tactics.hanging-pieces",
+    "unitId": "basic-tactics",
+    "title": "Hanging pieces",
+    "conceptId": "hanging-pieces",
+    "order": 1,
+    "subLessonIds": ["basic-tactics.02-hanging-pieces"],
+    "puzzleIds": ["basic-tactics.puzzle-hanging-1", "basic-tactics.puzzle-hanging-2"]
+  },
+  {
+    "id": "basic-tactics.opening-development",
+    "unitId": "basic-tactics",
+    "title": "Develop your minor pieces first",
+    "conceptId": "queen-development-timing",
+    "order": 2,
+    "subLessonIds": ["basic-tactics.03-opening-development"],
+    "puzzleIds": ["basic-tactics.puzzle-opening-development-1", "basic-tactics.puzzle-opening-development-2"]
   }
 ]

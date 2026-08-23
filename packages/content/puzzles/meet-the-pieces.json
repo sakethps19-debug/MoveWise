@@ -166,5 +166,29 @@
       "default": "Pawns move straight ahead but capture diagonally — one square forward-left or forward-right, only onto a square with an enemy piece. Which diagonal has the black pawn?"
     },
     "successExplanation": "exd4 captures diagonally — pawns can only capture on the diagonal squares ahead of them, never straight ahead."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-castling-1",
+    "conceptIds": ["king-safety-castling"],
+    "fen": "4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+    "prompt": "Castle kingside to get your king to safety.",
+    "correctMoves": ["e1g1"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That's not castling kingside — move your king two squares toward the h-file rook."
+    },
+    "successExplanation": "O-O gets the king to safety and brings the rook to f1, both in one move."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-castling-2",
+    "conceptIds": ["king-safety-castling"],
+    "fen": "4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+    "prompt": "This time, castle queenside instead.",
+    "correctMoves": ["e1c1"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That's not queenside castling — move your king two squares toward the a-file rook."
+    },
+    "successExplanation": "O-O-O — the king slides two squares toward the a-file rook, which hops over to d1."
   }
 ]

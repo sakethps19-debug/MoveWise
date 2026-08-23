@@ -67,6 +67,12 @@
     "unitId": "meet-the-pieces"
   },
   {
+    "id": "king-safety-castling",
+    "name": "King safety and castling",
+    "description": "Recognizing that a king left in the centre is exposed, and using castling to bring it to safety while activating a rook.",
+    "unitId": "meet-the-pieces"
+  },
+  {
     "id": "check",
     "name": "Check",
     "description": "Recognizing when a king is under direct attack and must escape immediately.",
@@ -102,6 +108,20 @@
     "name": "Knight forks",
     "description": "A fork delivered by a knight, exploiting its L-shaped jump to attack two unrelated squares from one spot.",
     "parentId": "fork",
+    "unitId": "basic-tactics"
+  },
+  {
+    "id": "hanging-pieces",
+    "name": "Hanging pieces",
+    "description": "A piece that's attacked and has no defender \u2014 free material for whoever notices first.",
+    "parentId": "tactics",
+    "unitId": "basic-tactics"
+  },
+  {
+    "id": "queen-development-timing",
+    "name": "Opening development: minor pieces before the queen",
+    "description": "Bringing knights and bishops out before the queen, so an early queen move isn't just chased around and loses tempo.",
+    "parentId": "tactics",
     "unitId": "basic-tactics"
   },
   {

@@ -207,11 +207,13 @@ half-finished attempt at everything.
   `candidate-move-routine`) need static-exchange sophistication, a real
   back-rank mate-pattern detector, endgame-specific logic, or clock data
   this app doesn't track at all — not fabricated with weak heuristics,
-  left honestly undetected. `queen-development-timing` and
-  `hanging-pieces`/`king-safety-castling` also have no matching authored
-  `Concept`/`Principle` content yet — the detector still tags the raw
-  `MoveAnalysis` row truthfully, `lib/studyPlan.ts`'s lesson lookup just
-  has nothing to recommend for it until that content exists.
+  left honestly undetected. All 4 detected concepts now have matching
+  authored `Concept`/`Principle` content: `hanging-pieces` and
+  `queen-development-timing` (`basic-tactics.02-hanging-pieces`,
+  `basic-tactics.03-opening-development`) and `king-safety-castling`
+  (`meet-the-pieces.13-king-safety-and-castling`) — closing the gap
+  where `lib/studyPlan.ts`'s lesson lookup had nothing to recommend for
+  a real, detected mistake.
   `lib/studyPlanRanking.ts` implements 3 of `docs/concept-taxonomy.md`'s
   5 ranking rules (never-studied, learned-but-not-transferred, repeated-
   within-this-game as the inverse of "one-time oversight") capped at 4
