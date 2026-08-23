@@ -214,15 +214,20 @@ half-finished attempt at everything.
   The remaining 2 (`opposition-key-squares`, `candidate-move-routine`)
   need endgame-specific logic or clock data this app doesn't track at
   all — not fabricated with weak heuristics, left honestly undetected.
-  4 of the 6 detected concepts have matching authored
+  All 6 detected concepts now have matching authored
   `Concept`/`Principle` content: `hanging-pieces` and
   `queen-development-timing` (`basic-tactics.02-hanging-pieces`,
-  `basic-tactics.03-opening-development`) and `king-safety-castling`
-  (`meet-the-pieces.13-king-safety-and-castling`) — closing the gap
-  where `lib/studyPlan.ts`'s lesson lookup had nothing to recommend for
-  a real, detected mistake. `back-rank-safety` and `trade-evaluation`
-  don't yet — same honest gap the other 3 had before their content was
-  authored.
+  `basic-tactics.03-opening-development`), `king-safety-castling`
+  (`meet-the-pieces.13-king-safety-and-castling`), `back-rank-safety`
+  (`check-and-checkmate.04-back-rank-safety`), and `trade-evaluation`
+  (`basic-tactics.04-is-this-trade-worth-it`) — closing the gap where
+  `lib/studyPlan.ts`'s lesson lookup had nothing to recommend for a
+  real, detected mistake. Both new lessons' interactive positions and
+  puzzle answer sets were hand-verified against chess.js directly (not
+  just chess-legal — confirmed to actually demonstrate the taught idea:
+  the back-rank position's mate-in-1 threat and every listed "create
+  luft" pawn push that defuses it, the trade-evaluation position's
+  defended-vs-undefended capture pair) before being written as content.
   `lib/studyPlanRanking.ts` implements 3 of `docs/concept-taxonomy.md`'s
   5 ranking rules (never-studied, learned-but-not-transferred, repeated-
   within-this-game as the inverse of "one-time oversight") capped at 4

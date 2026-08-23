@@ -34,6 +34,25 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **All 6 of `lib/conceptDetection.ts`'s detected concepts now have
+  matching lesson content.** `back-rank-safety` and `trade-evaluation`
+  were the last 2 gaps (see the two entries below this one) — added
+  `check-and-checkmate.04-back-rank-safety` and `basic-tactics.04-is-
+  this-trade-worth-it`, each with its own `Principle` (`conceptId`
+  matching the detector's tag), 2 puzzles, and a `Concept` entry. Same
+  care as the earlier 3 lessons: every interactive position and puzzle
+  answer set was verified directly against chess.js before being
+  written as content, not just checked for chess-legality — confirming
+  the back-rank position's mate-in-1 threat is real and every listed
+  "create luft" pawn push actually defuses it, and confirming the
+  trade-evaluation position's two captures really are one defended
+  (bad) and one undefended (good) target. `back-rank-safety`'s lesson
+  sits after the existing 3-lesson `check-and-checkmate` unit;
+  `trade-evaluation`'s sits after the existing 3-lesson `basic-tactics`
+  unit — neither renumbers or touches an existing lesson id,
+  prerequisite chain, or `order`. No app code changes were needed —
+  same as the earlier 3 lessons, `lib/principles.ts`/`LearningPath.tsx`
+  are already data-driven off file presence.
 - **`.github/workflows/ci.yml` didn't run `pnpm lint`.** The command
   itself was already runnable (this was the "resolved this session" —
   now several sessions ago — item this note used to point at), but the

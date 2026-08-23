@@ -70,5 +70,29 @@
       "default": "There's no piece that can capture the rook or block its file from here — the king has to step off the e-file itself. Try moving to d2."
     },
     "successExplanation": "Kd2 steps off the e-file, out of the rook's line of attack — when capture and block aren't options, moving the king is the response left."
+  },
+  {
+    "id": "check-and-checkmate.puzzle-back-rank-1",
+    "conceptIds": ["back-rank-safety"],
+    "fen": "4r1k1/5ppp/8/3R4/8/8/5PPP/6K1 w - - 0 1",
+    "prompt": "White's king has no escape square — create luft before Black plays ...Re1#.",
+    "correctMoves": ["h2h3", "h2h4", "g2g3", "g2g4", "f2f3", "f2f4"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't give the king anywhere to go. Move a kingside pawn to open an escape square."
+    },
+    "successExplanation": "Any of these pawn pushes creates luft — now a rook or queen reaching the back rank is check, not checkmate."
+  },
+  {
+    "id": "check-and-checkmate.puzzle-back-rank-2",
+    "conceptIds": ["back-rank-safety"],
+    "fen": "6k1/5ppp/8/3r4/8/8/5PPP/4R1K1 b - - 0 1",
+    "prompt": "Black's king has no escape square — create luft before White plays Re8#.",
+    "correctMoves": ["h7h6", "h7h5", "g7g6", "g7g5", "f7f6", "f7f5"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't give the king anywhere to go. Move a kingside pawn to open an escape square."
+    },
+    "successExplanation": "Any of these pawn pushes creates luft — now a rook or queen reaching the back rank is check, not checkmate."
   }
 ]

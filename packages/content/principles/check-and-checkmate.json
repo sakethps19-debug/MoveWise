@@ -25,5 +25,14 @@
     "order": 2,
     "subLessonIds": ["check-and-checkmate.03-thinking-under-check"],
     "puzzleIds": ["check-and-checkmate.puzzle-decision-1", "check-and-checkmate.puzzle-decision-2"]
+  },
+  {
+    "id": "check-and-checkmate.back-rank-safety",
+    "unitId": "check-and-checkmate",
+    "title": "Back-rank safety",
+    "conceptId": "back-rank-safety",
+    "order": 3,
+    "subLessonIds": ["check-and-checkmate.04-back-rank-safety"],
+    "puzzleIds": ["check-and-checkmate.puzzle-back-rank-1", "check-and-checkmate.puzzle-back-rank-2"]
   }
 ]

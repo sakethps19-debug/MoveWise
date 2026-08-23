@@ -1,0 +1,63 @@
+{
+  "id": "basic-tactics.04-is-this-trade-worth-it",
+  "version": 1,
+  "unitId": "basic-tactics",
+  "title": "Is this trade worth it?",
+  "objectives": [
+    "Count what a capture actually wins before playing it",
+    "Recognize when a tempting capture is really a losing trade"
+  ],
+  "prerequisites": ["basic-tactics.03-opening-development"],
+  "xpReward": 15,
+  "masteryTags": ["trade-evaluation"],
+  "difficulty": 2,
+  "estimatedDurationSec": 150,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "Not every capture wins material. Before you take a piece, count: what do you win, and what can they win back? If the exchange loses you more than it gains, it's a bad trade — even though the move itself is perfectly legal.",
+      "boardFen": "4k3/8/8/4p3/3p2n1/8/8/3QK3 w - - 0 1",
+      "highlights": ["d4", "g4"]
+    },
+    {
+      "id": "step-2",
+      "type": "capture",
+      "prompt": "Your queen can capture on d4 or g4. Only one of these actually wins material — play that one.",
+      "fen": "4k3/8/8/4p3/3p2n1/8/8/3QK3 w - - 0 1",
+      "expectedMoves": ["d1g4"],
+      "hints": [
+        { "level": 1, "text": "One of the two captures is defended, and one isn't. Check both before choosing." },
+        { "level": 2, "text": "The pawn on d4 is defended by the pawn on e5 — capturing it just loses your queen.", "highlightSquares": ["d4", "e5"] },
+        { "level": 3, "text": "Capture the undefended knight instead.", "arrowFrom": "d1", "arrowTo": "g4" },
+        { "level": 4, "text": "Qxg4 wins the knight for free — nothing defends g4." }
+      ],
+      "feedback": {
+        "default": "That capture doesn't win material. Count what defends each target before you take it — one of these two is a trap."
+      },
+      "successExplanation": "Qxg4 wins the knight for free — nothing defends g4. Qxd4 would have lost the queen for a single pawn, since the pawn on e5 recaptures immediately."
+    },
+    {
+      "id": "step-3",
+      "type": "mcq",
+      "prompt": "Your bishop (worth about 3 points) attacks an enemy knight (also worth about 3) that's defended by a pawn. What actually happens if you capture it?",
+      "options": [
+        "You win a knight for free",
+        "You trade your bishop for their knight — roughly even material",
+        "You lose your bishop for nothing",
+        "The capture isn't legal"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "That's not what a defended, equal-value capture produces. Work out what happens after the recapture: you gain the knight, then lose the bishop."
+      },
+      "successExplanation": "Right — you win the knight, they recapture with the pawn and win your bishop back. Roughly equal value changed hands; it's a trade, not a win."
+    },
+    {
+      "id": "step-4",
+      "type": "review",
+      "summary": "Before capturing, count what you actually get and what you can lose back. A capture that starts an even or losing exchange isn't automatically good — look for the target that's genuinely undefended, or worth more than what you're giving up."
+    }
+  ],
+  "principleId": "basic-tactics.trade-evaluation"
+}

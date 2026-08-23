@@ -25,5 +25,14 @@
     "order": 2,
     "subLessonIds": ["basic-tactics.03-opening-development"],
     "puzzleIds": ["basic-tactics.puzzle-opening-development-1", "basic-tactics.puzzle-opening-development-2"]
+  },
+  {
+    "id": "basic-tactics.trade-evaluation",
+    "unitId": "basic-tactics",
+    "title": "Is this trade worth it?",
+    "conceptId": "trade-evaluation",
+    "order": 3,
+    "subLessonIds": ["basic-tactics.04-is-this-trade-worth-it"],
+    "puzzleIds": ["basic-tactics.puzzle-trade-evaluation-1", "basic-tactics.puzzle-trade-evaluation-2"]
   }
 ]

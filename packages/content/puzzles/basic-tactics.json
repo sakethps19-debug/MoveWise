@@ -70,5 +70,29 @@
       "default": "That's not developing the bishop. Bring it out to an active diagonal before the queen enters the game."
     },
     "successExplanation": "Bc4 develops the bishop onto an active diagonal, eyeing f7 — a much sounder plan than an early queen move."
+  },
+  {
+    "id": "basic-tactics.puzzle-trade-evaluation-1",
+    "conceptIds": ["trade-evaluation"],
+    "fen": "4k3/8/8/4p3/3p2n1/8/8/3QK3 w - - 0 1",
+    "prompt": "Two captures are available. Play the one that actually wins material.",
+    "correctMoves": ["d1g4"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That capture doesn't win material. Count what defends each target before you take it — one of these two is a trap."
+    },
+    "successExplanation": "Qxg4 wins the knight for free — nothing defends g4. Qxd4 would have lost the queen for a single pawn, since the pawn on e5 recaptures immediately."
+  },
+  {
+    "id": "basic-tactics.puzzle-trade-evaluation-2",
+    "conceptIds": ["trade-evaluation"],
+    "fen": "4k3/8/8/8/1p3n2/p7/8/2B1K3 w - - 0 1",
+    "prompt": "Your bishop can capture on a3 or f4. Only one of these is actually a good trade.",
+    "correctMoves": ["c1f4"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That capture loses material once the recapture happens. Check which target is defended before choosing."
+    },
+    "successExplanation": "Bxf4 wins the knight for free — nothing defends f4. Bxa3 would have lost the bishop for a single pawn, since the pawn on b4 recaptures immediately."
   }
 ]
