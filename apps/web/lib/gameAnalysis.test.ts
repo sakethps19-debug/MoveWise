@@ -25,6 +25,7 @@ describe("explanationFor", () => {
     expect(explanationFor("blunder", ["knight-fork"])).toMatch(/fork/);
     expect(explanationFor("mistake", ["king-safety-castling"])).toMatch(/king is still in the centre/);
     expect(explanationFor("mistake", ["queen-development-timing"])).toMatch(/queen out this early/);
+    expect(explanationFor("blunder", ["back-rank-safety"])).toMatch(/back-rank checkmate/);
   });
 
   it("falls back to generic classification text when no concept was detected", () => {

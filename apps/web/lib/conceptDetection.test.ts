@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { legalMoves, tryMove, type Move } from "@movewise/chess-rules";
 import {
+  detectBackRankVulnerability,
   detectConcepts,
   detectHangingPiece,
   detectKingLeftInCenter,
@@ -89,6 +90,34 @@ describe("detectPrematureQueenDevelopment", () => {
     const fenAfter = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/R2QK2R w KQkq - 0 1";
     const queenMove = { piece: "q" } as Move;
     expect(detectPrematureQueenDevelopment(queenMove, fenAfter, "w", 5)).toBe(false);
+  });
+});
+
+describe("detectBackRankVulnerability", () => {
+  // Black king boxed in on g8 by its own f7/g7/h7 pawns, White to move —
+  // Re8# is a real, verified legal move here (checked directly below),
+  // not assumed from the diagram.
+  const BOXED_IN_FEN = "6k1/5ppp/8/8/8/8/8/4R2K w - - 0 1";
+
+  it("flags a real, verified back-rank mate-in-1 available to the opponent", () => {
+    expect(legalMoves(BOXED_IN_FEN).some((m) => m.san === "Re8#")).toBe(true);
+    expect(detectBackRankVulnerability(BOXED_IN_FEN, "b")).toBe(true);
+  });
+
+  it("does not flag the same shape once the king has an escape square (luft)", () => {
+    const withLuft = "6k1/5p1p/6p1/8/8/8/8/4R2K w - - 0 1";
+    expect(detectBackRankVulnerability(withLuft, "b")).toBe(false);
+  });
+
+  it("does not flag a normal opening position", () => {
+    const startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    expect(detectBackRankVulnerability(startFen, "b")).toBe(false);
+  });
+
+  it("does not flag when the mate is available against the other side's back rank", () => {
+    // Same boxed-in shape, but checked against White's own back rank
+    // (rank 1) — the available mate is on rank 8, so this must not fire.
+    expect(detectBackRankVulnerability(BOXED_IN_FEN, "w")).toBe(false);
   });
 });
 

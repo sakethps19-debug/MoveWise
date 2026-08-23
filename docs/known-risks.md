@@ -39,6 +39,21 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **A 5th concept-taxonomy mapping row, `back-rank-safety`, previously
+  undetected**: `lib/conceptDetection.ts`'s `detectBackRankVulnerability`
+  tags a `mistake`/`blunder` where the opponent has a real, engine-
+  verified back-rank checkmate available in one move — using chess.js's
+  own SAN mate notation on its actual legal-move generation, not a
+  fabricated "king behind pawns" shape heuristic (a shape-only check
+  would misfire on nearly every ordinary castled position, since a
+  normal pawn shield is common and not itself a mistake). Deliberately
+  conservative: only fires on a genuinely available mate-in-1 along the
+  back rank, so it stays truthful rather than over-flagging. Like
+  `hanging-pieces`/`king-safety-castling`/`queen-development-timing`
+  before their content shipped, `back-rank-safety` has no matching
+  authored `Concept`/`Principle` content yet — the detector still tags
+  the row truthfully; `lib/studyPlan.ts`'s lesson lookup just has
+  nothing to recommend until that content exists.
 - **All 4 of `lib/conceptDetection.ts`'s detected concepts now have
   matching lesson content.** `hanging-pieces`, `king-safety-castling`,
   and `queen-development-timing` previously had no authored
