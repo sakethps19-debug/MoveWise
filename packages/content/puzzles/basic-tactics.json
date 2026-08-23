@@ -1,0 +1,26 @@
+[
+  {
+    "id": "basic-tactics.puzzle-knight-fork-1",
+    "conceptIds": ["knight-fork", "fork"],
+    "fen": "8/8/2r3k1/8/2N5/8/8/K7 w - - 0 1",
+    "prompt": "Move the knight to fork the black king and the rook.",
+    "correctMoves": ["c4e5"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That's a legal knight move, but it doesn't attack both the king and the rook. Look for the square where the knight's L-shape lines up with both pieces at once."
+    },
+    "successExplanation": "Ne5 forks the king on g6 (check!) and the rook on c6 at the same time — the rook falls next move."
+  },
+  {
+    "id": "basic-tactics.puzzle-knight-fork-2",
+    "conceptIds": ["knight-fork", "fork"],
+    "fen": "8/2q1k3/8/8/5N2/8/8/K7 w - - 0 1",
+    "prompt": "Move the knight to fork the black king and the queen, not just give check.",
+    "correctMoves": ["f4d5"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "A knight move that only checks the king isn't the goal here — you're looking for the square that attacks the king AND the queen at the same time."
+    },
+    "successExplanation": "Nd5 forks the king on e7 and the queen on c7 — a much bigger prize than a plain check."
+  }
+]

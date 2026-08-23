@@ -1,4 +1,6 @@
 import { test, expect } from "@playwright/test";
+import { execFileSync } from "node:child_process";
+import path from "node:path";
 
 /**
  * ADR-0008's Puzzle pool, end to end: a principle's practice puzzles
@@ -8,6 +10,15 @@ import { test, expect } from "@playwright/test";
  * before its sub-lessons are finished — mirroring the lesson-gating
  * coverage in progression-guard.spec.ts / cross-unit-progression.spec.ts.
  */
+
+const DB_HELPER = path.join(__dirname, "db-helper.mjs");
+
+function dbHelper(command: string, args: Record<string, unknown> = {}): string {
+  return execFileSync("node", [DB_HELPER, command, JSON.stringify(args)], {
+    cwd: path.join(__dirname, ".."),
+    encoding: "utf-8",
+  });
+}
 
 async function completeBoardBasicsPrinciple(page: import("@playwright/test").Page) {
   await page.goto("/learn/meet-the-pieces.01-welcome");
@@ -111,4 +122,38 @@ test("completing a principle's sub-lessons unlocks its puzzle pool, and solving 
   // The pool stays reachable afterward — practice is repeatable, not a
   // one-shot gate like a lesson's prerequisite chain.
   await expect(page.getByRole("link", { name: /Practice puzzles/ })).toBeVisible();
+
+  // The pattern generalizes beyond meet-the-pieces, on this same signed-in
+  // account (not a fresh signup — signupAction is rate-limited to
+  // 20/hour per IP, lib/rate-limit.ts, a real security feature shared
+  // with the rest of this suite's own signup-based tests, so this file
+  // keeps its total signups to the two above). check-and-checkmate and
+  // basic-tactics' own lesson content is already exercised elsewhere
+  // (lessons.spec.ts, exercise-types.spec.ts, basic-tactics.spec.ts,
+  // cross-unit-progression.spec.ts) — seeding the one completed lesson
+  // each principle needs (rather than re-driving them through the UI)
+  // is enough to prove their puzzle pools gate and solve correctly too,
+  // including for a principle with a single sub-lesson (unlike
+  // board-basics' two).
+  const userId = dbHelper("get-user-id", { email });
+  dbHelper("seed-completions", {
+    userId,
+    lessonIds: ["check-and-checkmate.01-what-is-check", "basic-tactics.01-the-knight-fork"],
+  });
+
+  // check-and-checkmate.recognizing-check: rook h1 -> h8 delivers check.
+  await page.goto("/practice/check-and-checkmate.recognizing-check");
+  await expect(page.getByText("Puzzle 1/2")).toBeVisible();
+  await page.locator('[aria-label*="h1,"]').click();
+  await page.locator('[aria-label*="h8,"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+  await expect(page.getByText(/clear line/)).toBeVisible();
+
+  // basic-tactics.the-knight-fork: knight c4 -> e5 forks the king and rook.
+  await page.goto("/practice/basic-tactics.the-knight-fork");
+  await expect(page.getByText("Puzzle 1/2")).toBeVisible();
+  await page.locator('[aria-label*="c4,"]').click();
+  await page.locator('[aria-label*="e5,"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+  await expect(page.getByText(/forks the king/)).toBeVisible();
 });
