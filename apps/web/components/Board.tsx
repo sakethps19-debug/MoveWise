@@ -138,6 +138,7 @@ export function Board({
                 <button
                   type="button"
                   key={square}
+                  data-square={square}
                   role="gridcell"
                   aria-label={label}
                   aria-selected={isSelected}
@@ -200,8 +201,12 @@ export function Board({
                       className="mw-chess-piece"
                     />
                   )}
-                  {isLegal && !piece && <span aria-hidden="true" className="mw-chess-legal-dot" />}
-                  {isLegal && piece && <span aria-hidden="true" className="mw-chess-capture-ring" />}
+                  {isLegal && !piece && (
+                    <span aria-hidden="true" className="mw-chess-legal-dot" style={{ pointerEvents: "none" }} />
+                  )}
+                  {isLegal && piece && (
+                    <span aria-hidden="true" className="mw-chess-capture-ring" style={{ pointerEvents: "none" }} />
+                  )}
                 </button>
               );
             })}

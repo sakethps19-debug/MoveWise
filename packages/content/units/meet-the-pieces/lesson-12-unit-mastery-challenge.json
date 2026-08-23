@@ -64,6 +64,7 @@
         "b5h5",
         "b5b8"
       ],
+      "acceptAnyLegalMove": true,
       "hints": [
         {
           "level": 1,
@@ -183,6 +184,7 @@
         "c5d5",
         "c5d6"
       ],
+      "acceptAnyLegalMove": true,
       "hints": [
         {
           "level": 1,

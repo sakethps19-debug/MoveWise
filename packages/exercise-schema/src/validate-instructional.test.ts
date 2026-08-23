@@ -74,6 +74,7 @@ describe("validateInstructionalQuality", () => {
           fen: "8/8/8/8/8/8/8/8 w - - 0 1",
           expectedMoves: ["e4d4"],
           altValid: [],
+          acceptAnyLegalMove: false,
           hints: [],
           feedback: {},
         },

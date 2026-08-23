@@ -39,6 +39,39 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **Real, user-reported defect: `move-piece` steps rejected several of
+  their own board's highlighted-as-legal destinations.** Root cause was
+  two-fold, both in `components/exercises/MoveStep.tsx`: (1) the step
+  schema's `altValid` field (documented since `docs/movewise-phase0-plan.md`,
+  chess-legality-checked by `validate-chess.ts`, and listed as covered in
+  `docs/testing-strategy.md`'s own coverage table) was never actually read
+  by the answer-validation code — only `expectedMoves` was, so every
+  alternate correct destination a lesson authored (e.g. "Meet the rook"
+  step-2's `a4`/`h4`/`e1`) was silently marked wrong; (2) for steps whose
+  own prompt asks for *any* legal destination in a direction (not a
+  specific target like a capture), a hand-authored `expectedMoves`/
+  `altValid` list can never stay complete — every intermediate square
+  along the same rank/file/diagonal was highlighted green as legal but
+  had no way to be marked correct. Fixed by (1) actually reading
+  `altValid`, and (2) a new `acceptAnyLegalMove` flag on `MovePieceStep`
+  (`packages/exercise-schema`) that, when set, accepts any chess-legal
+  move of the piece — set on the 8 steps whose prompts are genuinely
+  "any direction" (rook/bishop/queen/king/knight/pawn's "meet the piece"
+  steps plus the unit mastery challenge's rook/king steps), left unset on
+  steps with a specific target (e.g. "capture the pawn blocking its
+  path") where a legal-but-wrong move must still be rejected.
+  `e2e/move-piece-alt-valid.spec.ts` covers every affected piece type
+  (desktop, iPad landscape/portrait, mobile touch) plus a regression
+  safeguard asserting every `expectedMoves`/`altValid` destination is
+  among the board's own highlighted-legal set. A second, related defect
+  in the same report — the board never visually reflected a correct move
+  (the piece stayed rendered on its starting square) — is also fixed:
+  `MoveStep` now tracks the position actually reached, not just
+  `step.fen`, and `Board.tsx` gained a `data-square` identifier per
+  square for reliable testing. Also fixed: the Play & Learn demo review's
+  `Qxf7#??` was classified `brilliant` while its own SAN annotation used
+  `??` (conventionally "blunder") — a real, confusing self-contradiction;
+  corrected to `Qxf7#`.
 - **A 4th concept-taxonomy mapping row, `queen-development-timing`,
   previously undetected**: `lib/conceptDetection.ts`'s
   `detectPrematureQueenDevelopment` tags a `mistake`/`blunder` where the

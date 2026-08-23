@@ -50,6 +50,7 @@
         "e4f4",
         "e4f5"
       ],
+      "acceptAnyLegalMove": true,
       "hints": [
         {
           "level": 1,
