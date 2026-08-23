@@ -31,14 +31,15 @@ rather than repeating it.
   `docs/testing-strategy.md`'s coverage table).
 - **Star tiers (0/1-2/3+ mistakes) are an initial guess**, not user-tested
   — see ADR-0004.
-- **`.github/workflows/ci.yml` still doesn't run `pnpm lint`** — it now
-  can (see "Resolved this session" below), but the workflow file itself
-  wasn't updated to add a lint step, since that's a CI-configuration
-  decision distinct from making the command runnable at all, and
-  wasn't asked for.
 
 ## Resolved this session, kept here for the record
 
+- **`.github/workflows/ci.yml` didn't run `pnpm lint`.** The command
+  itself was already runnable (this was the "resolved this session" —
+  now several sessions ago — item this note used to point at), but the
+  workflow file was never updated to add the step, so nothing stopped a
+  lint regression from merging. Added `pnpm lint` to the `verify` job,
+  right after `pnpm typecheck` and before `pnpm test`.
 - **A 5th concept-taxonomy mapping row, `back-rank-safety`, previously
   undetected**: `lib/conceptDetection.ts`'s `detectBackRankVulnerability`
   tags a `mistake`/`blunder` where the opponent has a real, engine-
