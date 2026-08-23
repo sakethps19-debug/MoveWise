@@ -197,28 +197,32 @@ half-finished attempt at everything.
   finished. An honest substitute for the ADR's server-side async
   pipeline, not a disguised version of it.
 - ~~Identify the 3 most instructive moments per game, map to `Concept`
-  IDs, generate a `StudyPlan`.~~ **Done, scoped to 5 of
+  IDs, generate a `StudyPlan`.~~ **Done, scoped to 6 of
   `docs/concept-taxonomy.md`'s 8 mapping-table rows**:
   `lib/conceptDetection.ts` detects `hanging-pieces`, `knight-fork`,
-  `king-safety-castling`, `queen-development-timing`, and
-  `back-rank-safety` — the ones checkable from a single move's board
-  state (plus, for `queen-development-timing`, its own move number, and
-  for `back-rank-safety`, one ply of the opponent's real legal replies —
+  `king-safety-castling`, `queen-development-timing`, `back-rank-safety`,
+  and `trade-evaluation` — the ones checkable from a single move's board
+  state (plus, for `queen-development-timing`, its own move number, for
+  `back-rank-safety`, one ply of the opponent's real legal replies —
   chess.js's own checkmate detection on a genuine mate-in-1, not a
   static "king behind pawns" shape guess that would misfire on every
-  ordinary castled position — not a full move-history pattern) alone.
-  The remaining 3 (`trade-evaluation`, `opposition-key-squares`,
-  `candidate-move-routine`) need static-exchange sophistication,
-  endgame-specific logic, or clock data this app doesn't track at all —
-  not fabricated with weak heuristics, left honestly undetected.
-  4 of the 5 detected concepts have matching authored
+  ordinary castled position — and for `trade-evaluation`, a real static
+  exchange evaluation (`staticExchangeEval`, `packages/chess-rules`) that
+  actually plays out the full recapture sequence with both sides stopping
+  exactly when continuing would lose more, not a rough "bigger piece took
+  a smaller one" guess — not a full move-history pattern) alone.
+  The remaining 2 (`opposition-key-squares`, `candidate-move-routine`)
+  need endgame-specific logic or clock data this app doesn't track at
+  all — not fabricated with weak heuristics, left honestly undetected.
+  4 of the 6 detected concepts have matching authored
   `Concept`/`Principle` content: `hanging-pieces` and
   `queen-development-timing` (`basic-tactics.02-hanging-pieces`,
   `basic-tactics.03-opening-development`) and `king-safety-castling`
   (`meet-the-pieces.13-king-safety-and-castling`) — closing the gap
   where `lib/studyPlan.ts`'s lesson lookup had nothing to recommend for
-  a real, detected mistake. `back-rank-safety` doesn't yet — same
-  honest gap the other 3 had before their content was authored.
+  a real, detected mistake. `back-rank-safety` and `trade-evaluation`
+  don't yet — same honest gap the other 3 had before their content was
+  authored.
   `lib/studyPlanRanking.ts` implements 3 of `docs/concept-taxonomy.md`'s
   5 ranking rules (never-studied, learned-but-not-transferred, repeated-
   within-this-game as the inverse of "one-time oversight") capped at 4

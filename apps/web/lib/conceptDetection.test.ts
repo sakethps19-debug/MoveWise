@@ -7,6 +7,7 @@ import {
   detectKingLeftInCenter,
   detectMissedKnightFork,
   detectPrematureQueenDevelopment,
+  detectUnfavorableTrade,
 } from "./conceptDetection";
 
 // Same verified queen sacrifice as moveClassification.test.ts.
@@ -118,6 +119,36 @@ describe("detectBackRankVulnerability", () => {
     // Same boxed-in shape, but checked against White's own back rank
     // (rank 1) — the available mate is on rank 8, so this must not fire.
     expect(detectBackRankVulnerability(BOXED_IN_FEN, "w")).toBe(false);
+  });
+});
+
+describe("detectUnfavorableTrade", () => {
+  it("flags a capture that loses material once the real exchange plays out", () => {
+    // Queen d1 takes a pawn on d4 that's defended by a pawn on e5 (pawns
+    // capture diagonally toward the mover) — queen(9) for pawn(1), then
+    // the recapture costs the queen. A genuinely bad trade.
+    const fen = "4k3/8/8/4p3/3p4/8/8/3QK3 w - - 0 1";
+    const result = tryMove(fen, { from: "d1", to: "d4" })!;
+    expect(detectUnfavorableTrade(result.move)).toBe(true);
+  });
+
+  it("does not flag a free capture with no recapture available", () => {
+    const fen = "4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1";
+    const result = tryMove(fen, { from: "e4", to: "d5" })!;
+    expect(detectUnfavorableTrade(result.move)).toBe(false);
+  });
+
+  it("does not flag an exactly-even trade (equal piece for equal piece)", () => {
+    // White knight b3 takes a black knight on d4, defended by another
+    // black knight on f5 — knight(3) for knight(3), net zero.
+    const fen = "4k3/8/8/5n2/3n4/1N6/8/4K3 w - - 0 1";
+    const result = tryMove(fen, { from: "b3", to: "d4" })!;
+    expect(detectUnfavorableTrade(result.move)).toBe(false);
+  });
+
+  it("does not flag a non-capture move", () => {
+    const result = tryMove(SACRIFICE_FEN_BEFORE, { from: "g2", to: "g5" })!;
+    expect(detectUnfavorableTrade(result.move)).toBe(false);
   });
 });
 

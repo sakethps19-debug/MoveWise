@@ -11,6 +11,7 @@ import {
   legalTargetsFrom,
   moveMatches,
   parseUci,
+  staticExchangeEval,
   tryMove,
 } from "./index";
 
@@ -162,5 +163,72 @@ describe("replayPgn", () => {
     const pgn = buildPgn(moves);
     const plies = replayPgn(pgn);
     expect(plies.map((p) => p.move.san)).toEqual(moves);
+  });
+});
+
+describe("staticExchangeEval", () => {
+  it("returns the pawn's value for a free capture with no recapture available", () => {
+    // White pawn e4 takes an undefended black pawn on d5 — nothing to recapture with.
+    const fen = "4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1";
+    expect(staticExchangeEval(fen, "e4", "d5")).toBe(1);
+  });
+
+  it("returns a negative result for a forced even-material trade that loses the exchange", () => {
+    // Rook d1 takes a pawn on d4, black rook d8 recaptures the rook: white
+    // nets pawn(1) - rook(5) = -4.
+    const fen = "3rk3/8/8/8/3p4/8/8/3RK3 w - - 0 1";
+    expect(staticExchangeEval(fen, "d1", "d4")).toBe(-4);
+  });
+
+  it("correctly evaluates queen-takes-defended-pawn as a heavy material loss", () => {
+    // Queen d1 takes a pawn on d4 defended by a pawn on e5 (pawns capture
+    // diagonally toward the mover, so e5 defends d4): queen(9) for pawn(1)
+    // then loses the queen to the recapture — pawn(1) - queen(9) = -8.
+    const fen = "4k3/8/8/4p3/3p4/8/8/3QK3 w - - 0 1";
+    expect(staticExchangeEval(fen, "d1", "d4")).toBe(-8);
+  });
+
+  it("continues a multi-attacker exchange exactly as far as it stays profitable, not further", () => {
+    // Black knight (3) on d4, defended once by a pawn on e5. White has two
+    // attackers: rook d1 and queen a1 (clear diagonal a1-d4). Capturing
+    // with the rook first, then recapturing the pawn's recapture with the
+    // queen, nets knight(3) - rook(5) + pawn(1) = -1 — worse than not
+    // trading, but still better than stopping after losing the rook (-2),
+    // so the algorithm is right to have the queen finish the sequence.
+    const fen = "4k3/8/8/4p3/3n4/8/8/Q2RK3 w - - 0 1";
+    expect(staticExchangeEval(fen, "d1", "d4")).toBe(-1);
+
+    // The same position, but the queen captures first instead of the rook
+    // — a real player's mistake (always trade with the least valuable
+    // piece first). Confirms the function correctly evaluates whichever
+    // move actually happened, not the best available one: knight(3) -
+    // queen(9) + pawn(1) - ... - rook(5) nets a much worse -5.
+    expect(staticExchangeEval(fen, "a1", "d4")).toBe(-5);
+  });
+
+  it("discovers an x-rayed attacker revealed once the piece blocking it is captured away", () => {
+    // White has two rooks stacked on the d-file (d1 behind d2) — d1's rook
+    // can't see past its own rook on d2 until d2 moves. Black has one
+    // defender (rook d6) of the knight on d4. If x-ray discovery didn't
+    // work, the sequence would incorrectly stop after white's first rook
+    // is recaptured (knight(3) - rook(5) = -2, clearly wrong: white's
+    // second rook is right there). With correct x-ray discovery: knight(3)
+    // - rook(5) + rook(5) = +3.
+    const fen = "k7/8/3r4/8/3n4/8/3R4/K2R4 w - - 0 1";
+    expect(staticExchangeEval(fen, "d2", "d4")).toBe(3);
+  });
+
+  it("lets the king execute a simple capture when it's the only attacker available", () => {
+    const fen = "7k/8/8/8/3p4/3K4/8/8 w - - 0 1";
+    expect(staticExchangeEval(fen, "d3", "d4")).toBe(1);
+  });
+
+  it("correctly values an en passant capture — the captured pawn isn't on the destination square", () => {
+    // A pawn moving diagonally onto an empty square is only ever legal as
+    // en passant — the captured black pawn sits on d5, not on d6 (the
+    // destination). Without special handling this would score as if
+    // nothing were captured at all.
+    const fen = "4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1";
+    expect(staticExchangeEval(fen, "e5", "d6")).toBe(1);
   });
 });

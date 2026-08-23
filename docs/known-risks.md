@@ -40,6 +40,33 @@ rather than repeating it.
   workflow file was never updated to add the step, so nothing stopped a
   lint regression from merging. Added `pnpm lint` to the `verify` job,
   right after `pnpm typecheck` and before `pnpm test`.
+- **A 6th concept-taxonomy mapping row, `trade-evaluation`, previously
+  undetected**: `lib/conceptDetection.ts`'s `detectUnfavorableTrade` tags
+  a `mistake`/`blunder` capture that actually loses material once the
+  full recapture sequence plays out. This is a real static exchange
+  evaluation (`staticExchangeEval`, new in `packages/chess-rules`), not
+  a "bigger piece took a smaller one" guess: it iteratively simulates
+  both sides recapturing with their least-valuable attacker on the
+  target square, using chess.js's own `attackers()` (confirmed via a
+  direct test to be purely geometric — it ignores pins, the same
+  simplification classical SEE implementations use industry-wide) and
+  `.remove()`/`.put()`/`.get()` board mutation, recomputing attackers
+  fresh after each virtual capture so x-ray attackers revealed by a
+  removed blocker are found correctly rather than assumed from a stale
+  list. A backward minimax pass (`gain[i-1] = -max(-gain[i-1], gain[i])`)
+  makes the sequence stop exactly where continuing would lose more
+  material, rather than naively summing every possible recapture. En
+  passant is special-cased, since the pawn actually captured isn't on
+  the destination square. The king is given an inflated internal value
+  (1000) purely so it's never chosen as a recapturer ahead of a real
+  piece. 7 unit tests in `packages/chess-rules/src/index.test.ts` cover
+  a free capture, a forced even-ish trade, a defended-pawn grab, a
+  multi-attacker sequence verified from both possible first-recapture
+  orders, x-ray discovery, king-as-last-resort, and en passant. Like
+  `back-rank-safety` before it, `trade-evaluation` has no matching
+  authored `Concept`/`Principle` content yet — the detector tags the
+  row truthfully; `lib/studyPlan.ts`'s lesson lookup just has nothing to
+  recommend until that content exists.
 - **A 5th concept-taxonomy mapping row, `back-rank-safety`, previously
   undetected**: `lib/conceptDetection.ts`'s `detectBackRankVulnerability`
   tags a `mistake`/`blunder` where the opponent has a real, engine-
