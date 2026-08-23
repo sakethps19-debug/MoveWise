@@ -39,6 +39,20 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **A 4th concept-taxonomy mapping row, `queen-development-timing`,
+  previously undetected**: `lib/conceptDetection.ts`'s
+  `detectPrematureQueenDevelopment` tags a `mistake`/`blunder` where the
+  played move is a queen move, early (by move number — a fixed,
+  documented-as-a-guess threshold, same honesty as the existing
+  `king-safety-castling` detector's own), while at least one minor piece
+  is still sitting on its home square. This is now tractable specifically
+  because Phase B's own move-number tracking already exists (it wasn't
+  when the original 3 detectors were scoped) — still not the fuller
+  move-history-pattern analysis the other 4 undetected rows need. No
+  matching `Concept`/`Principle` content exists yet, same honest gap
+  `hanging-pieces`/`king-safety-castling` already have — the detector
+  still tags the row truthfully; `lib/studyPlan.ts`'s lesson lookup just
+  has nothing to recommend until that content is authored.
 - **A completed game's analysis was only ever visible right after playing
   it, previously unbuilt**: `/play/history` (the `Game`/`GameAnalysis`
   rows below were already persisted, per Phase B, but nothing let a
