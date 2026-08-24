@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
-test("play as White: engine replies to a played move", async ({ page }) => {
+test("play as White: engine replies to a played move @smoke", async ({ page }) => {
   await page.goto("/play");
   await expect(page.getByRole("status")).toContainText("Your move", { timeout: 15_000 });
 

@@ -53,13 +53,28 @@ for the database (ADR-0005).
 
 3. **Add the environment variable**: `DATABASE_URL`, set to the Session
    pooler connection string from step 1 (`postgresql://<user>:<password>@<host>:5432/postgres`).
-   Set it for **Production only** — leave Preview unset. A Preview
-   deployment (one per pull request) would otherwise run
-   `prisma migrate deploy` against the same production database on
-   every PR; safe (migrations are additive-only) but not something to
-   opt into by default. Leaving it unset means Preview builds fail
-   loudly at the `predev`/`prebuild` step until that's deliberately
-   decided, not silently do the wrong thing.
+
+   **Update, contradicting what this step used to say**: this guide
+   previously recommended scoping `DATABASE_URL` to Production only and
+   leaving Preview unset, specifically so a PR's Preview build wouldn't
+   run `prisma migrate deploy` against the production database by
+   default. Observed reality no longer matches that: PR #21's own
+   Preview deployment build log
+   (https://vercel.com/sak21/movewise-app/CVQ2wxriKLaVAoWZpVTTaEcDqy9z)
+   shows a live `DATABASE_URL` connected to
+   `aws-0-ap-south-1.pooler.supabase.com`, applying/checking the same 9
+   migrations this repo's own `packages/db/prisma/migrations/` defines
+   — i.e. Preview builds do now run `prisma migrate deploy` against a
+   real Supabase Postgres instance. Whether that instance is literally
+   the same one Production uses, or a separate Supabase project with an
+   identical schema, isn't confirmed from a deploy log alone — check
+   the Vercel project's Environment Variables settings
+   (Settings → Environment Variables → `DATABASE_URL`'s scope) to know
+   for sure. Either way, the "safe because migrations are additive-only"
+   reasoning below still holds for schema changes; it does **not** cover
+   arbitrary read/write traffic a Preview deployment's app code performs
+   at runtime (e.g. real signups) — see `docs/e2e-testing.md`'s note on
+   why this repo's E2E suite still doesn't run against Preview URLs.
 
 4. **Deploy.**
 
@@ -89,8 +104,11 @@ by `prisma migrate deploy`/`dev` won't hit this.
 
 ## What's still not decided
 
-- Whether Preview deployments get their own database, share production
-  read-only, or stay disabled (see step 3).
+- Preview deployments now have a working `DATABASE_URL` (see step 3's
+  update) — but whether that's a dedicated preview database or the same
+  one Production uses isn't confirmed in this doc. Worth checking and
+  recording here, since it changes how safe it is to point any
+  automated tool (including this repo's own E2E suite) at a Preview URL.
 - A real deploy is also when `docs/security-checklist.md`'s "Secure
   headers: not implemented" and "Backups and recovery: not
   independently set up" rows stop being abstract.

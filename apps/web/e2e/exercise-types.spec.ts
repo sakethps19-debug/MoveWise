@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test("order-steps and guided-sequence: Thinking under check", async ({ page }) => {
   await page.goto("/learn/check-and-checkmate.03-thinking-under-check");

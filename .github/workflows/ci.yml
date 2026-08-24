@@ -4,6 +4,21 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Lets a manual run be started from the GitHub Actions tab (or the
+  # `gh workflow run` CLI) without needing a new commit or PR — the
+  # primary way to trigger CI on demand from a browser (see
+  # docs/e2e-testing.md). `suite: smoke` runs only the @smoke-tagged
+  # subset (apps/web/package.json's test:e2e:smoke) for a fast check;
+  # `full` (the default) runs everything test:e2e does.
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "E2E suite to run"
+        type: choice
+        default: full
+        options:
+          - full
+          - smoke
 
 # Closes the top item in docs/known-risks.md ("No CI. Every verification
 # gate is run manually. Nothing stops a regression from merging.") — this
@@ -103,17 +118,56 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Playwright browsers live outside node_modules (~/.cache/ms-playwright),
+      # so pnpm/action-setup's own cache doesn't cover them. Keyed on the
+      # exact @playwright/test version (from the lockfile) so a version bump
+      # naturally invalidates it instead of silently reusing a stale browser.
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
       - name: Install Playwright's browser
         working-directory: apps/web
         run: npx playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+
+      # A cache hit skips the download above but not Playwright's own
+      # system dependencies (fonts, codecs) — those are OS packages, not
+      # part of the cached browser directory, so install them separately
+      # every run; this is fast when they're already present.
+      - name: Install Playwright's OS dependencies
+        working-directory: apps/web
+        run: npx playwright install-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
 
       - name: Run E2E suite (auto-starts the dev server per playwright.config.ts)
         working-directory: apps/web
-        run: npx playwright test
+        run: npx playwright test ${{ github.event.inputs.suite == 'smoke' && '--grep @smoke' || '' }}
 
+      # Always uploaded, not just on failure: Step 5's screenshots (for
+      # manual/AI review of what the app actually looked like) and the
+      # trace viewer both live in this report even on an all-green run,
+      # and docs/e2e-testing.md tells the user to open this from the
+      # Actions run summary — that link should exist whether or not
+      # anything failed.
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
           name: playwright-report
           path: apps/web/playwright-report/
-          retention-days: 7
+          retention-days: 30
+
+      # Raw per-test traces/videos/screenshots (playwright-report/ embeds
+      # what it needs for the HTML report, but the unprocessed
+      # attachments — full-resolution video, individual failure
+      # screenshots — live here). Only worth keeping on failure; a green
+      # run has nothing in here worth the storage.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-test-results
+          path: apps/web/test-results/
+          retention-days: 30
