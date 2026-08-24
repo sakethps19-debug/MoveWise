@@ -95,18 +95,26 @@ smoke suite" below.
 ### What isn't covered, and why
 
 - **Vercel Preview Deployments are not used as the test target.**
-  `docs/deployment.md` documents a deliberate, still-open decision: a
-  Preview deployment's `DATABASE_URL` is left unset so PRs don't run
-  migrations against the production Supabase database by default. Until
-  that's decided (a separate preview database, or an accepted read-only/
-  migration-safe posture), a Preview URL isn't guaranteed to even boot,
-  so it isn't a dependable test target. The suite instead runs against a
+  `docs/deployment.md` used to document this as blocked on `DATABASE_URL`
+  being unset for Preview, so a Preview URL wasn't guaranteed to even
+  boot. That's no longer accurate — PR #21's own Preview deployment build
+  log shows a live `DATABASE_URL` connected to a real Supabase Postgres
+  instance (`aws-0-ap-south-1.pooler.supabase.com`), applying the same
+  migrations this repo's own `packages/db/prisma/migrations/` defines —
+  see `docs/deployment.md`'s "What's still not decided" for the current,
+  corrected status. The real blocker now is different: it isn't confirmed
+  whether that database is a dedicated preview instance or the same one
+  Production uses, and this suite's specs create real accounts on every
+  run (`uniqueEmail()`-style signups). Pointing Playwright at a Preview
+  URL before that's confirmed risks writing real test-account rows into
+  a production database on every PR — the opposite of Step 9's "don't
+  damage real user data" requirement. The suite instead runs against a
   real `next dev` server started fresh inside the CI job itself, backed
   by a throwaway Postgres container — the same app code and real network
   requests, just not literally the deployed Vercel instance. This is the
   "most dependable alternative" the testing brief for this project asked
   for when Preview-URL testing isn't practical — worth revisiting once
-  the Preview-database decision above is made.
+  the database question above is confirmed.
 - **Load/performance testing** — not built (see `docs/testing-strategy.md`).
 - **Drag-and-drop chessboard interaction** — not applicable: the board
   only implements click/tap-to-select-then-move (`Board.tsx`'s
