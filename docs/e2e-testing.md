@@ -6,9 +6,12 @@ checkout, which matters because this project is developed from an iPad.
 
 ## What's tested
 
-`apps/web/e2e/` (24 spec files, 135 tests as of this writing) is a real,
-click-through end-to-end suite against a running instance of the app — no
-mocked network, no mocked chess logic. It covers:
+`apps/web/e2e/` (26 spec files, 236 tests across 3 projects as of this
+writing — 144 of those under the default desktop `chromium` project
+alone; see "Named `iPad`/`Mobile` Playwright projects" below for the
+rest) is a real, click-through end-to-end suite against a running
+instance of the app — no mocked network, no mocked chess logic. It
+covers:
 
 - **Availability & navigation** — home page loads, both units render, key
   routes return correctly, an unknown lesson/route/puzzle 404s instead of
@@ -26,6 +29,18 @@ mocked network, no mocked chess logic. It covers:
   contexts (`devices["iPad (gen 7)"]`, `"iPad (gen 7) landscape"`,
   `"iPhone 14"`) with `hasTouch` enabled and drive the board with
   `.tap()`, across lesson moves, Play mode, and puzzle solving.
+- **Named `iPad`/`Mobile` Playwright projects** (`playwright.config.ts`),
+  alongside the default `chromium` (desktop) project — deliberately
+  scoped via `testMatch` to just `responsive.spec.ts` and
+  `chessboard-geometry.spec.ts` rather than the whole suite, since those
+  two are the ones actually built to be viewport/device-parametrized
+  (each already loops over its own breakpoint matrix); running the other
+  ~120 tests three times over too would 3x CI time for no real extra
+  signal. Report output shows which project a test ran under, e.g.
+  `[iPad] › responsive.spec.ts:24:7 › ...`. `browserName: "chromium"` is
+  forced explicitly on both — the `iPad`/`iPhone` device presets default
+  to WebKit (a real iPad only ever runs Safari), and neither this repo's
+  CI nor local dev installs a WebKit binary.
 - **Authentication** — signup, the under-13 age gate, duplicate-email and
   wrong-password rejection, logout, session persistence across re-login,
   protected-route redirect behavior (`auth.spec.ts`).
@@ -81,6 +96,18 @@ mocked network, no mocked chess logic. It covers:
 - **Account management** — data export and account deletion, including
   that dismissing the delete-confirmation dialog leaves the account
   intact (`account.spec.ts`).
+- **Network-failure resilience** (`network-resilience.spec.ts`) — a real
+  dropped connection (`page.route(...).abort()`, not a mock) during
+  lesson completion, puzzle solving, and completed-game saving. Added
+  after a manual audit found all three fired their persistence call
+  without awaiting or catching it: lesson completion showed a false
+  "Lesson complete!" success screen with nothing actually saved; a
+  failed puzzle attempt was silently dropped with no indication at all;
+  a failed game save left "Analyze this game" permanently, silently
+  disabled. All three now show a real, visible, and — where blocking the
+  user's next step — retryable error instead. Each of the three specs
+  was verified to genuinely fail against the pre-fix code (not just pass
+  trivially) before being trusted.
 
 See `docs/testing-strategy.md` for the fuller narrative (unit tests,
 content validation, and how this suite fits alongside them) and
@@ -94,45 +121,81 @@ smoke suite" below.
 
 ### What isn't covered, and why
 
-- **Vercel Preview Deployments are not used as the test target.**
-  `docs/deployment.md` used to document this as blocked on `DATABASE_URL`
-  being unset for Preview, so a Preview URL wasn't guaranteed to even
-  boot. That's no longer accurate — PR #21's own Preview deployment build
-  log shows a live `DATABASE_URL` connected to a real Supabase Postgres
-  instance (`aws-0-ap-south-1.pooler.supabase.com`), applying the same
-  migrations this repo's own `packages/db/prisma/migrations/` defines —
-  see `docs/deployment.md`'s "What's still not decided" for the current,
-  corrected status. The real blocker now is different: it isn't confirmed
-  whether that database is a dedicated preview instance or the same one
-  Production uses, and this suite's specs create real accounts on every
-  run (`uniqueEmail()`-style signups). Pointing Playwright at a Preview
-  URL before that's confirmed risks writing real test-account rows into
-  a production database on every PR — the opposite of Step 9's "don't
-  damage real user data" requirement. The suite instead runs against a
-  real `next dev` server started fresh inside the CI job itself, backed
-  by a throwaway Postgres container — the same app code and real network
-  requests, just not literally the deployed Vercel instance. This is the
-  "most dependable alternative" the testing brief for this project asked
-  for when Preview-URL testing isn't practical — worth revisiting once
-  the database question above is confirmed.
-- **Load/performance testing** — not built (see `docs/testing-strategy.md`).
+- **Vercel Preview Deployments are not used as the test target — confirmed
+  unsafe to do, not just unconfirmed.** `docs/deployment.md` now documents
+  this definitively: Preview and Production share the exact same
+  Supabase database (one Supabase project, zero database branches, both
+  Preview's and Production's own build logs show the identical Postgres
+  host and database name — see that doc's step 3 for the full evidence).
+  This suite's specs create real accounts on every run
+  (`uniqueEmail()`-style signups); pointing Playwright at a Preview URL
+  would write real test-account rows into production on every PR run —
+  the opposite of Step 9's "don't damage real user data" requirement. The
+  suite instead runs against a real `next dev` server started fresh
+  inside the CI job itself, backed by a throwaway Postgres container —
+  the same app code and real network requests, just not the deployed
+  Vercel instance. This is the "most dependable alternative" the testing
+  brief for this project asked for when Preview-URL testing isn't
+  practical. Revisit once Preview has its own database (see
+  `docs/deployment.md`'s recommended fix) — until then, this isn't a gap
+  to close, it's a guard that should stay up.
+- **Load/performance testing** — a lightweight, safe subset now exists:
+  see "Performance checks" below. Full load testing (sustained concurrent
+  traffic) is still not built.
 - **Drag-and-drop chessboard interaction** — not applicable: the board
   only implements click/tap-to-select-then-move (`Board.tsx`'s
   `onSquareClick`), no drag handlers exist anywhere in the app. Every
   touch test in this suite uses `.tap()` accordingly.
 
+## Performance checks
+
+Two layers, both deliberately scoped as *smoke* checks — "hasn't
+regressed by an order of magnitude" — not real performance tuning or
+capacity planning:
+
+- **`e2e/performance.spec.ts`** (`@perf` tag, part of the main Playwright
+  suite) — real Navigation Timing API measurements for the home page, a
+  lesson, Play mode, and a puzzle, against `pnpm dev` (the same server
+  the rest of the suite runs against). Each route is navigated to twice
+  — once to force `next dev`'s on-demand per-route compile, once to
+  measure — so the number reflects render/hydration cost, not one-time
+  dev-server compilation. Budgets are generous (8s) since dev-mode
+  timing is not representative of production; this exists to catch a
+  route that's become catastrophically slow, not to characterize real
+  latency. Run just this subset with
+  `pnpm --filter @movewise/web test:e2e:perf`.
+- **`scripts/perf-smoke.mjs`** (`autocannon`) — a short burst of modest
+  concurrent traffic (10 connections, 8s) against a handful of
+  guest-reachable routes on a **real production build** (`next start`,
+  not `next dev` — dev mode's on-demand compilation makes concurrent-
+  throughput numbers meaningless). Asserts zero failed/non-2xx requests
+  and a generous p99 latency budget (2s) per route. Runs as its own CI
+  job (`perf` in `ci.yml`): build, start the production server, wait for
+  it to answer, run the script, print the server log either way. Run it
+  yourself against any already-running server with
+  `pnpm --filter @movewise/web test:perf:smoke [baseUrl]`.
+
+Neither layer is real load testing — no sustained high-concurrency run,
+no capacity/breaking-point search. That's a genuine, larger gap this
+project doesn't have production traffic history to size against yet.
+
 ## How CI runs
 
-`.github/workflows/ci.yml` has two jobs:
+`.github/workflows/ci.yml` has three jobs:
 
 1. **`verify`** — install, typecheck, lint, unit tests (Vitest, 159
    tests across all 6 packages), content validation, and a real
    production build (`next build`).
 2. **`e2e`** — installs a fresh Chromium, starts the app for real
    (`pnpm dev`, against a throwaway Postgres service container scoped to
-   that one job run), and runs the Playwright suite above.
+   that one job run), and runs the Playwright suite above (including the
+   `@perf` dev-mode timing checks).
+3. **`perf`** — a real production build (`next start`) against its own
+   throwaway Postgres, then `scripts/perf-smoke.mjs`. Skipped on a manual
+   `smoke`-suite dispatch run (see below) to keep that path fast; runs on
+   every push/PR and on a `full` dispatch run.
 
-Both run automatically on:
+All three run automatically on:
 - every push to `main`,
 - every pull request,
 - and on demand (see below).

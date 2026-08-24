@@ -11,6 +11,20 @@ rather than repeating it.
   stopgap (block under-13 signup outright). This is a legal question, not
   an engineering one — see `docs/security-checklist.md` and
   `docs/roadmap.md`'s open-decisions list.
+- **Every Vercel Preview deployment (one per open PR) reads and writes
+  the real production database.** Confirmed, not suspected — see
+  `docs/deployment.md`'s step 3 for the evidence (one Supabase project,
+  zero database branches, identical Postgres host in both Preview's and
+  Production's build logs). No auth gate was observed on Preview URLs
+  either, so anyone with a PR's Preview link — a reviewer clicking
+  around, a link shared for feedback — is signing up, completing
+  lessons, or deleting accounts against real user data, indistinguishable
+  from a genuine visitor. Fix is a Vercel/Supabase configuration change
+  (give Preview its own database via Supabase branching, or unset
+  Preview's `DATABASE_URL`), not a code change — see `docs/deployment.md`
+  for the specific recommendation. This is also why the E2E suite
+  deliberately never targets a Preview URL (`docs/e2e-testing.md`).
+
 ## Medium priority
 
 - **No analytics.** None of the brief's Section 18 questions ("where do
@@ -33,6 +47,43 @@ rather than repeating it.
   — see ADR-0004.
 
 ## Resolved this session, kept here for the record
+
+- **Three real progress-loss bugs, all the same root cause: a Server
+  Action fired without being awaited or having its failure handled.**
+  Found by deliberately simulating a dropped connection
+  (`page.route(...).abort()`) during an E2E-testing pass, not from a bug
+  report — none had been noticed before because nothing exercised a
+  real network failure mid-action.
+  1. `LessonRunner.tsx`'s `advance()` called `onComplete`
+     (`completeLessonAction`) and immediately showed the "Lesson
+     complete!" success screen — real star count, real "+N XP" —
+     regardless of whether the request actually succeeded. A dropped
+     connection meant the learner saw a false success with nothing
+     persisted, no error, and no way to know until they later found the
+     lesson still locked/incomplete with no explanation. Fixed:
+     `advance()` now awaits the request for a signed-in learner and only
+     shows success once it's confirmed, with a real "Couldn't save your
+     progress" / "Try again" screen otherwise (guests are unaffected —
+     their completion is a synchronous localStorage write with nothing
+     to await).
+  2. `PuzzleRunner.tsx`'s `onAttempt` (`recordPuzzleAttemptAction`) had
+     the same unawaited-call pattern. The immediate Correct/Not-quite
+     feedback is decided client-side (no network round-trip) and
+     correctly doesn't block on this call, so there was no false-success
+     screen here — but a failed save silently dropped the
+     `ExerciseAttempt` row (and the `UserConceptMastery` signal it
+     feeds) with zero indication anything was wrong. Fixed: a real,
+     visible notice appears on failure without blocking the puzzle flow.
+  3. `PlayRunner.tsx`'s completed-game save (`saveCompletedGameAction`)
+     used `.then()` with no `.catch()`. On failure, `gameId` never got
+     set and "Analyze this game" stayed silently, permanently disabled
+     — no error, no retry. Fixed: a real "This game couldn't be saved" /
+     "Try saving again" notice appears, and retrying re-runs the same
+     save.
+
+  Each fix has a regression test (`e2e/network-resilience.spec.ts`) that
+  was verified to genuinely fail against the pre-fix code before being
+  trusted, not just pass trivially against the fix.
 
 - **A 7th concept-taxonomy mapping row, `opposition-key-squares`,
   previously undetected**: `lib/conceptDetection.ts`'s

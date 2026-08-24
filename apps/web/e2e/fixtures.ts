@@ -23,6 +23,24 @@ const IGNORED_CONSOLE_PATTERNS: RegExp[] = [];
 const IGNORED_PAGEERROR_PATTERNS: RegExp[] = [];
 
 /**
+ * Per-page, per-test allowance for a console error/exception a test
+ * deliberately provokes on purpose (e.g. network-resilience.spec.ts
+ * aborting a request and asserting on the app's own resulting error
+ * UI — the browser logging that aborted request as
+ * `net::ERR_FAILED` is expected, not a defect). Kept separate from the
+ * static `IGNORED_*_PATTERNS` above so a genuinely new, unexpected
+ * error anywhere else in the suite still fails loudly; this only
+ * silences what the specific test that called it says it expects.
+ */
+const expectedPerPage = new WeakMap<Page, RegExp[]>();
+
+export function allowExpectedConsoleError(page: Page, pattern: RegExp): void {
+  const existing = expectedPerPage.get(page) ?? [];
+  existing.push(pattern);
+  expectedPerPage.set(page, existing);
+}
+
+/**
  * Attaches console/pageerror listeners to `page` and returns a function
  * that must be called once the test body is done (before the page/
  * context closes) — it throws if anything unexpected was captured.
@@ -34,15 +52,17 @@ const IGNORED_PAGEERROR_PATTERNS: RegExp[] = [];
 export function watchForConsoleErrors(page: Page): () => void {
   const errors: string[] = [];
 
+  const isExpected = (text: string) => (expectedPerPage.get(page) ?? []).some((p) => p.test(text));
+
   const onConsole = (msg: ConsoleMessage) => {
     if (msg.type() !== "error") return;
     const text = msg.text();
-    if (IGNORED_CONSOLE_PATTERNS.some((p) => p.test(text))) return;
+    if (IGNORED_CONSOLE_PATTERNS.some((p) => p.test(text)) || isExpected(text)) return;
     errors.push(`console.error: ${text}`);
   };
   const onPageError = (err: Error) => {
     const text = err.stack ?? err.message;
-    if (IGNORED_PAGEERROR_PATTERNS.some((p) => p.test(text))) return;
+    if (IGNORED_PAGEERROR_PATTERNS.some((p) => p.test(text)) || isExpected(text)) return;
     errors.push(`uncaught exception: ${text}`);
   };
 
