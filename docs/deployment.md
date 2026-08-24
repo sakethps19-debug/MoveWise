@@ -54,27 +54,51 @@ for the database (ADR-0005).
 3. **Add the environment variable**: `DATABASE_URL`, set to the Session
    pooler connection string from step 1 (`postgresql://<user>:<password>@<host>:5432/postgres`).
 
-   **Update, contradicting what this step used to say**: this guide
-   previously recommended scoping `DATABASE_URL` to Production only and
-   leaving Preview unset, specifically so a PR's Preview build wouldn't
-   run `prisma migrate deploy` against the production database by
-   default. Observed reality no longer matches that: PR #21's own
-   Preview deployment build log
+   **Update, contradicting what this step used to say — and now
+   confirmed, not just observed**: this guide previously recommended
+   scoping `DATABASE_URL` to Production only and leaving Preview unset,
+   specifically so a PR's Preview build wouldn't run
+   `prisma migrate deploy` against the production database by default.
+   Reality no longer matches that, and it's worse than "Preview boots
+   now": **Preview and Production share the exact same live Supabase
+   database.** Confirmed from three independent sources, not inferred:
+   (1) the Supabase account backing this project has exactly one
+   `MoveWise` project (`erfjoslqpjdnlsfzimvi`) and zero database branches
+   (`list_branches` returns empty — Supabase's branching feature, which
+   would give a PR its own isolated database, isn't in use); (2) PR #21's
+   own Preview deployment build log
    (https://vercel.com/sak21/movewise-app/CVQ2wxriKLaVAoWZpVTTaEcDqy9z)
-   shows a live `DATABASE_URL` connected to
-   `aws-0-ap-south-1.pooler.supabase.com`, applying/checking the same 9
-   migrations this repo's own `packages/db/prisma/migrations/` defines
-   — i.e. Preview builds do now run `prisma migrate deploy` against a
-   real Supabase Postgres instance. Whether that instance is literally
-   the same one Production uses, or a separate Supabase project with an
-   identical schema, isn't confirmed from a deploy log alone — check
-   the Vercel project's Environment Variables settings
-   (Settings → Environment Variables → `DATABASE_URL`'s scope) to know
-   for sure. Either way, the "safe because migrations are additive-only"
-   reasoning below still holds for schema changes; it does **not** cover
-   arbitrary read/write traffic a Preview deployment's app code performs
-   at runtime (e.g. real signups) — see `docs/e2e-testing.md`'s note on
-   why this repo's E2E suite still doesn't run against Preview URLs.
+   shows `DATABASE_URL` pointed at `aws-0-ap-south-1.pooler.supabase.com`,
+   database `postgres`; (3) the Production build log
+   (https://vercel.com/sak21/movewise-app/4M4bWSNPp3DaWENxV8pRd5KvjRfP)
+   shows the identical host and database name. There is one Postgres
+   instance; every Preview deployment for every open PR and every
+   Production request all read and write the same rows.
+
+   **This is a real, live risk, not just a testing-scope caveat**: a
+   PR's Preview deployment is reachable by anyone with the URL (no auth
+   gate observed), and a person clicking around it during code review —
+   signing up, completing a lesson, deleting an account via
+   `/account` — is mutating real production data, indistinguishable from
+   a genuine user's. It's also why this repo's E2E suite deliberately
+   does **not** run against Preview URLs (see `docs/e2e-testing.md`):
+   every spec creates real accounts, and a Preview-triggered CI run for
+   every PR would otherwise be writing real signups into production on
+   every push. The "safe because migrations are additive-only" reasoning
+   below only ever covered schema changes — it says nothing about this.
+
+   **Recommended fix** (not applied here — changing Vercel/Supabase
+   project configuration is an infrastructure decision, not something to
+   do silently from a docs pass): either (a) give Preview its own
+   database — Supabase's branching feature
+   (`create_branch`/`list_branches`) creates an isolated Postgres branch
+   per Vercel Preview deployment automatically via their GitHub
+   integration, which is exactly what this gap needs, or (b) remove
+   `DATABASE_URL` from the Preview environment in Vercel's project
+   settings (Settings → Environment Variables) to go back to "Preview
+   simply doesn't boot a working app," which is safe but not useful for
+   review. Until one of these is done, treat every Preview URL as a
+   window directly into production data.
 
 4. **Deploy.**
 
@@ -104,11 +128,10 @@ by `prisma migrate deploy`/`dev` won't hit this.
 
 ## What's still not decided
 
-- Preview deployments now have a working `DATABASE_URL` (see step 3's
-  update) — but whether that's a dedicated preview database or the same
-  one Production uses isn't confirmed in this doc. Worth checking and
-  recording here, since it changes how safe it is to point any
-  automated tool (including this repo's own E2E suite) at a Preview URL.
+- **Preview deployments share Production's database — confirmed (see
+  step 3), not fixed.** Giving Preview its own database (Supabase
+  branching, or unsetting Preview's `DATABASE_URL`) is a real open task,
+  not a documentation gap — see step 3's "Recommended fix."
 - A real deploy is also when `docs/security-checklist.md`'s "Secure
   headers: not implemented" and "Backups and recovery: not
   independently set up" rows stop being abstract.

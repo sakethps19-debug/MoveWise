@@ -31,8 +31,10 @@
   every commit that touches `apps/web`) — not "tests" exactly, but part
   of the same verification gate.
 - **E2E suite** (`@playwright/test`, `apps/web/e2e/`, run via
-  `pnpm --filter @movewise/web test:e2e`) — 24 spec files, 135 tests (plus
-  a fast `@smoke`-tagged critical-path subset,
+  `pnpm --filter @movewise/web test:e2e`) — 26 spec files, 236 tests
+  across 3 projects (desktop `chromium`, plus named `iPad`/`Mobile`
+  projects for the two viewport-parametrized specs) — plus a fast
+  `@smoke`-tagged critical-path subset,
   `pnpm --filter @movewise/web test:e2e:smoke`) — see `docs/e2e-testing.md`
   for the full breakdown, CI wiring, and how to trigger/inspect a run from
   a browser. Covers lesson flows across all 13 exercise-step types, the

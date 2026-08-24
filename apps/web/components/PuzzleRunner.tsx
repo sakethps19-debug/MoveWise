@@ -46,6 +46,7 @@ export function PuzzleRunner({
   const [selected, setSelected] = useState<Square | null>(null);
   const [solved, setSolved] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [syncError, setSyncError] = useState(false);
 
   const puzzle = puzzles[index];
   const isLastPuzzle = index === puzzles.length - 1;
@@ -105,13 +106,22 @@ export function PuzzleRunner({
     }
     const result = tryMove(puzzle.fen, { from: selected, to: square });
     setSelected(null);
+    // Correctness itself is decided locally (tryMove/moveMatches, no
+    // network round-trip) — the immediate Correct/Not-quite feedback
+    // below is real and shouldn't wait on onAttempt's persistence call.
+    // That call previously fired without a .catch(), so a dropped
+    // connection silently lost the ExerciseAttempt row (and the
+    // UserConceptMastery signal it feeds — see recomputeMasteryForConcepts
+    // in app/actions.ts) with zero indication to the learner. It still
+    // shouldn't block the puzzle flow on failure, but it also shouldn't
+    // be silent — see the syncError notice below.
     if (!result || !moveMatches(result.move, puzzle.correctMoves)) {
-      onAttempt?.(puzzle.id, false);
+      Promise.resolve(onAttempt?.(puzzle.id, false)).catch(() => setSyncError(true));
       setStatus("incorrect");
       setFeedback(puzzle.feedback.default ?? "Not quite — try again.");
       return;
     }
-    onAttempt?.(puzzle.id, true);
+    Promise.resolve(onAttempt?.(puzzle.id, true)).catch(() => setSyncError(true));
     setSolved((s) => s + 1);
     setStatus("correct");
     setFeedback(null);
@@ -130,6 +140,13 @@ export function PuzzleRunner({
           Puzzle {index + 1}/{puzzles.length}
         </span>
       </div>
+
+      {syncError && (
+        <p role="alert" className="mw-feedback mw-feedback--error">
+          Your progress on this puzzle set may not be saving — check your connection. What you see here is still
+          accurate for this session either way.
+        </p>
+      )}
 
       <p id={promptId} className="movewise-exercise-prompt">
         {puzzle.prompt}
