@@ -18,7 +18,10 @@ import { test, expect } from "@playwright/test";
  *     above for the positive case).
  *  5. A direct URL cannot open a locked lesson — learning-path.spec.ts
  *     ("a signed-in learner can't bypass locked-lesson sequencing"),
- *     cross-unit-progression.spec.ts (repeated across three units).
+ *     cross-unit-progression.spec.ts (repeated across three units), and
+ *     — for a guest, a real, previously-unguarded gap — the "a guest
+ *     can't bypass locked-lesson sequencing via direct URL either" test
+ *     below.
  *  6. Completion and stars persist after reload — cross-unit-
  *     progression.spec.ts's persistence check.
  *  7. Completed lessons remain replayable — cross-unit-progression.spec.ts
@@ -142,4 +145,58 @@ test("10. anonymous-user progression: a guest unlocking a principle-gated lesson
     .locator(".mw-lesson-node")
     .filter({ has: page.locator(".mw-lesson-node-title", { hasText: "Meet the rook" }) });
   await expect(rookRowSignedIn).not.toContainText("🔒");
+});
+
+test("a guest can't bypass locked-lesson sequencing via direct URL either", async ({ page }) => {
+  // Real, confirmed gap: app/learn/[lessonId]/page.tsx's server-side
+  // prerequisite check only runs `if (user && ...)` — a guest has no
+  // session, so it was skipped entirely, and a fresh guest typing this
+  // URL got the full lesson content immediately, with no gate at all.
+  // components/LessonGate.tsx now performs the equivalent check
+  // client-side (guest progress only exists in this browser's
+  // localStorage, unreadable from the server) before ever revealing the
+  // lesson runner. A completely fresh browser context has no localStorage
+  // progress at all, so "Meet the rook" (requires
+  // meet-the-pieces.02-ranks-files-squares) must bounce.
+  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await page.waitForURL(/\/\?locked=/);
+  const banner = page.getByRole("alert").filter({ hasText: "locked" });
+  await expect(banner).toContainText("Meet the rook");
+  await expect(banner).toContainText("locked");
+});
+
+test("a guest CAN open a lesson directly by URL once its prerequisite is really completed", async ({ page }) => {
+  // The positive case for the same gate: LessonGate must not lock out a
+  // guest who has genuinely done the work, just because there's no
+  // server session to check against — reading real localStorage
+  // completions is enough.
+  await page.goto("/learn/meet-the-pieces.01-welcome");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e1,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "False" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("link", { name: "Back to learning path" }).click();
+  await page.waitForURL("/");
+
+  await page.goto("/learn/meet-the-pieces.02-ranks-files-squares");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e4,"]').click();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.getByRole("button", { name: "A row running across the board" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
+  await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
+  await page.getByRole("link", { name: "Back to learning path" }).click();
+  await page.waitForURL("/");
+
+  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await expect(page).toHaveURL("/learn/meet-the-pieces.03-meet-the-rook");
+  await expect(page.locator(".mw-lesson-title")).toHaveText("Meet the rook");
 });

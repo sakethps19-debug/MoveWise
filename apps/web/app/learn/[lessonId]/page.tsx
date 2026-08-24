@@ -4,6 +4,7 @@ import { loadLesson } from "../../../lib/lessons";
 import { loadUnitPrinciples, findPreviousPrinciple } from "../../../lib/principles";
 import { PROFICIENT_STATUSES, type MasteryStatus } from "../../../lib/masteryModel";
 import { LessonRunner } from "../../../components/LessonRunner";
+import { LessonGate } from "../../../components/LessonGate";
 import { completeLessonAction } from "../../actions";
 import { getSession } from "../../../lib/auth";
 
@@ -62,9 +63,26 @@ export default async function LessonPage({
     }
   }
 
-  return (
-    <main>
-      <LessonRunner lesson={lesson} onComplete={completeLessonAction.bind(null, lesson.id)} isGuest={!user} />
-    </main>
+  const runner = (
+    <LessonRunner lesson={lesson} onComplete={completeLessonAction.bind(null, lesson.id)} isGuest={!user} />
   );
+
+  // A signed-in learner is already fully gated above (real
+  // LessonCompletion rows, checked before this point). A guest has no
+  // session for that check to run against — their progress lives only in
+  // this browser's localStorage, unreadable from the server — so
+  // LessonGate performs the equivalent check client-side, once, right
+  // here, rather than ever rendering the runner for a guest unchecked.
+  if (!user && lesson.prerequisites.length > 0) {
+    const prerequisites = lesson.prerequisites.map((id) => ({ id, title: loadLesson(id)?.title ?? id }));
+    return (
+      <main>
+        <LessonGate lessonId={lesson.id} lessonTitle={lesson.title} prerequisites={prerequisites}>
+          {runner}
+        </LessonGate>
+      </main>
+    );
+  }
+
+  return <main>{runner}</main>;
 }

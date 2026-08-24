@@ -153,6 +153,53 @@ export function pieceNameOf(symbol: PieceSymbol): string {
   return PIECE_NAMES[symbol];
 }
 
+const RANK_ORDINAL: Record<string, string> = {
+  "1": "1st",
+  "2": "2nd",
+  "3": "3rd",
+  "4": "4th",
+  "5": "5th",
+  "6": "6th",
+  "7": "7th",
+  "8": "8th",
+};
+
+/**
+ * The geometry fragment of a move-outcome sentence — "straight along the
+ * e-file", "straight along the 4th rank", "diagonally", or (knights don't
+ * have a file/rank/diagonal shape) "in an L-shape" — derived from the
+ * move's own `from`/`to` squares, never hardcoded to one direction.
+ */
+function moveGeometryPhrase(move: Move): string {
+  if (move.piece === "n") return "in an L-shape";
+  if (move.from[0] === move.to[0]) return `straight along the ${move.to[0]}-file`;
+  if (move.from[1] === move.to[1]) return `straight along the ${RANK_ORDINAL[move.to[1]]} rank`;
+  return "diagonally";
+}
+
+/**
+ * A board-accurate success sentence for a move, generated from the move
+ * actually played rather than which answer a step's author expected.
+ * Exists because a step whose prompt accepts more than one destination
+ * shape (`acceptAnyLegalMove` / `altValid` in `MovePieceStepSchema`) can't
+ * safely use a single hand-authored `successExplanation` string — e.g. a
+ * "move the rook anywhere legal" step whose authored text says "straight
+ * along the e-file" is simply wrong the moment the learner plays e4-a4
+ * instead of e4-e8 (a real, confirmed bug: the board correctly accepted
+ * and highlighted the move, but the explanation named the wrong file).
+ * `components/exercises/MoveStep.tsx` uses this only when the move played
+ * doesn't match a step's primary `expectedMoves` exactly — the primary
+ * path keeps its richer, hand-authored text.
+ */
+export function describeMoveOutcome(move: Move): string {
+  const piece = PIECE_NAMES[move.piece];
+  const geometry = moveGeometryPhrase(move);
+  if (move.captured) {
+    return `${move.san} captures the ${PIECE_NAMES[move.captured]} — the ${piece} moved ${geometry} to ${move.to}.`;
+  }
+  return `That's a legal move — the ${piece} moved ${geometry} to ${move.to}.`;
+}
+
 /**
  * Replays a SAN move list from the starting position into a PGN string
  * (ADR-0008 Phase B: persisting completed Play-mode games). The only

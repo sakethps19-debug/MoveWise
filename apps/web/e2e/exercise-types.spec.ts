@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test";
+import { gotoGuestLesson } from "./testHelpers";
 
 test("order-steps and guided-sequence: Thinking under check", async ({ page }) => {
-  await page.goto("/learn/check-and-checkmate.03-thinking-under-check");
+  await gotoGuestLesson(page, "check-and-checkmate.03-thinking-under-check");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // order-steps: correct sequence is Capture, Block, Move (correctOrder [2,1,0])

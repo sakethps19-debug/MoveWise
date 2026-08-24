@@ -87,6 +87,49 @@ export function PlayRunner({
   const [gameId, setGameId] = useState<string | null>(null);
   const gameSavedRef = useRef(false);
 
+  // Real, confirmed defect: the board was sized from available WIDTH only
+  // (a fixed maxWidth=720 passed to <Board>), so on a shorter viewport —
+  // a 12.9" iPad in landscape included, ~936px of actual usable height
+  // once Safari's own chrome is subtracted from the 1024px device profile
+  // — the board (plus everything above and below it) simply overflowed
+  // past the bottom of the screen, forcing a scroll to see the whole
+  // board. `boardColumnRef`/`boardWrapRef`/`belowBoardCardRef` measure the
+  // *real* rendered layout (not a guessed pixel budget) on every resize:
+  // how far down the board starts, how tall the player card below it
+  // actually is, and the real gap the column's own CSS renders between
+  // them — then caps the board at whatever square size actually fits the
+  // remaining vertical space, alongside the existing 720px width cap.
+  const boardColumnRef = useRef<HTMLDivElement>(null);
+  const boardWrapRef = useRef<HTMLDivElement>(null);
+  const belowBoardCardRef = useRef<HTMLDivElement>(null);
+  const [boardMaxWidth, setBoardMaxWidth] = useState(720);
+
+  useEffect(() => {
+    function recomputeBoardSize() {
+      const columnEl = boardColumnRef.current;
+      const boardEl = boardWrapRef.current;
+      const belowEl = belowBoardCardRef.current;
+      if (!columnEl || !boardEl || !belowEl) return;
+      const boardTop = boardEl.getBoundingClientRect().top;
+      const belowHeight = belowEl.getBoundingClientRect().height;
+      const gap = parseFloat(getComputedStyle(columnEl).rowGap || "0");
+      const bottomSafetyMargin = 16;
+      const availableHeight = window.innerHeight - boardTop - gap - belowHeight - bottomSafetyMargin;
+      // No lower floor here beyond 0: an earlier version clamped this to a
+      // minimum of 240px, which is exactly what caused a real, confirmed
+      // regression of the bug this hook exists to fix — on a narrow phone
+      // viewport (390x844) where the real available height computed to
+      // ~199px, the 240px floor forced the board past the viewport's
+      // bottom edge by ~41px anyway. Fitting the viewport is the actual
+      // requirement; a smaller-than-ideal board that still fits is
+      // correct, an overflowing one that hits some minimum size is not.
+      setBoardMaxWidth(Math.min(720, Math.max(0, Math.floor(availableHeight))));
+    }
+    recomputeBoardSize();
+    window.addEventListener("resize", recomputeBoardSize);
+    return () => window.removeEventListener("resize", recomputeBoardSize);
+  }, []);
+
   const { engineRef, ready: engineReady, error: engineLoadError } = useStockfishEngine(true);
   const engineError = engineLoadError ?? engineFailure;
   const gameOver = resigned || isGameOver(fen);
@@ -273,7 +316,7 @@ export function PlayRunner({
       )}
 
       <div className="mw-play-layout">
-        <div className="mw-play-board-column">
+        <div className="mw-play-board-column" ref={boardColumnRef}>
           <div className={`mw-player-card${engineTurn ? " mw-player-card--active" : ""}`}>
             <span className="mw-player-card-name">Stockfish</span>
             <span className="mw-player-card-detail">{SKILL_LEVELS.find((l) => l.value === skill)?.label}</span>
@@ -285,17 +328,19 @@ export function PlayRunner({
             </div>
           </div>
 
-          <Board
-            fen={fen}
-            selected={selected}
-            legalTargets={legalTargets}
-            lastMove={lastMove}
-            onSquareClick={handleSquareClick}
-            interactive={canInteract}
-            maxWidth={720}
-          />
+          <div ref={boardWrapRef}>
+            <Board
+              fen={fen}
+              selected={selected}
+              legalTargets={legalTargets}
+              lastMove={lastMove}
+              onSquareClick={handleSquareClick}
+              interactive={canInteract}
+              maxWidth={boardMaxWidth}
+            />
+          </div>
 
-          <div className={`mw-player-card${playerTurn ? " mw-player-card--active" : ""}`}>
+          <div ref={belowBoardCardRef} className={`mw-player-card${playerTurn ? " mw-player-card--active" : ""}`}>
             <span className="mw-player-card-name">You</span>
             <span className="mw-player-card-detail">{playerColor === "w" ? "White" : "Black"}</span>
             <div className="mw-captured-row" role="group" aria-label="Pieces you've captured">
