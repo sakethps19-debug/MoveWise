@@ -131,6 +131,45 @@ describe("find-check / find-checkmate", () => {
     );
     expect(issues.some((i) => /no legal move in this position delivers checkmate/.test(i.message))).toBe(true);
   });
+
+  // Closes docs/testing-strategy.md's own documented gap ("the validator
+  // doesn't flag when a correct answer exists that content didn't list —
+  // a false-negative risk for the learner, not caught"). Real, concrete
+  // consequence: ClickSquareStep.tsx grades a click by strict membership
+  // in correctSquares, so an omitted-but-legal delivering square means a
+  // learner who finds it gets marked wrong for a genuinely correct move.
+  // Two independent white knights, each with exactly one move that checks
+  // the black king (Nd6 and Nf6 both attack e8) — neither knight's other
+  // legal destinations deliver check, so this position has exactly two
+  // real answers.
+  const twoAnswerCheckFen = "4k3/8/8/8/2N3N1/8/8/4K3 w - - 0 1";
+
+  it("flags a correctSquares set that's missing a real check-delivering square", () => {
+    const issues = validateLesson(
+      makeLesson([
+        { id: "s", type: "find-check", prompt: "test prompt", fen: twoAnswerCheckFen, correctSquares: ["d6"], feedback: {} },
+      ]),
+    );
+    expect(issues.some((i) => /"f6" also delivers check but is missing from correctSquares/.test(i.message))).toBe(
+      true,
+    );
+  });
+
+  it("accepts a correctSquares set that lists every real check-delivering square", () => {
+    const issues = validateLesson(
+      makeLesson([
+        {
+          id: "s",
+          type: "find-check",
+          prompt: "test prompt",
+          fen: twoAnswerCheckFen,
+          correctSquares: ["d6", "f6"],
+          feedback: {},
+        },
+      ]),
+    );
+    expect(issues).toEqual([]);
+  });
 });
 
 describe("order-steps", () => {
