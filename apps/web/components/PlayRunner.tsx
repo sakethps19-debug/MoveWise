@@ -85,6 +85,7 @@ export function PlayRunner({
   const [resigned, setResigned] = useState(false);
 
   const [gameId, setGameId] = useState<string | null>(null);
+  const [gameSaveError, setGameSaveError] = useState(false);
   const gameSavedRef = useRef(false);
 
   // Real, confirmed defect: the board was sized from available WIDTH only
@@ -174,18 +175,30 @@ export function PlayRunner({
 
   // ADR-0008 Phase B: persist the completed game once, so it can be
   // analyzed afterward. Guests aren't signed in — nothing to own the row,
-  // same "session-local only" reasoning as completeLessonAction.
-  useEffect(() => {
-    if (!gameOver || !signedIn || gameSavedRef.current) return;
+  // same "session-local only" reasoning as completeLessonAction. A
+  // rejected save (dropped connection, transient DB error) previously
+  // left `gameId` null forever with zero indication why — "Analyze this
+  // game" just stayed silently, permanently disabled. Now surfaces a
+  // real, retryable error instead (mirrors the engine-failure handling
+  // just above).
+  function trySaveGame() {
     gameSavedRef.current = true;
+    setGameSaveError(false);
     const { result, endReason, pgnResult } = computeGameResult(fen, playerColor, resigned);
     const pgn = buildPgn(
       moves.map((m) => m.san),
       pgnResult,
     );
-    saveCompletedGameAction({ pgn, playerColor, result, endReason }).then((saved) => {
-      if (saved) setGameId(saved.gameId);
-    });
+    saveCompletedGameAction({ pgn, playerColor, result, endReason })
+      .then((saved) => {
+        if (saved) setGameId(saved.gameId);
+      })
+      .catch(() => setGameSaveError(true));
+  }
+
+  useEffect(() => {
+    if (!gameOver || !signedIn || gameSavedRef.current) return;
+    trySaveGame();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fires once per completed game, guarded by gameSavedRef
   }, [gameOver, signedIn]);
 
@@ -378,6 +391,17 @@ export function PlayRunner({
                 <p role="alert" className="mw-feedback mw-feedback--error">
                   {analysisError}
                 </p>
+              )}
+              {gameSaveError && (
+                <>
+                  <p role="alert" className="mw-feedback mw-feedback--error">
+                    This game couldn&apos;t be saved — your connection may have dropped. Try again to unlock
+                    analysis.
+                  </p>
+                  <Button variant="ghost" fullWidth onClick={trySaveGame}>
+                    Try saving again
+                  </Button>
+                </>
               )}
               <p>
                 {analyzing

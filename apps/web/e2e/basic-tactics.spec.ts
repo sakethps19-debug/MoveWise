@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { gotoGuestLesson } from "./testHelpers";
 
 test("the knight fork: a check-only trap move is rejected, the real fork is accepted", async ({ page }) => {

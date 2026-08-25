@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 function uniqueEmail(prefix: string) {
   return `${prefix}${Date.now()}${Math.floor(Math.random() * 1000)}@example.com`;
@@ -84,7 +84,7 @@ test("guest progress persists locally, unlocks the next lesson, and migrates int
   await expect(nextRowSignedIn).not.toContainText("🔒");
 });
 
-test("a perfect first run earns 3 stars; a run with mistakes earns fewer", async ({ page }) => {
+test("a perfect first run earns 3 stars; a run with mistakes earns fewer @smoke", async ({ page }) => {
   const email = uniqueEmail("stars");
   await page.goto("/signup");
   await page.fill("input[name=email]", email);

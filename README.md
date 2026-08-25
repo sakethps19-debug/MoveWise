@@ -50,7 +50,14 @@ pnpm --filter @movewise/web dev   # predev auto-generates the Prisma client,
                                    # Stockfish engine asset — no manual setup
 open http://localhost:3000
 
-pnpm --filter @movewise/web test:e2e   # 24 Playwright tests (incl. automated accessibility checks); auto-starts the dev server
+pnpm --filter @movewise/web test:e2e   # 236 Playwright tests across 26 spec files and
+                                        # 3 projects (144 tests on desktop Chromium alone;
+                                        # responsive.spec.ts/chessboard-geometry.spec.ts
+                                        # also run under named iPad/Mobile projects) —
+                                        # incl. automated accessibility checks and
+                                        # real iPad/mobile touch-device coverage;
+                                        # auto-starts the dev server
+pnpm --filter @movewise/web test:e2e:smoke   # just the fast @smoke critical-path subset
 ```
 
 Copy `apps/web/.env.example` to `apps/web/.env.local` and
@@ -67,6 +74,9 @@ at a real Supabase project's connection string.
   learning / misconception-tracking system
 - `docs/content-authoring-guide.md` — how to write a new lesson
 - `docs/testing-strategy.md` — the verification approach used throughout
+- `docs/e2e-testing.md` — the Playwright/GitHub Actions E2E suite: what's
+  covered, how CI runs, and how to trigger/inspect it from a browser
+  (no local machine required)
 - `docs/security-checklist.md` — status against the brief's security bar
 - `docs/content-licensing-register.md` — every third-party asset and its license
 - `docs/known-risks.md` — open risks, not yet mitigated
@@ -84,4 +94,8 @@ decisions pending product-owner input; see `docs/roadmap.md` for the full
 list.
 
 CI (`.github/workflows/ci.yml`) runs install/typecheck/test/validate-content/
-build, plus the full E2E suite in a second job, on every push and PR.
+build, plus the full E2E suite and a production-build performance smoke
+check in two further jobs, on every push and PR — and on demand from the
+GitHub Actions tab (`workflow_dispatch`, with a choice of the full suite
+or the fast `@smoke` subset). See `docs/e2e-testing.md`
+for how to trigger and read a run from a browser.

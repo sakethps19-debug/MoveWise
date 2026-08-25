@@ -1,7 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { gotoGuestLesson } from "./testHelpers";
 
-test("explain, select-square, and true-false steps: click through Welcome to the chessboard, reach the completion screen", async ({
+test("explain, select-square, and true-false steps: click through Welcome to the chessboard, reach the completion screen @smoke", async ({
   page,
 }) => {
   await page.goto("/learn/meet-the-pieces.01-welcome");

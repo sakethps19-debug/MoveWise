@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import { gotoGuestLesson } from "./testHelpers";
 
 test("order-steps and guided-sequence: Thinking under check", async ({ page }) => {

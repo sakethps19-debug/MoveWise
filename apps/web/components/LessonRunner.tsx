@@ -31,7 +31,12 @@ export interface AttemptRecord {
 
 interface LessonRunnerProps {
   lesson: Lesson;
-  onComplete?: (xpEarned: number, mistakes: number, hintsUsed: number, attempts: AttemptRecord[]) => void;
+  onComplete?: (
+    xpEarned: number,
+    mistakes: number,
+    hintsUsed: number,
+    attempts: AttemptRecord[],
+  ) => void | Promise<void>;
   /** True when there's no signed-in session — persists this completion to localStorage instead of the DB. */
   isGuest?: boolean;
 }
@@ -67,6 +72,8 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
   const [attempts, setAttempts] = useState<AttemptRecord[]>([]);
   const [recovering, setRecovering] = useState(false);
   const [finished, setFinished] = useState<{ xp: number; mistakes: number; hintsUsed: number } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
 
   const step = lesson.steps[stepIndex];
   const isLastStep = stepIndex === lesson.steps.length - 1;
@@ -90,16 +97,42 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
   const hasMiniGame = useMemo(() => lesson.steps.some((s) => s.type === "mini-game"), [lesson]);
   const { engineRef, ready: engineReady, error: engineError } = useStockfishEngine(hasMiniGame);
 
-  function advance() {
+  async function advance() {
     setStatus("active");
     setFeedback(null);
     if (isLastStep) {
       const totalXp = xpEarned + lesson.xpReward;
-      onComplete?.(totalXp, mistakes, hintsUsed, attempts);
-      if (isGuest) recordGuestCompletion(lesson.id, totalXp, mistakes, hintsUsed);
-      clearLessonStarted(lesson.id);
-      recordCompletionToday();
-      setFinished({ xp: totalXp, mistakes, hintsUsed });
+      // Guests: recordGuestCompletion writes to localStorage synchronously
+      // — no network round-trip to fail, so the completion screen can show
+      // immediately (unchanged from before this fix).
+      if (isGuest) {
+        recordGuestCompletion(lesson.id, totalXp, mistakes, hintsUsed);
+        clearLessonStarted(lesson.id);
+        recordCompletionToday();
+        setFinished({ xp: totalXp, mistakes, hintsUsed });
+        return;
+      }
+      // Signed in: onComplete (completeLessonAction) is a real network
+      // request. Previously this was fired without awaiting it, so the
+      // "Lesson complete!" screen (and its real star/XP numbers) showed
+      // unconditionally — a dropped connection or a failed write meant
+      // the learner saw a false success with nothing actually persisted,
+      // and no error, no retry, nothing to explain the mismatch when
+      // they later found the lesson still locked/incomplete. Now this
+      // only shows success once the write is confirmed, and surfaces a
+      // real, retryable error otherwise instead of a blank/silent state.
+      setSaving(true);
+      setSaveError(false);
+      try {
+        await onComplete?.(totalXp, mistakes, hintsUsed, attempts);
+        clearLessonStarted(lesson.id);
+        recordCompletionToday();
+        setFinished({ xp: totalXp, mistakes, hintsUsed });
+      } catch {
+        setSaveError(true);
+      } finally {
+        setSaving(false);
+      }
     } else {
       setStepIndex((i) => i + 1);
     }
@@ -157,6 +190,30 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
     onReset: handleReset,
     onHintUsed: handleHintUsed,
   };
+
+  if (saving) {
+    return (
+      <div className="mw-completion" style={{ maxWidth: 440, margin: "var(--mw-space-7) auto" }}>
+        <p role="status">Saving your progress…</p>
+      </div>
+    );
+  }
+
+  if (saveError) {
+    return (
+      <div className="mw-completion" style={{ maxWidth: 440, margin: "var(--mw-space-7) auto" }}>
+        <h1 className="mw-completion-title">Couldn&apos;t save your progress</h1>
+        <p role="alert" className="mw-feedback mw-feedback--error">
+          Something went wrong saving this lesson — your connection may have dropped. Nothing you did was lost; try
+          again.
+        </p>
+        <Button onClick={() => advance()}>Try again</Button>
+        <Link href="/" className="mw-btn mw-btn--full" style={{ marginTop: "var(--mw-space-3)" }}>
+          Back to learning path
+        </Link>
+      </div>
+    );
+  }
 
   if (finished) {
     const stars = starsForPerformance(finished.mistakes, finished.hintsUsed);
