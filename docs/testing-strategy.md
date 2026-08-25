@@ -98,7 +98,7 @@ the original plan.
 | Requirement | Covered? |
 |---|---|
 | Legal FEN | Yes — `isLegalFen` on every step with a `.fen` field |
-| Correct side to move | Partially — `isLegalFen` catches structurally impossible states; doesn't verify the FEN's side-to-move matches lesson *intent* (see the content-authoring guide's note on this exact bug class) |
+| Correct side to move | Yes for the reachability check `docs/content-authoring-guide.md` calls out — `isLegalFen` now also rejects a FEN where the side *not* about to move is left in check (an unreachable game state chess.js's own strict loader didn't catch on its own). Found and fixed one real instance while adding this: `meet-the-pieces/lesson-03-meet-the-rook.json`'s step-3 had the black king on the same open file as the rook it's White's move to capture with, meaning Black's king was already in check before White's move — the FEN just needed the king off that file, the step's actual content (rook captures the pawn on d4) was unaffected. Doesn't verify the FEN's side-to-move matches lesson *narrative* intent (e.g. a step whose prompt describes "White's turn" but whose FEN says `b`) — that's a different, harder-to-automate class this doesn't attempt. |
 | Expected piece presence | No — not explicitly checked; a move being legal implies the piece exists, so this is implicitly covered for move-type steps but not verified as its own assertion |
 | Legal intended move | Yes |
 | Valid alternative moves | Yes (`altValid`) |

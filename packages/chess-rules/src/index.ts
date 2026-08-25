@@ -50,16 +50,41 @@ const PIECE_NAMES: Record<PieceSymbol, string> = {
   k: "king",
 };
 
-/** True if the given FEN string is a well-formed, legal chess position. */
+/**
+ * True if the given FEN string is a well-formed, *reachable* chess
+ * position — not just one chess.js's own strict FEN loader accepts.
+ * chess.js validates structural well-formedness (piece counts, impossible
+ * castling rights, etc.) but does not by itself reject a FEN where the
+ * side *not* about to move is in check — an unreachable game state (their
+ * previous move would have had to leave their own king in check, which
+ * chess disallows), documented as a known gap in
+ * docs/content-authoring-guide.md. Detected by loading the same position
+ * with side-to-move flipped and checking whether *that* side is in
+ * check — chess.js's `inCheck()` only ever reports check for whichever
+ * side is currently to move.
+ */
 export function isLegalFen(fen: string): boolean {
+  let loaded: Chess;
   try {
     // chess.js throws on structurally invalid FEN (bad piece counts,
     // impossible castling rights, etc.) when strict-loaded.
-    new Chess(fen);
-    return true;
+    loaded = new Chess(fen);
   } catch {
     return false;
   }
+
+  const parts = loaded.fen().split(" ");
+  parts[1] = parts[1] === "w" ? "b" : "w";
+  try {
+    if (new Chess(parts.join(" ")).inCheck()) return false;
+  } catch {
+    // Flipping side-to-move can itself produce a position chess.js
+    // rejects for unrelated structural reasons (e.g. en passant rights
+    // that only make sense for the original side to move) — the FEN we
+    // were actually asked about already loaded fine above, so that's not
+    // a reason to reject it.
+  }
+  return true;
 }
 
 /** Legal destination squares for the piece on `square`, given a position. */
