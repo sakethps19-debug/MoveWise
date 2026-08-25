@@ -927,6 +927,26 @@
 }
 .mw-play-analysis-entry .mw-badge { align-self: flex-start; }
 
+/* A shorter viewport (a real, measured problem on 12.9" iPad landscape —
+ * ~936px of usable height once Safari's own chrome is subtracted from the
+ * 1024px device profile) leaves too little room for the board once the
+ * full heading + explanatory subtitle + controls row are all present at
+ * full size. Also triggers on a narrow viewport regardless of raw height
+ * — a real, measured second case: at 390x844 (a normal phone height on
+ * paper), each of the three .mw-play-controls groups ("Play as",
+ * "Difficulty", the action buttons) wraps onto its own full-width row at
+ * that width, consuming far more vertical space than the same content
+ * needs at a wider viewport, so height alone isn't the right signal.
+ * The board itself already adapts to available height (PlayRunner.tsx's
+ * boardMaxWidth), but shrinking the fixed chrome above it first means
+ * the board doesn't have to shrink as much. Scoped to .mw-play-shell
+ * specifically, not every .mw-page-head on every page. */
+@media (max-height: 820px), (max-width: 480px) {
+  .mw-play-shell .mw-page-head { margin-bottom: var(--mw-space-3); }
+  .mw-play-shell .mw-page-subtitle { display: none; }
+  .mw-play-shell .mw-play-controls { gap: var(--mw-space-3); }
+}
+
 /* ---------- Chessboard ----------
  * Geometry-critical rules only — every property here affects whether a
  * square is actually square, so nothing that varies per-cell (colors,
@@ -1168,4 +1188,15 @@
 .mw-auth-footer a {
   color: var(--mw-moss-ink);
   font-weight: 700;
+}
+
+/* ---------- LessonGate loading state ---------- */
+.mw-lesson-gate-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  padding: var(--mw-space-6);
+  color: var(--mw-text-dim);
+  font-size: 15px;
 }

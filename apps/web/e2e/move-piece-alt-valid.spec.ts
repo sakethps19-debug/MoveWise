@@ -1,4 +1,5 @@
 import { test, expect, devices, watchForConsoleErrors, type Page } from "./fixtures";
+import { gotoGuestLesson } from "./testHelpers";
 
 /**
  * Regression coverage for a real, confirmed bug: MoveStep.tsx's answer
@@ -80,7 +81,7 @@ const CASES: AltValidCase[] = [
 ];
 
 async function enterMoveStep(page: Page, lesson: string, continues = 1) {
-  await page.goto(`/learn/${lesson}`);
+  await gotoGuestLesson(page, lesson);
   for (let i = 0; i < continues; i++) {
     await page.getByRole("button", { name: "Continue" }).click();
   }
@@ -125,6 +126,39 @@ test("pawn lesson: the shorter altValid first move (e2-e3) is accepted alongside
   await page.locator('[aria-label*="e3,"]').click();
   await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
   await expect(page.getByText("♥♥♥♥♥")).toBeVisible();
+});
+
+test("rook step-2: playing the altValid e4-a4 shows accurate '4th rank' feedback, not the hardcoded 'e-file' text authored for e4-e8", async ({
+  page,
+}) => {
+  // The exact real-world reproduction: lesson-03-meet-the-rook.json's
+  // step-2 successExplanation is hand-authored for its expectedMoves
+  // (e4-e8, along the e-file) and stays literally in the DOM string
+  // whenever the primary answer is played — but e4-a4 is the fourth
+  // rank, not the e-file, so that same fixed text would be factually
+  // wrong if shown here. MoveStep.tsx now detects when the move played
+  // doesn't match expectedMoves and generates an accurate sentence from
+  // the actual move instead (packages/chess-rules's describeMoveOutcome).
+  await enterMoveStep(page, "meet-the-pieces.03-meet-the-rook");
+  await page.locator('[aria-label*="e4,"]').click();
+  await page.locator('[aria-label*="a4,"]').click();
+
+  const status = page.getByRole("status").filter({ hasText: "Correct" });
+  await expect(status).toBeVisible();
+  await expect(status).toContainText("4th rank");
+  await expect(status).not.toContainText("e-file");
+});
+
+test("rook step-2: playing the primary expectedMoves e4-e8 keeps its authored, accurate 'e-file' text", async ({
+  page,
+}) => {
+  await enterMoveStep(page, "meet-the-pieces.03-meet-the-rook");
+  await page.locator('[aria-label*="e4,"]').click();
+  await page.locator('[aria-label*="e8,"]').click();
+
+  const status = page.getByRole("status").filter({ hasText: "Correct" });
+  await expect(status).toBeVisible();
+  await expect(status).toContainText("e-file");
 });
 
 test("every accepted destination (expectedMoves + altValid) was among the squares highlighted as legal — highlighting and validation share one canonical source", async ({
@@ -242,7 +276,7 @@ test("after a correct move, the board actually shows the piece having moved — 
 });
 
 test("every square has a unique data-square identifier, and there are exactly 64 of them", async ({ page }) => {
-  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await gotoGuestLesson(page, "meet-the-pieces.03-meet-the-rook");
   await page.getByRole("button", { name: "Continue" }).click();
   const squares = await page.locator("[data-square]").evaluateAll((els) => els.map((el) => el.getAttribute("data-square")));
   expect(squares).toHaveLength(64);

@@ -48,6 +48,73 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **Guests could still open a locked lesson by direct URL** — a real,
+  confirmed gap in the fix this file's own earlier entry ("Locked
+  lessons were reachable by direct URL") described as already closed
+  for guests via "the existing client-side localStorage-based lock."
+  That description oversold what actually existed: `LearningPath.tsx`
+  only *hid/disabled* a locked row in the UI — nothing on the
+  `/learn/[lessonId]` route itself ever checked a guest's real progress.
+  The server-side prerequisite check added by that earlier fix is
+  explicitly scoped `if (user && ...)`, since a guest has no session to
+  check `LessonCompletion` rows against — which meant a guest typing a
+  locked lesson's URL directly got the full lesson content immediately,
+  no gate at all. `components/LessonGate.tsx` (new) closes this: a
+  client-side check, since guest progress only exists in this browser's
+  `localStorage`, unreadable from the server — reads real completions
+  via the same `lib/guestProgress.ts` a genuine completion already
+  writes to, and only reveals the lesson once its prerequisite is
+  confirmed met, redirecting to the same `/?locked=...` banner the
+  signed-in path already uses otherwise. Hydration-safe by construction:
+  the gate always renders a neutral "Checking your progress…" state on
+  first paint (matching what the server itself rendered, since neither
+  knows yet), only reading `localStorage` after mount.
+- **The `move-piece` "any legal move" steps could show a wrong
+  explanation** — `MoveStep.tsx` always displayed a step's single
+  hand-authored `successExplanation` regardless of which of several
+  accepted destinations (`acceptAnyLegalMove` / `altValid`) the learner
+  actually played. Real, confirmed instance: `meet-the-pieces.03-meet-
+  the-rook`'s step-2 accepts any legal rook move, but its authored text
+  ("straight along the e-file") is only true for the author's own
+  primary answer (e4-e8) — a learner who instead played the equally
+  correct e4-a4 (along the fourth rank, not the e-file) saw a factually
+  wrong explanation. `describeMoveOutcome` (new, `packages/chess-rules`)
+  generates an accurate sentence from the move actually played — same
+  file, same rank (with correct ordinal wording for every rank, not just
+  a hardcoded "4th"), diagonal, or a knight's own L-shape, naming the
+  captured piece when there is one — used only when the played move
+  doesn't match the step's primary `expectedMoves`, so the richer,
+  hand-authored text is kept for the common path.
+- **The Play & Learn demo review contained an impossible game** — Black
+  moves (Nc6, Nge7, Ng6) were listed *after* the demo's own Qxf7#
+  checkmate entry, and move numbers skipped and mixed ply/move counts
+  (1, 2, 4, 6, 8, 10, 12). `buildDemoGameReview` now uses one
+  completely legal, engine-verified line — the classic Scholar's Mate
+  (1.e4 e5 2.Bc4 Nc6 3.Qh5 Nf6?? 4.Qxf7#) — with every ply replayed
+  through `packages/chess-rules`' `tryMove`/`gameStatus` before being
+  written (SAN taken from chess.js's own output, not hand-typed), real
+  sequential move numbers for both colors, and evaluations that chain
+  continuously from one move to the next. The game's own move list ends
+  exactly where the real game does — nothing is listed after the
+  engine-confirmed checkmate. A new `describe("buildDemoGameReview")`
+  block in `gameAnalysis.test.ts` replays the whole thing through the
+  real engine on every test run rather than trusting the hand-authored
+  strings.
+- **The Play & Learn board could overflow a shorter viewport** — a real,
+  measured defect on a 12.9" iPad in landscape (1363x936 real usable
+  height once Safari's own chrome is subtracted from the 1024px device
+  profile): the board was sized from available WIDTH only
+  (`PlayRunner.tsx` passed a fixed `maxWidth={720}` to `<Board>`), so its
+  bottom edge landed around y=1148 — well past the 936px-tall viewport,
+  with no way to see the full board without scrolling. `PlayRunner.tsx`
+  now measures the real rendered layout (how far down the board starts,
+  the real height of the player card below it, the real CSS gap between
+  them — not a guessed pixel budget) on mount and on every resize, and
+  caps the board at whatever square size actually fits the remaining
+  vertical space, alongside the existing 720px width cap. A
+  `@media (max-height: 820px)` rule also compacts the page's own fixed
+  chrome above the board (hides the explanatory subtitle, tightens
+  spacing) so the board has to shrink less in the first place.
 - **Three real progress-loss bugs, all the same root cause: a Server
   Action fired without being awaited or having its failure handled.**
   Found by deliberately simulating a dropped connection

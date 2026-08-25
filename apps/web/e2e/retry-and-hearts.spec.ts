@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { gotoGuestLesson } from "./testHelpers";
 
 test("a wrong answer doesn't permanently block the exercise, and hearts decrement", async ({ page }) => {
   await page.goto("/learn/meet-the-pieces.01-welcome");
@@ -19,7 +20,7 @@ test("a wrong answer doesn't permanently block the exercise, and hearts decremen
 });
 
 test("a hint shown before a correct answer doesn't linger after the step is marked correct", async ({ page }) => {
-  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await gotoGuestLesson(page, "meet-the-pieces.03-meet-the-rook");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // step-2: move-piece, rook e4, expectedMoves ['e4e8']. Reveal a hint first.
@@ -37,7 +38,7 @@ test("a hint shown before a correct answer doesn't linger after the step is mark
 });
 
 test("reaching zero hearts triggers guided recovery, never a hard lockout", async ({ page }) => {
-  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await gotoGuestLesson(page, "meet-the-pieces.03-meet-the-rook");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // step-2: move-piece, rook e4, expectedMoves ['e4e8']. 4 illegal attempts
@@ -76,7 +77,7 @@ test("a refresh during recovery doesn't crash — restarts the lesson like a ref
   // gap — see docs/known-risks.md on lesson exit/resume), so a refresh
   // here behaves the same as a refresh at any other point in a lesson:
   // it restarts from step 1 with full hearts, not a crash or a stuck page.
-  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await gotoGuestLesson(page, "meet-the-pieces.03-meet-the-rook");
   await page.getByRole("button", { name: "Continue" }).click();
   for (let i = 0; i < 5; i++) {
     await page.locator('[aria-label*="e4,"]').click();
@@ -90,7 +91,7 @@ test("a refresh during recovery doesn't crash — restarts the lesson like a ref
 });
 
 test("a lesson can still be completed normally after going through recovery", async ({ page }) => {
-  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await gotoGuestLesson(page, "meet-the-pieces.03-meet-the-rook");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // Trigger recovery on step-2, then complete it.

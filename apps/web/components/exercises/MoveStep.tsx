@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { MovePieceStep, CaptureStep, FindLegalMoveStep } from "@movewise/exercise-schema";
-import { legalTargetsFrom, moveMatches, tryMove, type Square } from "@movewise/chess-rules";
+import { describeMoveOutcome, legalTargetsFrom, moveMatches, tryMove, type Square } from "@movewise/chess-rules";
 import { Board } from "../Board";
 import { StepFooter } from "./StepFooter";
 import { Button } from "../ui/Button";
@@ -29,6 +29,11 @@ export function MoveStep({
   // correct answer, leaving the piece rendered on its starting square even
   // after the step was marked correct.
   const [boardFen, setBoardFen] = useState(step.fen);
+  // The explanation actually shown once this step is answered correctly.
+  // Starts as the author's own successExplanation text and is only ever
+  // overridden below, for the specific case where it would otherwise be
+  // wrong (see the comment at that call site).
+  const [explanation, setExplanation] = useState(step.successExplanation);
 
   const legalTargets = useMemo(() => (selected ? legalTargetsFrom(boardFen, selected) : []), [selected, boardFen]);
 
@@ -81,6 +86,18 @@ export function MoveStep({
           );
     if (isCorrect) {
       setBoardFen(result.fenAfter);
+      // A step that accepts more than one destination shape
+      // (acceptAnyLegalMove / altValid) can't safely reuse its single
+      // hand-authored successExplanation once the learner's actual move
+      // doesn't match the author's primary expectedMoves — a real,
+      // confirmed bug: an "any legal rook move" step whose text said
+      // "along the e-file" stayed wrong even when the learner correctly
+      // played e4-a4 (the fourth rank) instead. Generate an accurate
+      // sentence from the move actually played in that case; the
+      // primary expected-move path keeps its richer authored text.
+      if (step.type === "move-piece" && !moveMatches(result.move, step.expectedMoves)) {
+        setExplanation(describeMoveOutcome(result.move));
+      }
       onCorrect(STEP_XP);
     } else {
       onIncorrect("default");
@@ -109,7 +126,7 @@ export function MoveStep({
       <StepFooter
         status={status}
         feedback={feedback}
-        successExplanation={step.successExplanation}
+        successExplanation={explanation}
         xp={STEP_XP}
         isLastStep={isLastStep}
         onAdvance={onAdvance}

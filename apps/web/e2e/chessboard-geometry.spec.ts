@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "./fixtures";
+import { gotoGuestLesson } from "./testHelpers";
 
 /**
  * Enforces the chessboard's mathematical geometry, not just its CSS
@@ -148,7 +149,7 @@ for (const bp of BREAKPOINTS) {
 
   test(`lesson board geometry at ${bp.name} (${bp.width}px)`, async ({ page }) => {
     await page.setViewportSize({ width: bp.width, height: bp.height });
-    await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+    await gotoGuestLesson(page, "meet-the-pieces.03-meet-the-rook");
     await page.getByRole("button", { name: "Continue" }).click();
     await page.waitForSelector('[role="grid"].mw-chessboard');
     const geo = await readBoardGeometry(page);
@@ -160,14 +161,14 @@ test("board geometry holds on a sparsely-populated position (the bug this suite 
   // A position with pieces on only some ranks is exactly what exposed the
   // original defect: rows containing a piece <img> sized taller than
   // empty rows once grid-template-rows was left to default to `auto`.
-  await page.goto("/learn/meet-the-pieces.07-meet-the-queen");
+  await gotoGuestLesson(page, "meet-the-pieces.07-meet-the-queen");
   await page.waitForSelector('[role="grid"].mw-chessboard');
   const geo = await readBoardGeometry(page);
   assertBoardGeometry(geo);
 });
 
 test("board geometry holds on an empty board", async ({ page }) => {
-  await page.goto("/learn/meet-the-pieces.02-ranks-files-squares");
+  await gotoGuestLesson(page, "meet-the-pieces.02-ranks-files-squares");
   await page.waitForSelector('[role="grid"].mw-chessboard');
   const geo = await readBoardGeometry(page);
   assertBoardGeometry(geo);

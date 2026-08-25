@@ -3,6 +3,7 @@ import {
   buildPgn,
   replayPgn,
   describeMove,
+  describeMoveOutcome,
   gameStatus,
   isCheckmateMove,
   isGameOver,
@@ -113,6 +114,73 @@ describe("describeMove", () => {
 
   it("legalMoves returns 20 legal moves from the starting position", () => {
     expect(legalMoves(START_FEN)).toHaveLength(20);
+  });
+});
+
+describe("describeMoveOutcome", () => {
+  // Same board as lesson-03-meet-the-rook.json's step-2 fixture, whose
+  // real bug this guards against: a hand-authored successExplanation
+  // said "along the e-file" even when the learner played e4-a4 (the
+  // fourth rank) instead of the author's expected e4-e8.
+  const ROOK_E4_FEN = "7k/8/8/8/4R3/8/8/K7 w - - 0 1";
+
+  it("describes e4-e8 as along the e-file", () => {
+    const result = tryMove(ROOK_E4_FEN, { from: "e4", to: "e8" })!;
+    expect(describeMoveOutcome(result.move)).toBe(
+      "That's a legal move — the rook moved straight along the e-file to e8.",
+    );
+  });
+
+  it("describes e4-e1 as along the e-file too — same file, opposite direction", () => {
+    const result = tryMove(ROOK_E4_FEN, { from: "e4", to: "e1" })!;
+    expect(describeMoveOutcome(result.move)).toContain("straight along the e-file");
+  });
+
+  it("describes e4-a4 as along the 4th rank, not the e-file — the real bug this guards against", () => {
+    const result = tryMove(ROOK_E4_FEN, { from: "e4", to: "a4" })!;
+    expect(describeMoveOutcome(result.move)).toBe(
+      "That's a legal move — the rook moved straight along the 4th rank to a4.",
+    );
+  });
+
+  it("describes e4-h4 as along the 4th rank too — same rank, opposite direction", () => {
+    const result = tryMove(ROOK_E4_FEN, { from: "e4", to: "h4" })!;
+    expect(describeMoveOutcome(result.move)).toContain("straight along the 4th rank");
+  });
+
+  it("names the captured piece and still gets the geometry right", () => {
+    const fen = "4k3/8/8/8/3pR3/8/8/4K3 w - - 0 1";
+    const result = tryMove(fen, { from: "e4", to: "d4" })!;
+    expect(describeMoveOutcome(result.move)).toBe(
+      "Rxd4 captures the pawn — the rook moved straight along the 4th rank to d4.",
+    );
+  });
+
+  it("describes a diagonal bishop move as diagonal, not a file or rank", () => {
+    const fen = "7k/8/8/8/4B3/8/8/K7 w - - 0 1";
+    const result = tryMove(fen, { from: "e4", to: "h7" })!;
+    expect(describeMoveOutcome(result.move)).toContain("diagonally");
+    expect(describeMoveOutcome(result.move)).not.toContain("file");
+    expect(describeMoveOutcome(result.move)).not.toContain("rank");
+  });
+
+  it("describes a knight move as its own L-shape, not a file/rank/diagonal", () => {
+    const result = tryMove(START_FEN, { from: "g1", to: "f3" })!;
+    expect(describeMoveOutcome(result.move)).toContain("L-shape");
+  });
+
+  it("gets the ordinal suffix right for the 1st, 2nd and 3rd ranks, not just '4th'", () => {
+    const rank1 = tryMove("7k/8/8/4K3/8/8/8/1R6 w - - 0 1", { from: "b1", to: "a1" })!;
+    expect(describeMoveOutcome(rank1.move)).toContain("1st rank");
+    const rank2 = tryMove("7k/8/8/4K3/8/8/1R6/8 w - - 0 1", { from: "b2", to: "a2" })!;
+    expect(describeMoveOutcome(rank2.move)).toContain("2nd rank");
+    const rank3 = tryMove("7k/8/8/4K3/8/1R6/8/8 w - - 0 1", { from: "b3", to: "a3" })!;
+    expect(describeMoveOutcome(rank3.move)).toContain("3rd rank");
+  });
+
+  it("gets the 8th rank right too — the other boundary", () => {
+    const rank8 = tryMove("1R4k1/8/8/4K3/8/8/8/8 w - - 0 1", { from: "b8", to: "a8" })!;
+    expect(describeMoveOutcome(rank8.move)).toContain("8th rank");
   });
 });
 

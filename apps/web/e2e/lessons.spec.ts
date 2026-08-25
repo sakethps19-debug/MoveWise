@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { gotoGuestLesson } from "./testHelpers";
 
 test("explain, select-square, and true-false steps: click through Welcome to the chessboard, reach the completion screen @smoke", async ({
   page,
@@ -34,7 +35,7 @@ test("explain, select-square, and true-false steps: click through Welcome to the
 });
 
 test("move-piece step with hints: Meet the rook", async ({ page }) => {
-  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await gotoGuestLesson(page, "meet-the-pieces.03-meet-the-rook");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // step-2: move-piece, rook e4, expectedMoves ['e4e8']
@@ -44,7 +45,7 @@ test("move-piece step with hints: Meet the rook", async ({ page }) => {
 });
 
 test("mcq and true-false steps: What is check? / What is checkmate?", async ({ page }) => {
-  await page.goto("/learn/check-and-checkmate.01-what-is-check");
+  await gotoGuestLesson(page, "check-and-checkmate.01-what-is-check");
   await page.getByRole("button", { name: "Continue" }).click();
   await page.locator('[aria-label*="h8,"]').click(); // find-check, correctSquares=['h8']
   await page.getByRole("button", { name: "Continue" }).click();

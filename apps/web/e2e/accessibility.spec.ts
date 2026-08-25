@@ -1,5 +1,6 @@
 import { test, expect } from "./fixtures";
 import AxeBuilder from "@axe-core/playwright";
+import { gotoGuestLesson } from "./testHelpers";
 
 // Closes "no accessibility test automation" in docs/known-risks.md.
 // Board.tsx and friends were built with real ARIA semantics (accessible
@@ -51,7 +52,7 @@ test("a lesson page: explain/select-square/true-false steps, and the completion 
 });
 
 test("a move-piece lesson step, with a hint arrow rendered", async ({ page }) => {
-  await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+  await gotoGuestLesson(page, "meet-the-pieces.03-meet-the-rook");
   await page.getByRole("button", { name: "Continue" }).click();
   await expectNoViolations(page);
 });
@@ -134,7 +135,7 @@ test.describe("prefers-reduced-motion", () => {
   });
 
   test("the correct-answer feedback banner's entrance animation is collapsed", async ({ page }) => {
-    await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
+    await gotoGuestLesson(page, "meet-the-pieces.03-meet-the-rook");
     await page.getByRole("button", { name: "Continue" }).click();
     await page.locator('[aria-label*="e4,"]').click();
     await page.locator('[aria-label*="e8,"]').click();

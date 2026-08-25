@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { gotoGuestLesson } from "./testHelpers";
 
 /**
  * Closes a real, previously-documented gap (docs/known-risks.md,
@@ -18,7 +19,7 @@ import { test, expect } from "./fixtures";
  */
 
 test("move-piece step with castling: King safety and castling", async ({ page }) => {
-  await page.goto("/learn/meet-the-pieces.13-king-safety-and-castling");
+  await gotoGuestLesson(page, "meet-the-pieces.13-king-safety-and-castling");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // step-2: move-piece, castle kingside (e1g1 / O-O).
@@ -41,7 +42,7 @@ test("move-piece step with castling: King safety and castling", async ({ page })
 });
 
 test("capture step: Hanging pieces", async ({ page }) => {
-  await page.goto("/learn/basic-tactics.02-hanging-pieces");
+  await gotoGuestLesson(page, "basic-tactics.02-hanging-pieces");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // step-2: capture, Rxd4.
@@ -62,7 +63,7 @@ test("capture step: Hanging pieces", async ({ page }) => {
 });
 
 test("mcq and true-false steps: Develop your minor pieces first", async ({ page }) => {
-  await page.goto("/learn/basic-tactics.03-opening-development");
+  await gotoGuestLesson(page, "basic-tactics.03-opening-development");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // step-2: mcq, correctIndex 1.
@@ -82,7 +83,7 @@ test("mcq and true-false steps: Develop your minor pieces first", async ({ page 
 });
 
 test("move-piece step: Back-rank safety", async ({ page }) => {
-  await page.goto("/learn/check-and-checkmate.04-back-rank-safety");
+  await gotoGuestLesson(page, "check-and-checkmate.04-back-rank-safety");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // step-2: move-piece, create luft with h2-h3.
@@ -103,7 +104,7 @@ test("move-piece step: Back-rank safety", async ({ page }) => {
 });
 
 test("capture step: Is this trade worth it?", async ({ page }) => {
-  await page.goto("/learn/basic-tactics.04-is-this-trade-worth-it");
+  await gotoGuestLesson(page, "basic-tactics.04-is-this-trade-worth-it");
   await page.getByRole("button", { name: "Continue" }).click();
 
   // step-2: capture, Qxg4 (the undefended knight, not the defended pawn on d4).

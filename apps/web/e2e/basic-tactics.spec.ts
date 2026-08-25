@@ -1,7 +1,8 @@
 import { test, expect } from "./fixtures";
+import { gotoGuestLesson } from "./testHelpers";
 
 test("the knight fork: a check-only trap move is rejected, the real fork is accepted", async ({ page }) => {
-  await page.goto("/learn/basic-tactics.01-the-knight-fork");
+  await gotoGuestLesson(page, "basic-tactics.01-the-knight-fork");
 
   // step-1: explain
   await page.getByRole("button", { name: "Continue" }).click();
