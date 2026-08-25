@@ -30,6 +30,30 @@ describe("isLegalFen", () => {
   it("rejects a structurally invalid FEN", () => {
     expect(isLegalFen("not-a-fen")).toBe(false);
   });
+
+  // docs/content-authoring-guide.md's documented gap: a FEN where the
+  // side NOT about to move is in check is an unreachable game state
+  // (their previous move would have had to leave their own king in
+  // check) — chess.js's own strict loader doesn't reject this by itself.
+  it("rejects a FEN where the side not to move is left in check", () => {
+    // White rook on e1, White king g1, Black king e8 — the open e-file
+    // means Black's king is in check, but it's White's move, so this
+    // position could never have actually been reached.
+    expect(isLegalFen("4k3/8/8/8/8/8/8/4R1K1 w - - 0 1")).toBe(false);
+  });
+
+  it("accepts a real position where it's legitimately about to deliver check", () => {
+    // Same idea as the position above, but it's the checking side's own
+    // move — White hasn't played Rh8 yet, so Black isn't in check yet.
+    expect(isLegalFen("k7/8/8/8/8/8/8/4K2R w - - 0 1")).toBe(true);
+  });
+
+  it("accepts a position where the side to move is legitimately in check", () => {
+    // The reverse case must still work: the side whose turn it actually
+    // is CAN be in check (that's just check, not an illegal state) —
+    // Black king e8, White rook e1, and it's Black's own move.
+    expect(isLegalFen("4k3/8/8/8/8/8/8/4R1K1 b - - 0 1")).toBe(true);
+  });
 });
 
 describe("legalTargetsFrom", () => {
