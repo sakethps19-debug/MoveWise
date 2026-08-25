@@ -31,7 +31,7 @@
   every commit that touches `apps/web`) — not "tests" exactly, but part
   of the same verification gate.
 - **E2E suite** (`@playwright/test`, `apps/web/e2e/`, run via
-  `pnpm --filter @movewise/web test:e2e`) — 26 spec files, 236 tests
+  `pnpm --filter @movewise/web test:e2e`) — 27 spec files, 264 tests
   across 3 projects (desktop `chromium`, plus named `iPad`/`Mobile`
   projects for the two viewport-parametrized specs) — plus a fast
   `@smoke`-tagged critical-path subset,
@@ -66,7 +66,10 @@
 
 ## What does not exist
 
-- **No load/performance testing.**
+Nothing currently tracked here — the one item previously listed (load/
+performance testing) now exists: `e2e/performance.spec.ts` (`@perf`-tagged,
+`pnpm test:e2e:perf`) and `scripts/perf-smoke.mjs` (`autocannon`-backed,
+`pnpm test:perf:smoke`).
 
 ## Acceptance criteria for the two-mode architecture (ADR-0008) — test plan, most still not built
 

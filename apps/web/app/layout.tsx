@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Fraunces, Karla, JetBrains_Mono } from "next/font/google";
 import { themeInitScript } from "../lib/theme";
 import "./globals.css";
@@ -42,12 +43,30 @@ const PIECE_TYPES = ["p", "n", "b", "r", "q", "k"] as const;
 const PIECE_COLORS = ["w", "b"] as const;
 const PIECE_ASSET_HREFS = PIECE_COLORS.flatMap((color) => PIECE_TYPES.map((type) => `/pieces/${color}${type}.svg`));
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Set by middleware.ts alongside the matching Content-Security-Policy
+  // header, so this hand-written inline script is allowed under a
+  // script-src that otherwise excludes 'unsafe-inline'.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+  // suppressHydrationWarning on <html>: themeInitScript sets data-theme on
+  // this element synchronously, before React hydrates, specifically so a
+  // stored preference applies before first paint — the server can't know
+  // a returning visitor's localStorage value ahead of time, so a mismatch
+  // here is expected, not a bug.
   return (
-    <html lang="en" className={`${fraunces.variable} ${karla.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${fraunces.variable} ${karla.variable} ${jetbrainsMono.variable}`}
+    >
       <head>
         {/* Applies a stored theme choice before first paint — avoids a flash of the wrong theme. */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* suppressHydrationWarning: React deliberately omits `nonce` from
+            the client-rendered attributes (so a fresh per-request nonce
+            isn't left readable in the live DOM after hydration) — this is
+            documented React/Next behavior, not a real mismatch, and would
+            otherwise log a hydration-warning console error on every page. */}
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         {PIECE_ASSET_HREFS.map((href) => (
           <link key={href} rel="preload" as="image" href={href} type="image/svg+xml" />
         ))}
