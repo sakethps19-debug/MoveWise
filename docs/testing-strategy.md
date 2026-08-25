@@ -106,7 +106,7 @@ the original plan.
 | Correct board orientation | No — orientation isn't modeled at all; every board assumes White at the bottom |
 | Correct hint sequence | Partially — level-3 arrow hints are checked as legal moves (for `move-piece` only, deliberately — see the validator's own comment on why `select-square` is excluded); hint *text* isn't checked against the actual answer |
 | Matching explanation and answer | No — feedback text is free-form and not cross-checked against `correctSquares`/`expectedMoves` |
-| Unambiguous success criteria | Partially — `find-check`/`find-checkmate`'s `correctSquares` are checked to *all* be real answers, but the validator doesn't flag when a correct answer exists that content *didn't* list (a false-negative risk for the learner, not caught) |
+| Unambiguous success criteria | Yes for `find-check`/`find-checkmate` — `correctSquares` is checked both directions: every declared entry must be a real answer, *and* every real answer (every legal move whose destination square delivers check/checkmate) must be declared. The second direction is the one that used to be missing; closed because it's a real, concrete consequence, not a theoretical gap — `ClickSquareStep.tsx` grades a click by strict membership in `correctSquares`, so an omitted-but-legal square meant a learner who found it got marked wrong for a genuinely correct move. Not modeled for other step types with non-exhaustive success criteria (e.g. `move-piece` without `acceptAnyLegalMove` — a step can legitimately teach one specific demonstration move without claiming to accept every legal alternative). |
 
 ## How verification actually worked, in practice
 

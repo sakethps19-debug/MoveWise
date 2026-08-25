@@ -70,6 +70,18 @@ function checkStep(lessonId: string, step: ExerciseStep): ValidationIssue[] {
           fail(`"${square}" is not a square a ${isMate ? "checkmate" : "check"}-delivering move lands on`);
         }
       }
+      // The reverse direction matters too: ClickSquareStep.tsx grades a
+      // click by strict membership in correctSquares (a wrong click costs
+      // a heart) — a real, legal delivering square missing from that list
+      // isn't a harmless omission, it's a learner penalized for a
+      // genuinely correct answer.
+      for (const square of deliveringSquares) {
+        if (!step.correctSquares.includes(square)) {
+          fail(
+            `"${square}" also delivers ${isMate ? "checkmate" : "check"} but is missing from correctSquares — a learner playing it would be marked wrong`,
+          );
+        }
+      }
       break;
     }
     case "order-steps": {
