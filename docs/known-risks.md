@@ -48,6 +48,24 @@ rather than repeating it.
 
 ## Resolved this session, kept here for the record
 
+- **A real, live lesson had a chess-illegal position** —
+  `meet-the-pieces/lesson-03-meet-the-rook.json`'s step-3 FEN
+  (`4k3/8/8/8/3pR3/8/8/4K3 w - - 0 1`) put Black's king on e8, directly on
+  the White rook's open e-file, with White to move — meaning Black's king
+  was already in check before White's own move, an unreachable game state
+  (Black's previous move would have had to leave their own king in
+  check, which chess disallows). Not found by inspection or a bug
+  report — found by tightening `isLegalFen`
+  (`packages/chess-rules`) to actually check for this, a gap
+  `docs/content-authoring-guide.md` had documented as real but uncaught
+  ("chess.js won't catch this") since chess.js's own strict FEN loader
+  only rejects structural impossibilities, not unreachable-but-
+  structurally-valid positions. Fixed by moving the black king to a8,
+  off the rook's file — the step's actual content (capturing the pawn on
+  d4) was entirely unaffected, confirmed by `pnpm validate:content`
+  going from 1 issue to 0 and a full local E2E re-run (every spec that
+  touches this lesson) staying green.
+
 - **Guests could still open a locked lesson by direct URL** — a real,
   confirmed gap in the fix this file's own earlier entry ("Locked
   lessons were reachable by direct URL") described as already closed
