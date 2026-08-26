@@ -838,6 +838,21 @@
   margin: 0;
 }
 
+.mw-resume-gate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-3);
+  padding: var(--mw-space-5);
+  background: var(--mw-surface);
+  border: 1px solid var(--mw-border);
+  border-left: 3px solid var(--mw-moss);
+  border-radius: var(--mw-radius-lg);
+  box-shadow: var(--mw-shadow-raised);
+}
+.mw-resume-gate h2 {
+  font-size: 19px;
+}
+
 /* ---------- Completion screen ---------- */
 .mw-completion {
   display: flex;

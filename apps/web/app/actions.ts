@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { prisma } from "@movewise/db";
+import { prisma, Prisma } from "@movewise/db";
 import { createSession, destroySession, getSession, hashPassword, verifyPassword } from "../lib/auth";
 import { checkRateLimit, formatRetryAfter } from "../lib/rate-limit";
 import { parseEnvNumberOverride } from "../lib/envNumber";
@@ -12,7 +12,7 @@ import { findPuzzle } from "../lib/puzzles";
 import { computeMasteryStatus, type MasteryStatus } from "../lib/masteryModel";
 import { canAnalyze, summarize, type GameReview, type MoveAnalysis } from "../lib/gameAnalysis";
 import { buildStoredGameReview } from "../lib/studyPlan";
-import type { AttemptRecord } from "../components/LessonRunner";
+import type { AttemptRecord, LessonCheckpointState } from "../components/LessonRunner";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -290,8 +290,47 @@ export async function completeLessonAction(
     create: { userId: user.id, lessonId, xpEarned, mistakes, hintsUsed },
   });
 
+  // Completion supersedes any in-progress checkpoint — finishing clears it,
+  // the same "completed beats in-progress" rule lessonProgressUI.ts already
+  // uses for the lighter-weight "started" UI marker.
+  await prisma.lessonCheckpoint.deleteMany({ where: { userId: user.id, lessonId } });
+
   await recordAttemptsAndUpdateMastery(user.id, lessonId, attempts);
   revalidatePath("/");
+}
+
+/**
+ * Saves a signed-in learner's in-progress position in a lesson — the "In
+ * progress" fix: reopening a lesson previously always restarted at step 1
+ * with full hearts because nothing but the cosmetic
+ * lessonProgressUI.ts "started" flag was ever persisted mid-lesson. Called
+ * from LessonRunner on every step advance; best-effort (fire-and-forget
+ * from the caller) since losing a checkpoint write only costs a resume
+ * point, never real progress data (LessonCompletion/ExerciseAttempt are
+ * unaffected either way).
+ */
+export async function saveLessonCheckpointAction(
+  lessonId: string,
+  lessonVersion: number,
+  state: LessonCheckpointState,
+): Promise<void> {
+  const user = await getSession();
+  if (!user) return; // guest: checkpoint lives in localStorage instead (see guestProgress.ts)
+
+  const { stepIndex, mistakes, hintsUsed, attempts } = state;
+  const attemptsJson = attempts as unknown as Prisma.InputJsonValue;
+  await prisma.lessonCheckpoint.upsert({
+    where: { userId_lessonId: { userId: user.id, lessonId } },
+    update: { lessonVersion, stepIndex, mistakes, hintsUsed, attempts: attemptsJson },
+    create: { userId: user.id, lessonId, lessonVersion, stepIndex, mistakes, hintsUsed, attempts: attemptsJson },
+  });
+}
+
+/** Explicit "Start over" — discards a saved checkpoint rather than resuming it. */
+export async function clearLessonCheckpointAction(lessonId: string): Promise<void> {
+  const user = await getSession();
+  if (!user) return;
+  await prisma.lessonCheckpoint.deleteMany({ where: { userId: user.id, lessonId } });
 }
 
 /**

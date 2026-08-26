@@ -67,6 +67,13 @@ async function main() {
       process.stdout.write(String(count));
       break;
     }
+    case "get-lesson-checkpoint": {
+      const checkpoint = await prisma.lessonCheckpoint.findUnique({
+        where: { userId_lessonId: { userId: args.userId, lessonId: args.lessonId } },
+      });
+      process.stdout.write(checkpoint ? JSON.stringify(checkpoint) : "");
+      break;
+    }
     case "count-games": {
       const count = await prisma.game.count({ where: { userId: args.userId } });
       process.stdout.write(String(count));

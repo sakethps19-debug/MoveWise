@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { Lesson } from "@movewise/exercise-schema";
 import { useStockfishEngine } from "../lib/useStockfishEngine";
 import { starsForPerformance, starsExplanation } from "../lib/mastery";
-import { recordGuestCompletion } from "../lib/guestProgress";
+import { recordGuestCompletion, saveGuestLessonCheckpoint, clearGuestLessonCheckpoint } from "../lib/guestProgress";
 import { markLessonStarted, clearLessonStarted } from "../lib/lessonProgressUI";
 import { recordCompletionToday } from "../lib/streak";
 import { formatObjectiveSentence } from "../lib/lessonText";
@@ -31,6 +31,14 @@ export interface AttemptRecord {
   wrongAnswerKey: string | null;
 }
 
+/** A saved in-progress position in a lesson — see packages/db's LessonCheckpoint model / guestProgress.ts's guest equivalent. */
+export interface LessonCheckpointState {
+  stepIndex: number;
+  mistakes: number;
+  hintsUsed: number;
+  attempts: AttemptRecord[];
+}
+
 interface LessonRunnerProps {
   lesson: Lesson;
   onComplete?: (
@@ -41,6 +49,10 @@ interface LessonRunnerProps {
   ) => void | Promise<void>;
   /** True when there's no signed-in session — persists this completion to localStorage instead of the DB. */
   isGuest?: boolean;
+  /** Resumes into a previously saved position instead of starting at step 0 — see LessonResumeGate. */
+  initialCheckpoint?: LessonCheckpointState | null;
+  /** Signed-in checkpoint persistence (saveLessonCheckpointAction). Guests persist internally via guestProgress.ts instead. */
+  onCheckpoint?: (state: LessonCheckpointState) => void;
 }
 
 const START_HEARTS = 5;
@@ -72,14 +84,21 @@ const RECOVERY_HEARTS = 3;
  * just gets an explanation and an immediate retry, same as always, with
  * nothing to lose.
  */
-export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps) {
-  const [stepIndex, setStepIndex] = useState(0);
+export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, onCheckpoint }: LessonRunnerProps) {
+  // Clamped defensively — a checkpoint saved against a lesson that has
+  // since shrunk shouldn't be possible (lessonVersion gates that at the
+  // read site), but an out-of-range index here would otherwise crash
+  // rather than degrade to "start fresh".
+  const initialStepIndex = initialCheckpoint
+    ? Math.min(Math.max(initialCheckpoint.stepIndex, 0), lesson.steps.length - 1)
+    : 0;
+  const [stepIndex, setStepIndex] = useState(initialStepIndex);
   const [status, setStatus] = useState<StepStatus>("active");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [xpEarned, setXpEarned] = useState(0);
-  const [mistakes, setMistakes] = useState(0);
-  const [hintsUsed, setHintsUsed] = useState(0);
-  const [attempts, setAttempts] = useState<AttemptRecord[]>([]);
+  const [mistakes, setMistakes] = useState(initialCheckpoint?.mistakes ?? 0);
+  const [hintsUsed, setHintsUsed] = useState(initialCheckpoint?.hintsUsed ?? 0);
+  const [attempts, setAttempts] = useState<AttemptRecord[]>(initialCheckpoint?.attempts ?? []);
   const [recovering, setRecovering] = useState(false);
   const [finished, setFinished] = useState<{ xp: number; mistakes: number; hintsUsed: number } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -119,6 +138,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
       if (isGuest) {
         recordGuestCompletion(lesson.id, totalXp, mistakes, hintsUsed);
         clearLessonStarted(lesson.id);
+        clearGuestLessonCheckpoint(lesson.id);
         recordCompletionToday();
         setFinished({ xp: totalXp, mistakes, hintsUsed });
         return;
@@ -145,7 +165,21 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
         setSaving(false);
       }
     } else {
-      setStepIndex((i) => i + 1);
+      const newStepIndex = stepIndex + 1;
+      setStepIndex(newStepIndex);
+      persistCheckpoint({ stepIndex: newStepIndex, mistakes, hintsUsed, attempts });
+    }
+  }
+
+  // Best-effort, fire-and-forget — a dropped checkpoint write only costs a
+  // resume point (the learner falls back to restarting), never real
+  // progress data, so this deliberately doesn't block navigation or show
+  // an error the way completion saves do.
+  function persistCheckpoint(state: LessonCheckpointState) {
+    if (isGuest) {
+      saveGuestLessonCheckpoint(lesson.id, lesson.version, state);
+    } else {
+      onCheckpoint?.(state);
     }
   }
 
@@ -157,9 +191,14 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
   }
 
   function handleIncorrect(key: string) {
-    setAttempts((a) => [...a, { stepId: step.id, correct: false, wrongAnswerKey: key }]);
+    const newAttempts = [...attempts, { stepId: step.id, correct: false, wrongAnswerKey: key }];
+    setAttempts(newAttempts);
     const newMistakes = mistakes + 1;
     setMistakes(newMistakes);
+    // Keeps hearts-remaining accurate in a saved checkpoint even for a
+    // learner who leaves mid-step (before advancing) — the step-transition
+    // persist in advance() alone would otherwise miss these wrong attempts.
+    persistCheckpoint({ stepIndex, mistakes: newMistakes, hintsUsed, attempts: newAttempts });
     if (heartsAtRisk && START_HEARTS - newMistakes <= 0) {
       // Hearts just hit zero — go straight to guided recovery instead of
       // showing ordinary wrong-answer feedback the learner would just

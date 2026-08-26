@@ -18,6 +18,7 @@ model User {
   conceptMasteries  UserConceptMastery[]
   exerciseAttempts  ExerciseAttempt[]
   games             Game[]
+  lessonCheckpoints LessonCheckpoint[]
 }
 
 /// Opaque database-backed session tokens (not JWTs) — the cookie holds
@@ -48,6 +49,33 @@ model LessonCompletion {
   /// tiering computed elsewhere" reasoning as `mistakes`.
   hintsUsed   Int      @default(0)
   completedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+/// A single in-progress attempt at one lesson — "reopening a lesson
+/// restarted at step 1" fix. One row per (user, lesson): resuming
+/// overwrites it, finishing the lesson (completeLessonAction) deletes it.
+/// `lessonVersion` pins the content version this checkpoint was saved
+/// against (Lesson.version, packages/exercise-schema) — a content edit
+/// bumps that number, and a stale checkpoint is discarded rather than
+/// resumed into a lesson whose step semantics may have changed.
+model LessonCheckpoint {
+  id            String   @id @default(cuid())
+  userId        String
+  lessonId      String
+  lessonVersion Int
+  stepIndex     Int
+  mistakes      Int      @default(0)
+  hintsUsed     Int      @default(0)
+  /// Same AttemptRecord[] shape LessonCompletion's attempts are derived
+  /// from at completion time — stored here mid-lesson so a resumed run's
+  /// eventual mastery recompute sees the full history, not just what
+  /// happened after resuming.
+  attempts      Json
+  updatedAt     DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
