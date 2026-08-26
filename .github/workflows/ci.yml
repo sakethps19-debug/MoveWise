@@ -106,6 +106,9 @@ jobs:
       # traffic collides with its own budget. Doesn't touch production's
       # tuning, which stays at its default whenever this var is unset.
       SIGNUP_RATE_LIMIT: "200"
+      # Same reasoning as SIGNUP_RATE_LIMIT above, for the suite's own
+      # real /login submissions against LOGIN_IP_LIMIT/LOGIN_EMAIL_LIMIT.
+      LOGIN_RATE_LIMIT: "200"
     steps:
       - uses: actions/checkout@v4
 

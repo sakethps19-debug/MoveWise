@@ -38,8 +38,17 @@ const MIN_SIGNUP_AGE = 13;
 // would weaken real abuse protection; widening it only for CI's own
 // traffic (ci.yml sets this explicitly) doesn't.
 const SIGNUP_LIMIT = { limit: parseEnvNumberOverride(process.env.SIGNUP_RATE_LIMIT, 20), windowMs: 60 * 60 * 1000 }; // 20/hour per IP by default
-const LOGIN_IP_LIMIT = { limit: 15, windowMs: 15 * 60 * 1000 }; // 15/15min per IP
-const LOGIN_EMAIL_LIMIT = { limit: 8, windowMs: 15 * 60 * 1000 }; // 8/15min per email, catches distributed attempts against one account
+// Same "CI's own traffic collides with its own budget" reasoning as
+// SIGNUP_LIMIT above — the full E2E suite performs real /login
+// submissions across many spec files (auth, account, play-analysis,
+// signup-trust, lesson-resume...) from the single runner IP, and that
+// total sits close enough to production's real 15/15min-per-IP tuning
+// that added test coverage can push it over with no connection to an
+// actual regression. LOGIN_RATE_LIMIT (ci.yml sets it) scales both
+// per-IP and per-email limits together; production's real tuning is
+// unaffected whenever it's unset.
+const LOGIN_IP_LIMIT = { limit: parseEnvNumberOverride(process.env.LOGIN_RATE_LIMIT, 15), windowMs: 15 * 60 * 1000 }; // 15/15min per IP by default
+const LOGIN_EMAIL_LIMIT = { limit: parseEnvNumberOverride(process.env.LOGIN_RATE_LIMIT, 8), windowMs: 15 * 60 * 1000 }; // 8/15min per email by default, catches distributed attempts against one account
 const DELETE_ACCOUNT_LIMIT = { limit: 8, windowMs: 15 * 60 * 1000 }; // 8/15min per account — reauthentication itself is a password guess surface
 const PASSWORD_RESET_LIMIT = { limit: 5, windowMs: 15 * 60 * 1000 }; // 5/15min per IP and per email — bounds request-flooding/enumeration probing
 const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
