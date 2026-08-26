@@ -99,7 +99,14 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
   const [mistakes, setMistakes] = useState(initialCheckpoint?.mistakes ?? 0);
   const [hintsUsed, setHintsUsed] = useState(initialCheckpoint?.hintsUsed ?? 0);
   const [attempts, setAttempts] = useState<AttemptRecord[]>(initialCheckpoint?.attempts ?? []);
-  const [recovering, setRecovering] = useState(false);
+  // Resuming into a checkpoint saved mid-recovery (hearts already spent)
+  // must re-enter the recovery screen, not silently show the exercise
+  // with 0 hearts and no way back in — `recovering` itself isn't part of
+  // the checkpoint (it's a transient UI mode, not saved progress), so it
+  // has to be re-derived here from the saved mistake count instead.
+  const [recovering, setRecovering] = useState(
+    () => heartsAtRiskFor(lesson) && !!initialCheckpoint && START_HEARTS - initialCheckpoint.mistakes <= 0,
+  );
   const [finished, setFinished] = useState<{ xp: number; mistakes: number; hintsUsed: number } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);

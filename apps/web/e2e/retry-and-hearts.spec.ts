@@ -104,13 +104,14 @@ test("reaching zero hearts on a mastery-challenge lesson triggers guided recover
   await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
 });
 
-test("a refresh during recovery doesn't crash — restarts the lesson like a refresh at any other step", async ({
+test("a refresh during recovery doesn't crash — resumes back into recovery, not a stuck 0-heart exercise", async ({
   page,
 }) => {
-  // This app has no mid-lesson persistence at all yet (a separate, tracked
-  // gap — see docs/known-risks.md on lesson exit/resume), so a refresh
-  // here behaves the same as a refresh at any other point in a lesson:
-  // it restarts from step 1 with full hearts, not a crash or a stuck page.
+  // Real lesson resume (P1-C) means a refresh here is no longer a silent
+  // restart: the saved checkpoint (mistakes persisted on every wrong
+  // attempt, not just on advancing) puts the learner right back where
+  // they left off — including re-entering the recovery screen itself,
+  // since 0 hearts with no way back in would otherwise be a soft lockout.
   await gotoGuestLesson(page, "meet-the-pieces.12-unit-mastery-challenge");
   await page.getByRole("button", { name: "Continue" }).click();
   for (let i = 0; i < 5; i++) {
@@ -119,6 +120,14 @@ test("a refresh during recovery doesn't crash — restarts the lesson like a ref
   await expect(page.getByRole("heading", { name: "Let's review before continuing" })).toBeVisible();
 
   await page.reload();
+  await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+  await page.getByRole("button", { name: "Resume lesson" }).click();
+  await expect(page.getByRole("heading", { name: "Let's review before continuing" })).toBeVisible();
+
+  // Explicitly starting over is still available and genuinely resets hearts.
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Welcome back" })).toBeVisible();
+  await page.getByRole("button", { name: "Start over" }).click();
   await expect(page.getByRole("heading", { name: "Let's review before continuing" })).toHaveCount(0);
   await expect(page.getByText("♥♥♥♥♥")).toBeVisible();
 });

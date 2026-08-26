@@ -60,7 +60,33 @@ export async function gotoGuestLesson(page: Page, lessonId: string): Promise<voi
     await page.goto("/");
     await seedGuestProgress(page, [prerequisite]);
   }
+  // Real lesson resume (P1-C) means a second visit to the same lessonId
+  // within one test — several specs call this helper more than once per
+  // lesson purely to reset the exercise for a fresh attempt — would now
+  // hit LessonResumeGate's "Welcome back" screen instead of the fresh
+  // start these callers expect, since the first visit's own step-advance
+  // saved a real guest checkpoint. Clears it first; only runs when
+  // already on the app's origin (this call's own prerequisite branch
+  // above, or an earlier navigation this same test made) — a context's
+  // very first navigation has nothing to clear yet.
+  if (page.url().startsWith("http")) {
+    await clearGuestLessonCheckpoint(page, lessonId);
+  }
   await page.goto(`/learn/${lessonId}`);
+}
+
+async function clearGuestLessonCheckpoint(page: Page, lessonId: string): Promise<void> {
+  await page.evaluate((id) => {
+    try {
+      const raw = window.localStorage.getItem("movewise_guest_checkpoints");
+      if (!raw) return;
+      const checkpoints = JSON.parse(raw) as Record<string, unknown>;
+      delete checkpoints[id];
+      window.localStorage.setItem("movewise_guest_checkpoints", JSON.stringify(checkpoints));
+    } catch {
+      // ignore
+    }
+  }, lessonId);
 }
 
 /**
