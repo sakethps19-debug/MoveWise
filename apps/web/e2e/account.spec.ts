@@ -13,6 +13,15 @@ async function signUp(page: import("@playwright/test").Page, email: string, pass
   await page.waitForURL("/");
 }
 
+test("a guest visiting /account is redirected to sign in, not shown the delete-account form", async ({ page }) => {
+  // Real, confirmed bug: /account was a client component with no session
+  // check at all — a guest who navigated there directly saw the full
+  // delete-account form (unstyled, no Nav) instead of being redirected,
+  // even though the server action itself already rejected the request.
+  await page.goto("/account");
+  await expect(page).toHaveURL("http://localhost:3000/login");
+});
+
 test("exporting account data downloads a JSON file with the account's completions", async ({ page }) => {
   const email = uniqueEmail("export");
   await signUp(page, email);
