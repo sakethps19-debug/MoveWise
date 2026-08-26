@@ -86,12 +86,16 @@ export function LearningPath({
   const [manuallyExpanded, setManuallyExpanded] = useState(false);
 
   const { effectiveCompletions, completedIds } = useEffectiveCompletions(completions);
-  // A true first-time visit: nothing completed yet, and no lesson even
-  // started — the exact case "confronted with ~20 disabled cards
-  // immediately" described. A returning learner (any real progress at
-  // all) always sees the full syllabus; only a genuinely fresh one gets
-  // the collapsed preview and the onboarding quiz below.
-  const hasAnyProgress = (completedIds?.size ?? 0) > 0 || startedIds.size > 0;
+  // A true first-time visit: nothing completed, no lesson even started,
+  // and no real server-tracked mastery signal either (a UserConceptMastery
+  // row means real attempts already happened — e.g. a struggling concept
+  // flagged from puzzle/game attempts with no lesson ever fully
+  // completed — so it counts as real engagement too, not "fresh"). This
+  // is the exact case "confronted with ~20 disabled cards immediately"
+  // described. A returning learner (any real progress at all) always
+  // sees the full syllabus; only a genuinely fresh one gets the
+  // collapsed preview and the onboarding quiz below.
+  const hasAnyProgress = (completedIds?.size ?? 0) > 0 || startedIds.size > 0 || (conceptMastery?.size ?? 0) > 0;
 
   useEffect(() => {
     // `hasAnyProgress` starts false on every very first render (neither

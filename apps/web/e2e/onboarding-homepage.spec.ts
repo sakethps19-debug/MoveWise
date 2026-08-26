@@ -1,4 +1,15 @@
 import { test, expect } from "./fixtures";
+import { execFileSync } from "node:child_process";
+import path from "node:path";
+
+const DB_HELPER = path.join(__dirname, "db-helper.mjs");
+
+function dbHelper(command: string, args: Record<string, unknown> = {}): string {
+  return execFileSync("node", [DB_HELPER, command, JSON.stringify(args)], {
+    cwd: path.join(__dirname, ".."),
+    encoding: "utf-8",
+  });
+}
 
 /**
  * P1-A: a genuinely fresh visitor (no progress at all) previously saw
@@ -84,4 +95,29 @@ test("a learner with any real progress never sees onboarding and always sees the
   await expect(page.getByRole("region", { name: "A few quick questions" })).toHaveCount(0);
   await expect(page.getByText("Current chapter")).toHaveCount(0); // no compact preview — straight to the full view
   await expect(page.locator(".mw-lesson-node").first()).toBeVisible();
+});
+
+test("a signed-in account with real mastery data but zero completions is not treated as fresh either", async ({
+  page,
+}) => {
+  // Regression test for a real bug: a struggling concept (real evidence
+  // of engagement — computeMasteryStatus only ever sets this from actual
+  // attempts) with no lesson ever fully completed was wrongly treated as
+  // "fresh," hiding the review-needed banner behind the onboarding
+  // quiz/compact preview instead of surfacing it as it should.
+  const email = `masteryonly${Date.now()}@example.com`;
+  const password = "password123";
+  dbHelper("create-user", { email, password });
+  const userId = dbHelper("get-user-id", { email });
+  dbHelper("set-mastery", { userId, conceptId: "rook-movement", status: "struggling" });
+
+  await page.goto("/login");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", password);
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+
+  await expect(page.getByRole("region", { name: "A few quick questions" })).toHaveCount(0);
+  await expect(page.getByText("Current chapter")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /went wrong/ })).toBeVisible();
 });
