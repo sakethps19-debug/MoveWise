@@ -3,13 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@movewise/db";
 import { Nav } from "../../../components/Nav";
 import { getSession } from "../../../lib/auth";
-
-const RESULT_LABEL: Record<string, string> = {
-  win: "Won",
-  loss: "Lost",
-  draw: "Draw",
-  resigned: "Resigned",
-};
+import { RESULT_LABEL } from "../../../lib/gameResult";
 
 /**
  * ADR-0008 Phase B: a completed game's analysis was previously only

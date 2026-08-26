@@ -22,6 +22,7 @@ import { join } from "node:path";
 import { parseLesson, parseConcept, parsePrinciple, parsePuzzle, type Lesson, type Puzzle } from "../packages/exercise-schema/src/index";
 import { validateLesson, validatePuzzle } from "../packages/exercise-schema/src/validate-chess";
 import { validateInstructionalQuality, validatePuzzleInstructionalQuality } from "../packages/exercise-schema/src/validate-instructional";
+import { DETECTABLE_CONCEPT_IDS } from "../apps/web/lib/conceptDetection";
 
 const CONTENT_ROOT = join(import.meta.dirname, "../packages/content");
 const UNITS_ROOT = join(CONTENT_ROOT, "units");
@@ -139,6 +140,21 @@ for (const puzzle of puzzlesById.values()) {
       failures += 1;
       console.error(`\n✗ ${puzzle.id}\n  conceptIds entry "${conceptId}" is not a registered concept (packages/content/concepts.json)`);
     }
+  }
+}
+
+// Every concept id lib/conceptDetection.ts's detectConcepts can actually
+// emit for a real analysed game must be registered too — a gap here means
+// a genuine game-detected mistake renders as a raw slug (e.g.
+// "opposition-key-squares") instead of a real title anywhere a concept
+// name is displayed (the Progress dashboard's "Mistakes from analysed
+// games", lib/principles.ts's loadConceptTitles()).
+for (const conceptId of DETECTABLE_CONCEPT_IDS) {
+  if (!conceptIds.has(conceptId)) {
+    failures += 1;
+    console.error(
+      `\n✗ apps/web/lib/conceptDetection.ts\n  detectable concept id "${conceptId}" is not a registered concept (packages/content/concepts.json)`,
+    );
   }
 }
 

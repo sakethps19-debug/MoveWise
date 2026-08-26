@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@movewise/db";
 import { createSession, destroySession, getSession, hashPassword, verifyPassword } from "../lib/auth";
 import { checkRateLimit, formatRetryAfter } from "../lib/rate-limit";
+import { parseEnvNumberOverride } from "../lib/envNumber";
 import { loadLesson } from "../lib/lessons";
 import { findPuzzle } from "../lib/puzzles";
 import { computeMasteryStatus, type MasteryStatus } from "../lib/masteryModel";
@@ -35,7 +36,7 @@ const MIN_SIGNUP_AGE = 13;
 // connection to an actual regression. Widening the window/count here
 // would weaken real abuse protection; widening it only for CI's own
 // traffic (ci.yml sets this explicitly) doesn't.
-const SIGNUP_LIMIT = { limit: Number(process.env.SIGNUP_RATE_LIMIT) || 20, windowMs: 60 * 60 * 1000 }; // 20/hour per IP by default
+const SIGNUP_LIMIT = { limit: parseEnvNumberOverride(process.env.SIGNUP_RATE_LIMIT, 20), windowMs: 60 * 60 * 1000 }; // 20/hour per IP by default
 const LOGIN_IP_LIMIT = { limit: 15, windowMs: 15 * 60 * 1000 }; // 15/15min per IP
 const LOGIN_EMAIL_LIMIT = { limit: 8, windowMs: 15 * 60 * 1000 }; // 8/15min per email, catches distributed attempts against one account
 

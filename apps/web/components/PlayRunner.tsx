@@ -129,7 +129,13 @@ export function PlayRunner({
     recomputeBoardSize();
     window.addEventListener("resize", recomputeBoardSize);
     return () => window.removeEventListener("resize", recomputeBoardSize);
-  }, []);
+    // moves.length: .mw-captured-row (design-system.css) wraps onto
+    // multiple lines as captures accumulate, growing belowBoardCardRef's
+    // real height over the course of a game — not just on mount/resize.
+    // Re-measuring only on those two would leave boardMaxWidth stale
+    // (too large) on a narrow, capture-heavy game, reproducing the exact
+    // overflow this effect exists to prevent.
+  }, [moves.length]);
 
   const { engineRef, ready: engineReady, error: engineLoadError } = useStockfishEngine(true);
   const engineError = engineLoadError ?? engineFailure;

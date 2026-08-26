@@ -139,6 +139,13 @@
     "unitId": "basic-tactics"
   },
   {
+    "id": "opposition-key-squares",
+    "name": "Opposition and key squares",
+    "description": "In a king-and-pawn ending, a mistake can throw away a position that was winning or drawing — recognizing that these endings need their own careful technique, not just piece-counting.",
+    "parentId": "tactics",
+    "unitId": "basic-tactics"
+  },
+  {
     "id": "knight",
     "name": "The knight",
     "description": "General knight-piece familiarity — distinct from knight-movement (meet-the-pieces' piece-rules lesson) and knight-fork (the tactic); tags content that's simply about the knight as a piece.",
