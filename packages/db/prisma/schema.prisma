@@ -97,13 +97,18 @@ model UserConceptMastery {
 model ExerciseAttempt {
   id             String   @id @default(cuid())
   userId         String
-  /// Exactly one of lessonId/puzzleId is set — which content type this
-  /// attempt was against. Both nullable (rather than a single polymorphic
-  /// `refId`) so each keeps its own clearly-named index and existing
-  /// lessonId-keyed queries need no change. See ADR-0008's Puzzle type —
-  /// puzzles are pooled, concept-tagged exercises outside any lesson.
+  /// Exactly one of lessonId/puzzleId/gameId is set — which content type
+  /// this attempt was against. Kept as separate nullable columns (rather
+  /// than a single polymorphic `refId`) so each keeps its own clearly-
+  /// named index and existing lessonId-keyed queries need no change. See
+  /// ADR-0008's Puzzle type — puzzles are pooled, concept-tagged
+  /// exercises outside any lesson. gameId marks a mistake detected in a
+  /// real analysed game (lib/conceptDetection.ts) rather than authored
+  /// content — the only source that is always `correct: false` (a
+  /// detected mistake is itself the negative evidence).
   lessonId       String?
   puzzleId       String?
+  gameId         String?
   stepId         String
   /// The lesson's masteryTags (or the puzzle's conceptIds) at attempt
   /// time — which concepts this attempt is evidence for. Denormalized
@@ -122,6 +127,7 @@ model ExerciseAttempt {
 
   @@index([userId, lessonId])
   @@index([userId, puzzleId])
+  @@index([userId, gameId])
   @@index([userId, createdAt])
 }
 

@@ -10,7 +10,7 @@ import path from "node:path";
  * checkmate -> basic-tactics is the only real 3-unit boundary this app has,
  * and it's never been driven end-to-end by a test before this file.
  *
- * Meet-the-pieces lessons 2-11 are seeded directly (via db-helper.mjs, see
+ * Meet-the-pieces lessons 2-11 and 13 are seeded directly (via db-helper.mjs, see
  * that file's own doc comment for why it's a separate process rather than
  * a direct `@movewise/db` import here) rather than clicked through — their
  * own content/interactions are already covered by other specs
@@ -53,6 +53,7 @@ const MEET_THE_PIECES_MIDDLE_LESSONS = [
   "meet-the-pieces.09-meet-the-knight",
   "meet-the-pieces.10-meet-the-pawn",
   "meet-the-pieces.11-capturing-piece-values",
+  "meet-the-pieces.13-king-safety-and-castling",
 ];
 
 async function completeMeetThePiecesWelcome(page: import("@playwright/test").Page) {

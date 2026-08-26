@@ -85,6 +85,12 @@ describe("computeMasteryStatus", () => {
     expect(result.status).toBe("proficient");
   });
 
+  it("repeated game-detected mistakes push a concept to struggling, same as lesson/puzzle evidence", () => {
+    const gameWrong = { correct: false, source: "game" as const };
+    const result = computeMasteryStatus(null, [gameWrong, gameWrong, gameWrong]);
+    expect(result.status).toBe("struggling");
+  });
+
   it("lesson-only attempt histories are completely unaffected by the source field (backward compatible)", () => {
     // Every existing test above passes plain {correct} objects with no
     // `source` at all — this just makes that equivalence explicit.

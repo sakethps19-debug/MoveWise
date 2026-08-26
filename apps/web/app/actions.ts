@@ -302,13 +302,16 @@ async function recomputeMasteryForConcepts(userId: string, conceptIds: string[])
       prisma.exerciseAttempt.findMany({
         where: { userId, conceptIds: { has: conceptId } },
         orderBy: { createdAt: "asc" },
-        select: { correct: true, puzzleId: true },
+        select: { correct: true, puzzleId: true, gameId: true },
       }),
     ]);
 
     const { status, exerciseConfidence } = computeMasteryStatus(
       (existingMastery?.status as MasteryStatus | undefined) ?? null,
-      history.map((a) => ({ correct: a.correct, source: a.puzzleId ? ("puzzle" as const) : ("lesson" as const) })),
+      history.map((a) => ({
+        correct: a.correct,
+        source: a.puzzleId ? ("puzzle" as const) : a.gameId ? ("game" as const) : ("lesson" as const),
+      })),
     );
 
     await prisma.userConceptMastery.upsert({
@@ -409,6 +412,38 @@ export async function saveCompletedGameAction(input: SaveCompletedGameInput): Pr
 export type SubmittedMoveAnalysis = Omit<MoveAnalysis, "recommendedLessonIds">;
 
 /**
+ * The game-analysis equivalent of recordAttemptsAndUpdateMastery/
+ * recordPuzzleAttemptAction above — a mistake lib/conceptDetection.ts
+ * found in a real analysed game is exactly as real a signal that a
+ * concept needs review as a wrong lesson step or puzzle attempt, but
+ * until now nothing fed it into UserConceptMastery, so a concept a
+ * learner kept mishandling in real play could never surface in the
+ * Practice hub's "Review needed" section or the Progress dashboard's
+ * review queue — only in the game's own review table. Only moves with a
+ * detected concept are recorded (conceptDetection.ts already returns an
+ * empty list for every non-mistake move, per its own doc comment), and
+ * every one is `correct: false` — a detected mistake is itself the
+ * negative evidence, there's no "correct" game-derived attempt to record.
+ */
+async function recordGameMistakesAndUpdateMastery(userId: string, gameId: string, moves: SubmittedMoveAnalysis[]): Promise<void> {
+  const mistakes = moves.filter((m) => m.conceptIds.length > 0);
+  if (mistakes.length === 0) return;
+
+  await prisma.exerciseAttempt.createMany({
+    data: mistakes.map((m, i) => ({
+      userId,
+      gameId,
+      stepId: `${gameId}-ply-${i}`,
+      conceptIds: m.conceptIds,
+      correct: false,
+    })),
+  });
+
+  const conceptIds = [...new Set(mistakes.flatMap((m) => m.conceptIds))];
+  await recomputeMasteryForConcepts(userId, conceptIds);
+}
+
+/**
  * Persists the result of a client-side analysis pass (lib/moveClassification.ts
  * + lib/conceptDetection.ts, run in-browser against the same Stockfish Web
  * Worker Play mode already uses — see components/PlayRunner.tsx and
@@ -479,6 +514,7 @@ export async function saveGameAnalysisAction(
         },
       },
     });
+    await recordGameMistakesAndUpdateMastery(user.id, gameId, moves);
   }
 
   return buildStoredGameReview(storedMoves, conceptMastery);
