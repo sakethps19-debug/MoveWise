@@ -76,6 +76,32 @@ test("account page and the signed-in home page", async ({ page }) => {
   await expectNoViolations(page);
 });
 
+test("practice hub (guest, with the Daily warm-up card and locked pools) and the warm-up puzzle itself", async ({
+  page,
+}) => {
+  await page.goto("/practice");
+  await expectNoViolations(page);
+
+  await page.goto("/practice/warm-up");
+  await expectNoViolations(page);
+});
+
+test("progress dashboard: guest view and a signed-in view with real data", async ({ page }) => {
+  await page.goto("/progress");
+  await expectNoViolations(page);
+
+  const email = uniqueEmail("a11yprogress");
+  await page.goto("/signup");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", "password123");
+  await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+
+  await page.goto("/progress");
+  await expectNoViolations(page); // signed-in, zero-progress state
+});
+
 // The tests above all run in the default (light) theme. Dark is a
 // deliberately separate token set (docs/design/system.md), not an
 // inverted filter, so a token that's fine in light can still fail
@@ -114,6 +140,19 @@ test.describe("dark theme", () => {
 
   test("play mode", async ({ page }) => {
     await page.goto("/play");
+    await expectNoViolations(page);
+  });
+
+  test("practice hub and the warm-up puzzle", async ({ page }) => {
+    await page.goto("/practice");
+    await expectNoViolations(page);
+
+    await page.goto("/practice/warm-up");
+    await expectNoViolations(page);
+  });
+
+  test("progress dashboard (guest)", async ({ page }) => {
+    await page.goto("/progress");
     await expectNoViolations(page);
   });
 });
