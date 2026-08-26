@@ -39,6 +39,7 @@ const MIN_SIGNUP_AGE = 13;
 const SIGNUP_LIMIT = { limit: parseEnvNumberOverride(process.env.SIGNUP_RATE_LIMIT, 20), windowMs: 60 * 60 * 1000 }; // 20/hour per IP by default
 const LOGIN_IP_LIMIT = { limit: 15, windowMs: 15 * 60 * 1000 }; // 15/15min per IP
 const LOGIN_EMAIL_LIMIT = { limit: 8, windowMs: 15 * 60 * 1000 }; // 8/15min per email, catches distributed attempts against one account
+const DELETE_ACCOUNT_LIMIT = { limit: 8, windowMs: 15 * 60 * 1000 }; // 8/15min per account — reauthentication itself is a password guess surface
 
 async function clientIp(): Promise<string> {
   const h = await headers();
@@ -219,6 +220,14 @@ export async function logoutAction(): Promise<void> {
 export async function deleteAccountAction(_prevState: FormState, formData: FormData): Promise<FormState> {
   const user = await getSession();
   if (!user) return { error: "You must be signed in." };
+
+  // Reauthentication is itself a password-guessing surface for whoever
+  // holds a hijacked session (an XSS, a shared/unlocked device) — rate
+  // limited per account, same reasoning as LOGIN_EMAIL_LIMIT above.
+  const deleteLimit = await checkRateLimit(`delete-account:${user.id}`, DELETE_ACCOUNT_LIMIT.limit, DELETE_ACCOUNT_LIMIT.windowMs);
+  if (!deleteLimit.allowed) {
+    return { error: `Too many attempts. Try again in ${formatRetryAfter(deleteLimit.retryAfterMs!)}.` };
+  }
 
   const password = String(formData.get("password") ?? "");
   if (!(await verifyPassword(password, user.passwordHash))) {
