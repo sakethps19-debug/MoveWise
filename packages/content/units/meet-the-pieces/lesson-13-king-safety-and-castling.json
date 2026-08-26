@@ -7,7 +7,7 @@
     "Understand why a king left in the centre is exposed",
     "Castle to bring the king to safety and connect the rooks"
   ],
-  "prerequisites": ["meet-the-pieces.12-unit-mastery-challenge"],
+  "prerequisites": ["meet-the-pieces.11-capturing-piece-values"],
   "xpReward": 15,
   "masteryTags": ["king-safety-castling"],
   "difficulty": 2,

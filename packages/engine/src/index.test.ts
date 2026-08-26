@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { normalizeScore, parseUciLine, sideToMove } from "./index";
+import { decodeMateDistance, normalizeScore, parseUciLine, sideToMove } from "./index";
 
 const WHITE_TO_MOVE = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const BLACK_TO_MOVE = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
@@ -71,5 +71,42 @@ describe("parseUciLine", () => {
 
   it("classifies unrecognized lines as other", () => {
     expect(parseUciLine("id name Stockfish 18")).toEqual({ kind: "other" });
+  });
+});
+
+describe("decodeMateDistance", () => {
+  it("decodes White mate-in-1 (normalizeScore's own encoding: 100000 - 1*1000)", () => {
+    expect(decodeMateDistance(99000)).toBe(1);
+  });
+
+  it("decodes Black mate-in-2 as a negative distance", () => {
+    expect(decodeMateDistance(-98000)).toBe(-2);
+  });
+
+  it("decodes the deepest encoded distance, mate-in-99", () => {
+    expect(decodeMateDistance(1000)).toBe(99);
+  });
+
+  it("returns null for an ordinary centipawn score, even a large one", () => {
+    expect(decodeMateDistance(350)).toBeNull();
+    expect(decodeMateDistance(-1250)).toBeNull();
+  });
+
+  it("returns null for a non-mate score that happens to be a round number below the encoding's own floor", () => {
+    // 100 is a plausible real cp score (a pawn up) — nowhere near the
+    // encoding's mate-in-99 floor of 1000, so must never be misread as one.
+    expect(decodeMateDistance(100)).toBeNull();
+  });
+
+  it("returns null for zero", () => {
+    expect(decodeMateDistance(0)).toBeNull();
+  });
+
+  it("round-trips every distance normalizeScore's own mate branch can produce", () => {
+    for (let mateIn = 1; mateIn <= 99; mateIn++) {
+      const whiteScore = 100000 - mateIn * 1000;
+      expect(decodeMateDistance(whiteScore)).toBe(mateIn);
+      expect(decodeMateDistance(-whiteScore)).toBe(-mateIn);
+    }
   });
 });

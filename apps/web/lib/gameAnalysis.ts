@@ -17,6 +17,7 @@
 
 import type { Move } from "@movewise/chess-rules";
 import { detectConcepts } from "./conceptDetection";
+import { describeMateTransition } from "./evalFormat";
 import { classifyMove, computeEvalLoss } from "./moveClassification";
 
 /**
@@ -327,6 +328,18 @@ export function buildMoveAnalysis(input: BuildMoveAnalysisInput): MoveAnalysis {
     moveNumber: input.moveNumber,
     classification,
   });
+  // A move that touches a forced mate deserves the specific "Missed mate
+  // in 1" / "Allowed mate in 2" / "Found checkmate" / "Escaped a mating
+  // threat" language over the generic classification-level text — see
+  // lib/evalFormat.ts. `san` already carries chess.js's own "#" suffix,
+  // so checkmate itself is read from the move, not guessed from eval
+  // numbers.
+  const mateExplanation = describeMateTransition(
+    input.evalBefore,
+    input.evalAfter,
+    input.color,
+    input.move.san.endsWith("#"),
+  );
   return {
     moveNumber: input.moveNumber,
     color: input.color,
@@ -336,7 +349,7 @@ export function buildMoveAnalysis(input: BuildMoveAnalysisInput): MoveAnalysis {
     evalAfter: input.evalAfter,
     evalLoss: computeEvalLoss(input.evalBefore, input.evalAfter, input.color),
     classification,
-    explanation: explanationFor(classification, conceptIds),
+    explanation: mateExplanation ?? explanationFor(classification, conceptIds),
     conceptIds,
     recommendedLessonIds: [],
   };

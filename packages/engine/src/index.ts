@@ -52,6 +52,37 @@ export function normalizeScore(raw: number, fen: string): number {
   return sideToMove(fen) === "w" ? raw : -raw;
 }
 
+/**
+ * The deepest mate distance `normalizeScore`'s mate branch encodes
+ * (`Math.min(Math.abs(amount), 99)`) — the exact inverse of that
+ * formula's own clamp, not an arbitrary guess.
+ */
+const MAX_ENCODED_MATE_DISTANCE = 99;
+
+/**
+ * Inverts `normalizeScore`'s mate-sentinel encoding
+ * (`sign * (100000 - min(|mateIn|, 99) * 1000)`) back into a real "mate
+ * in N" distance — the only correct way to tell a mate score apart from
+ * an ordinary centipawn one, since both live in the same `number` field
+ * (`EngineAnalysis.score`). A naive magnitude threshold alone can't do
+ * this reliably (a genuinely won position can have a large centipawn
+ * score too); requiring the value to be an *exact* multiple of 1000
+ * below 100000 is what actually pins it down, since real Stockfish `cp`
+ * scores are essentially never round thousands.
+ *
+ * Returns a White-relative distance: positive means White has a forced
+ * mate in that many moves, negative means Black does, `null` means this
+ * is an ordinary centipawn score. `score` must itself already be
+ * White-relative (i.e. already passed through `normalizeScore`).
+ */
+export function decodeMateDistance(score: number): number | null {
+  const magnitude = Math.abs(score);
+  if (magnitude < 100000 - MAX_ENCODED_MATE_DISTANCE * 1000 || magnitude > 100000) return null;
+  const distance = (100000 - magnitude) / 1000;
+  if (!Number.isInteger(distance) || distance < 1) return null;
+  return Math.sign(score) * distance;
+}
+
 export type ParsedUciEvent =
   | { kind: "uciok" }
   | { kind: "readyok" }

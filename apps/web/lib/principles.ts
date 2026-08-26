@@ -3,6 +3,14 @@ import path from "node:path";
 import { parsePrinciple, type Principle } from "@movewise/exercise-schema";
 
 const PRINCIPLES_ROOT = path.join(process.cwd(), "..", "..", "packages", "content", "principles");
+const CONCEPTS_FILE = path.join(process.cwd(), "..", "..", "packages", "content", "concepts.json");
+
+/** conceptId -> human-readable title, for surfaces (the Progress dashboard) that only have a bare conceptId to display. */
+export function loadConceptTitles(): Record<string, string> {
+  if (!existsSync(CONCEPTS_FILE)) return {};
+  const data = JSON.parse(readFileSync(CONCEPTS_FILE, "utf-8"));
+  return Object.fromEntries(data.map((c: { id: string; name: string }) => [c.id, c.name]));
+}
 
 /** Loads a unit's Principle groupings, ordered. Empty for a unit that hasn't been restructured into principles yet — see ADR-0008; all three curated units (meet-the-pieces, check-and-checkmate, basic-tactics) have these now, step-type-preview deliberately doesn't. */
 export function loadUnitPrinciples(unitId: string): Principle[] {

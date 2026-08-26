@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { GameReview, MoveClassification } from "../lib/gameAnalysis";
 import { CLASSIFICATION_LABEL } from "../lib/gameAnalysis";
+import { formatEvalLoss } from "../lib/evalFormat";
 import { Button } from "./ui/Button";
 
 const CLASSIFICATION_BADGE_VARIANT: Record<MoveClassification, "success" | "warning" | "error" | "neutral"> = {
@@ -74,7 +75,9 @@ export function GameReviewPanel({
                 <td>
                   <code>{move.bestMove}</code>
                 </td>
-                <td>{move.evalLoss > 0 ? `-${move.evalLoss}cp` : "—"}</td>
+                <td>
+                  {formatEvalLoss(move.evalBefore, move.evalAfter, move.color, move.playedMove.endsWith("#"))}
+                </td>
                 <td>
                   <span className={`mw-badge mw-badge--${CLASSIFICATION_BADGE_VARIANT[move.classification]}`}>
                     {CLASSIFICATION_LABEL[move.classification]}

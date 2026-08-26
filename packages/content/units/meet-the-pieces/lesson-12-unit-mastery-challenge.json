@@ -7,7 +7,7 @@
     "Demonstrate correct movement, capture, and blocking rules for every piece introduced in this unit"
   ],
   "prerequisites": [
-    "meet-the-pieces.11-capturing-piece-values"
+    "meet-the-pieces.13-king-safety-and-castling"
   ],
   "xpReward": 30,
   "masteryTags": [
