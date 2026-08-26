@@ -13,12 +13,13 @@ model User {
   passwordHash String
   createdAt    DateTime @default(now())
 
-  sessions          Session[]
-  completions       LessonCompletion[]
-  conceptMasteries  UserConceptMastery[]
-  exerciseAttempts  ExerciseAttempt[]
-  games             Game[]
-  lessonCheckpoints LessonCheckpoint[]
+  sessions            Session[]
+  completions         LessonCompletion[]
+  conceptMasteries    UserConceptMastery[]
+  exerciseAttempts    ExerciseAttempt[]
+  games               Game[]
+  lessonCheckpoints   LessonCheckpoint[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 /// Opaque database-backed session tokens (not JWTs) — the cookie holds
@@ -28,6 +29,24 @@ model Session {
   token     String   @id
   userId    String
   expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// Single-use, time-limited password-reset token — same "random token,
+/// looked up server-side" shape as Session above, deliberately not a
+/// signed/stateless token so a used or expired one simply can't work
+/// again no matter what. `usedAt` (rather than deleting the row on use)
+/// keeps a record that a reset happened without needing a separate audit
+/// table.
+model PasswordResetToken {
+  token     String    @id
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
