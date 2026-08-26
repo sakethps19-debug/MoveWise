@@ -137,7 +137,13 @@ export function PlayRunner({
     // overflow this effect exists to prevent.
   }, [moves.length]);
 
-  const { engineRef, ready: engineReady, error: engineLoadError } = useStockfishEngine(true);
+  const {
+    engineRef,
+    ready: engineReady,
+    error: engineLoadError,
+    stage: engineStage,
+    retry: retryEngine,
+  } = useStockfishEngine(true);
   const engineError = engineLoadError ?? engineFailure;
   const gameOver = resigned || isGameOver(fen);
   const {
@@ -325,12 +331,23 @@ export function PlayRunner({
       </div>
 
       {engineError ? (
-        <p role="alert" className="mw-feedback mw-feedback--error">
-          {engineError}
-        </p>
+        <div className="mw-feedback mw-feedback--error" style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-2)" }}>
+          <p role="alert" style={{ margin: 0 }}>
+            {engineError}
+          </p>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setEngineFailure(null);
+              retryEngine();
+            }}
+          >
+            Try again
+          </Button>
+        </div>
       ) : (
         <p role="status" className={`mw-feedback ${gameOver ? "mw-feedback--success" : "mw-feedback--neutral"}`}>
-          {engineReady ? statusText(fen, playerColor, thinking, resigned) : "Loading Stockfish…"}
+          {engineReady ? statusText(fen, playerColor, thinking, resigned) : (engineStage ?? "Preparing your opponent…")}
         </p>
       )}
 

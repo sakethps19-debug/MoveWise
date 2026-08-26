@@ -137,7 +137,13 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
   }, [lesson, stepIndex]);
 
   const hasMiniGame = useMemo(() => lesson.steps.some((s) => s.type === "mini-game"), [lesson]);
-  const { engineRef, ready: engineReady, error: engineError } = useStockfishEngine(hasMiniGame);
+  const {
+    engineRef,
+    ready: engineReady,
+    error: engineError,
+    stage: engineStage,
+    retry: retryEngine,
+  } = useStockfishEngine(hasMiniGame);
 
   async function advance() {
     setStatus("active");
@@ -412,6 +418,8 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
               engineRef={engineRef}
               engineReady={engineReady}
               engineError={engineError}
+              engineStage={engineStage}
+              onRetryEngine={retryEngine}
               finishLabel={finishLabel}
             />
           )}

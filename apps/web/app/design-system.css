@@ -1560,3 +1560,26 @@
   color: var(--mw-text-dim);
   font-size: 15px;
 }
+
+/* ---------- Route-level loading skeletons (P1-F) ---------- */
+/* Next.js's own loading.tsx convention shows these immediately on
+   navigation, before the destination route's data has even started
+   fetching — the fix for a stale previous page staying visible for a
+   couple of seconds with no feedback at all. */
+.mw-skeleton-shell {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--mw-space-6) var(--mw-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-4);
+}
+.mw-skeleton-block {
+  background: var(--mw-surface-2);
+  border-radius: var(--mw-radius);
+  animation: mw-skeleton-pulse 1.4s ease-in-out infinite;
+}
+@keyframes mw-skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}

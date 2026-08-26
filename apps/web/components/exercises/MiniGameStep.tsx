@@ -23,12 +23,16 @@ export function MiniGameStep({
   engineRef,
   engineReady,
   engineError,
+  engineStage,
+  onRetryEngine,
   finishLabel = "Finish lesson",
 }: {
   step: MiniGameStepData;
   engineRef: React.RefObject<EngineHandle | null>;
   engineReady: boolean;
   engineError: string | null;
+  engineStage?: string;
+  onRetryEngine?: () => void;
   finishLabel?: string;
 } & Pick<ExerciseHandlers, "status" | "onCorrect"> & { isLastStep: boolean; onAdvance: () => void }) {
   const [fen, setFen] = useState(step.fen);
@@ -81,9 +85,16 @@ export function MiniGameStep({
       </p>
       <p className="mw-hint-text">{step.winCondition}</p>
       {engineError && (
-        <p role="alert" className="mw-feedback mw-feedback--error">
-          {engineError}
-        </p>
+        <div className="mw-feedback mw-feedback--error" style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-2)" }}>
+          <p role="alert" style={{ margin: 0 }}>
+            {engineError}
+          </p>
+          {onRetryEngine && (
+            <Button variant="ghost" onClick={onRetryEngine}>
+              Try again
+            </Button>
+          )}
+        </div>
       )}
       {!engineError && (
         <>
@@ -99,7 +110,7 @@ export function MiniGameStep({
           </div>
           <p role="status" className={`mw-feedback ${status === "correct" ? "mw-feedback--success" : "mw-feedback--neutral"}`}>
             {!engineReady
-              ? "Loading Stockfish…"
+              ? (engineStage ?? "Preparing your opponent…")
               : status === "correct"
                 ? `Game over: ${gameStatus(fen)}.`
                 : thinking
