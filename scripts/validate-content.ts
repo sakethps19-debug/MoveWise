@@ -21,7 +21,7 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { parseLesson, parseConcept, parsePrinciple, parsePuzzle, type Lesson, type Puzzle } from "../packages/exercise-schema/src/index";
 import { validateLesson, validatePuzzle } from "../packages/exercise-schema/src/validate-chess";
-import { validateInstructionalQuality } from "../packages/exercise-schema/src/validate-instructional";
+import { validateInstructionalQuality, validatePuzzleInstructionalQuality } from "../packages/exercise-schema/src/validate-instructional";
 
 const CONTENT_ROOT = join(import.meta.dirname, "../packages/content");
 const UNITS_ROOT = join(CONTENT_ROOT, "units");
@@ -90,7 +90,7 @@ if (existsSync(PUZZLES_ROOT)) {
         console.error(`\n✗ ${filePath}\n  duplicate puzzle id "${puzzle.id}"`);
       }
       puzzlesById.set(puzzle.id, puzzle);
-      const issues = validatePuzzle(puzzle);
+      const issues = [...validatePuzzle(puzzle), ...validatePuzzleInstructionalQuality(puzzle)];
       if (issues.length > 0) {
         failures += issues.length;
         fileOk = false;

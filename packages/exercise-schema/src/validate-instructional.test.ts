@@ -30,6 +30,7 @@ describe("validateInstructionalQuality", () => {
           correctSquares: ["e4"],
           hints: [],
           feedback: {},
+          successExplanation: "That's e4.",
         },
       ]),
     );
@@ -48,6 +49,7 @@ describe("validateInstructionalQuality", () => {
           correctSquares: ["e4"],
           hints: [],
           feedback: {},
+          successExplanation: "That's e4.",
         },
       ]),
     );
@@ -57,7 +59,7 @@ describe("validateInstructionalQuality", () => {
   it("flags a prompt too short to plausibly name an action and a target", () => {
     const issues = validateInstructionalQuality(
       makeLesson([
-        { id: "s", type: "true-false", prompt: "King?", correct: true, feedback: {} },
+        { id: "s", type: "true-false", prompt: "King?", correct: true, feedback: {}, successExplanation: "Right." },
       ]),
     );
     expect(issues).toHaveLength(1);
@@ -77,6 +79,7 @@ describe("validateInstructionalQuality", () => {
           acceptAnyLegalMove: false,
           hints: [],
           feedback: {},
+          successExplanation: "The rook captures the bishop, winning material for free.",
         },
       ]),
     );
@@ -94,6 +97,42 @@ describe("validateInstructionalQuality", () => {
           correctSquares: ["e4"],
           hints: [],
           feedback: {},
+          successExplanation: "The queen delivers checkmate from e4.",
+        },
+      ]),
+    );
+    expect(issues).toEqual([]);
+  });
+
+  it("flags an interactive step with no successExplanation — a correct answer must explain why", () => {
+    const issues = validateInstructionalQuality(
+      makeLesson([
+        {
+          id: "s",
+          type: "select-square",
+          prompt: "Tap the square where the file and rank cross.",
+          fen: "8/8/8/8/8/8/8/8 w - - 0 1",
+          correctSquares: ["e4"],
+          hints: [],
+          feedback: {},
+        },
+      ]),
+    );
+    expect(issues).toHaveLength(1);
+    expect(issues[0]!.message).toMatch(/no successExplanation/);
+  });
+
+  it("does not require successExplanation on non-interactive steps (explain, review) or mini-game", () => {
+    const issues = validateInstructionalQuality(
+      makeLesson([
+        { id: "s1", type: "explain", text: "Some explanation." },
+        { id: "s2", type: "review", summary: "A summary." },
+        {
+          id: "s3",
+          type: "mini-game",
+          fen: "8/8/8/8/8/8/8/8 w - - 0 1",
+          objective: "Win the endgame.",
+          winCondition: "checkmate",
         },
       ]),
     );
