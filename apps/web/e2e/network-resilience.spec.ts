@@ -74,7 +74,7 @@ test("a dropped connection while completing a lesson shows a real, retryable err
     }
   });
 
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
 
   // The real bug: this used to render "Lesson complete!" (with a real
   // star count and XP) unconditionally. It must not, here.

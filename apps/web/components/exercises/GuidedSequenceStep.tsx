@@ -16,9 +16,15 @@ export function GuidedSequenceStep({
   isLastStep,
   onAdvance,
   feedback,
+  finishLabel,
 }: {
   step: GuidedSequenceStepData;
-} & ExerciseHandlers & { isLastStep: boolean; onAdvance: () => void; feedback: string | null }) {
+} & ExerciseHandlers & {
+    isLastStep: boolean;
+    onAdvance: () => void;
+    feedback: string | null;
+    finishLabel?: string;
+  }) {
   // The parent keys this component by step.id, so a fresh mount (and
   // fresh lazy-initialized state) happens automatically on every new step.
   const [fen, setFen] = useState(step.fen);
@@ -83,6 +89,7 @@ export function GuidedSequenceStep({
         xp={STEP_XP}
         isLastStep={isLastStep}
         onAdvance={onAdvance}
+        finishLabel={finishLabel}
       />
     </>
   );

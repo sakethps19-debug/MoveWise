@@ -66,7 +66,7 @@ async function completeMeetThePiecesWelcome(page: import("@playwright/test").Pag
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
@@ -129,7 +129,7 @@ test("cross-unit progression: final-lesson unlock, unrelated-unit lock, persiste
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "A rook" }).click(); // step-9 mcq
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click(); // step-10 review
+  await page.getByRole("button", { name: "Complete mastery challenge" }).click(); // step-10 review
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
@@ -159,7 +159,7 @@ test("cross-unit progression: final-lesson unlock, unrelated-unit lock, persiste
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Get out of check, no matter what" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
@@ -171,7 +171,7 @@ test("cross-unit progression: final-lesson unlock, unrelated-unit lock, persiste
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");

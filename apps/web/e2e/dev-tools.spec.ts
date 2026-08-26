@@ -37,7 +37,7 @@ test("dev reset control clears a signed-in account's lesson progress", async ({ 
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
   // Filtered by the row's own title element, not hasText on the whole

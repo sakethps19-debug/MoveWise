@@ -115,6 +115,11 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
   const isLastStep = stepIndex === lesson.steps.length - 1;
   const heartsAtRisk = heartsAtRiskFor(lesson);
   const hearts = heartsAtRisk ? Math.max(0, START_HEARTS - mistakes) : START_HEARTS;
+  // "Complete unit" previously showed on every lesson's last step
+  // regardless of kind, wrongly implying finishing this one sub-lesson
+  // finishes the whole unit. Only the actual mastery-challenge lesson —
+  // the one that really does complete the unit — earns that wording.
+  const finishLabel = lesson.kind === "mastery-challenge" ? "Complete mastery challenge" : "Finish lesson";
 
   // Phase 4's "in progress" learning-path status: a pure UI signal, not a
   // progress record (see lib/lessonProgressUI.ts) — marked as soon as a
@@ -332,6 +337,7 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -343,6 +349,7 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -354,6 +361,7 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -365,6 +373,7 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -376,6 +385,7 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -387,6 +397,7 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -401,10 +412,13 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
               engineRef={engineRef}
               engineReady={engineReady}
               engineError={engineError}
+              finishLabel={finishLabel}
             />
           )}
 
-          {step.type === "review" && <ReviewStep key={step.id} step={step} onAdvance={advance} />}
+          {step.type === "review" && (
+            <ReviewStep key={step.id} step={step} onAdvance={advance} finishLabel={finishLabel} />
+          )}
         </>
       )}
     </div>

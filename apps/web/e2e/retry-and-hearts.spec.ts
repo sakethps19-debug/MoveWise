@@ -166,7 +166,7 @@ test("a mastery-challenge lesson can still be completed normally after going thr
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "A rook" }).click(); // step-9 mcq
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click(); // step-10 review
+  await page.getByRole("button", { name: "Complete mastery challenge" }).click(); // step-10 review
 
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
 });

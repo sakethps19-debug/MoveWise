@@ -70,7 +70,7 @@ test("a signed-in learner who leaves mid-lesson is offered Resume or Start over,
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
 
   const clearedCheckpoint = dbHelper("get-lesson-checkpoint", { userId, lessonId: "meet-the-pieces.01-welcome" });

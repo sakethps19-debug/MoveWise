@@ -23,11 +23,13 @@ export function MiniGameStep({
   engineRef,
   engineReady,
   engineError,
+  finishLabel = "Finish lesson",
 }: {
   step: MiniGameStepData;
   engineRef: React.RefObject<EngineHandle | null>;
   engineReady: boolean;
   engineError: string | null;
+  finishLabel?: string;
 } & Pick<ExerciseHandlers, "status" | "onCorrect"> & { isLastStep: boolean; onAdvance: () => void }) {
   const [fen, setFen] = useState(step.fen);
   const [selected, setSelected] = useState<Square | null>(null);
@@ -108,7 +110,7 @@ export function MiniGameStep({
       )}
       {status === "correct" && (
         <Button onClick={onAdvance} fullWidth>
-          {isLastStep ? "Finish lesson" : "Continue"}
+          {isLastStep ? finishLabel : "Continue"}
         </Button>
       )}
     </>

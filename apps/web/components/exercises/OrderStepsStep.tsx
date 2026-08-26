@@ -14,9 +14,15 @@ export function OrderStepsStep({
   isLastStep,
   onAdvance,
   feedback,
+  finishLabel,
 }: {
   step: OrderStepsStepData;
-} & ExerciseHandlers & { isLastStep: boolean; onAdvance: () => void; feedback: string | null }) {
+} & ExerciseHandlers & {
+    isLastStep: boolean;
+    onAdvance: () => void;
+    feedback: string | null;
+    finishLabel?: string;
+  }) {
   const [orderProgress, setOrderProgress] = useState<number[]>([]);
 
   function handlePick(index: number) {
@@ -62,6 +68,7 @@ export function OrderStepsStep({
         xp={STEP_XP}
         isLastStep={isLastStep}
         onAdvance={onAdvance}
+        finishLabel={finishLabel}
       />
     </>
   );

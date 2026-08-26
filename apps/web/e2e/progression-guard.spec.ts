@@ -101,7 +101,7 @@ test("10. anonymous-user progression: a guest unlocking a principle-gated lesson
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -179,7 +179,7 @@ test("a guest CAN open a lesson directly by URL once its prerequisite is really 
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 

@@ -19,9 +19,15 @@ export function MoveStep({
   isLastStep,
   onAdvance,
   feedback,
+  finishLabel,
 }: {
   step: MovePieceStep | CaptureStep | FindLegalMoveStep;
-} & ExerciseHandlers & { isLastStep: boolean; onAdvance: () => void; feedback: string | null }) {
+} & ExerciseHandlers & {
+    isLastStep: boolean;
+    onAdvance: () => void;
+    feedback: string | null;
+    finishLabel?: string;
+  }) {
   const [selected, setSelected] = useState<Square | null>(null);
   const [hintLevel, setHintLevel] = useState(0);
   // The position actually rendered: step.fen until a correct move is made,
@@ -130,6 +136,7 @@ export function MoveStep({
         xp={STEP_XP}
         isLastStep={isLastStep}
         onAdvance={onAdvance}
+        finishLabel={finishLabel}
       />
       {status !== "correct" && step.hints && step.hints.length > 0 && (
         <Button

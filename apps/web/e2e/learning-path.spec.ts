@@ -54,7 +54,7 @@ test("guest progress persists locally, unlocks the next lesson, and migrates int
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -104,7 +104,7 @@ test("a perfect first run earns 3 stars; a run with mistakes earns fewer @smoke"
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -159,7 +159,7 @@ test("meet-the-pieces shows principle groupings with a mastery badge (ADR-0008)"
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -196,7 +196,7 @@ test("completing a principle's lessons sloppily doesn't unlock the next principl
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -245,7 +245,7 @@ test("strong performance in a principle unlocks the next one (ADR-0008)", async 
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -289,7 +289,7 @@ test("a zero-mistake run that used a hint doesn't earn 3 stars", async ({ page }
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByText(/hint used/)).toBeVisible();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");

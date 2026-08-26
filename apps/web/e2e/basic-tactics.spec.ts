@@ -35,6 +35,6 @@ test("the knight fork: a check-only trap move is rejected, the real fork is acce
   await page.getByRole("button", { name: "Continue" }).click();
 
   // step-6: review (last step)
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
 });

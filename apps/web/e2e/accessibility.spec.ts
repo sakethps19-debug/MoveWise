@@ -47,7 +47,7 @@ test("a lesson page: explain/select-square/true-false steps, and the completion 
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expectNoViolations(page); // the completion screen
 });
 
@@ -134,7 +134,7 @@ test.describe("dark theme", () => {
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("button", { name: "False" }).click();
     await page.getByRole("button", { name: "Continue" }).click();
-    await page.getByRole("button", { name: "Complete unit" }).click();
+    await page.getByRole("button", { name: "Finish lesson" }).click();
     await expectNoViolations(page);
   });
 
@@ -194,7 +194,7 @@ test.describe("prefers-reduced-motion", () => {
     await page.getByRole("button", { name: "Continue" }).click();
     await page.getByRole("button", { name: "False" }).click();
     await page.getByRole("button", { name: "Continue" }).click();
-    await page.getByRole("button", { name: "Complete unit" }).click();
+    await page.getByRole("button", { name: "Finish lesson" }).click();
 
     const duration = await page
       .locator(".mw-completion-stars .mw-stars")

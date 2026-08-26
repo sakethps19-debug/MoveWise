@@ -19,9 +19,15 @@ export function ClickSquareStep({
   isLastStep,
   onAdvance,
   feedback,
+  finishLabel,
 }: {
   step: SelectSquareStep | FindCheckStep;
-} & ExerciseHandlers & { isLastStep: boolean; onAdvance: () => void; feedback: string | null }) {
+} & ExerciseHandlers & {
+    isLastStep: boolean;
+    onAdvance: () => void;
+    feedback: string | null;
+    finishLabel?: string;
+  }) {
   const [hintLevel, setHintLevel] = useState(0);
 
   // No stale hint highlight/arrow/text once the step is answered correctly.
@@ -63,6 +69,7 @@ export function ClickSquareStep({
         xp={STEP_XP}
         isLastStep={isLastStep}
         onAdvance={onAdvance}
+        finishLabel={finishLabel}
       />
       {status !== "correct" && step.hints && step.hints.length > 0 && (
         <Button
