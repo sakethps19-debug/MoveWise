@@ -8,6 +8,8 @@ import { starsForPerformance, starsExplanation } from "../lib/mastery";
 import { recordGuestCompletion } from "../lib/guestProgress";
 import { markLessonStarted, clearLessonStarted } from "../lib/lessonProgressUI";
 import { recordCompletionToday } from "../lib/streak";
+import { formatObjectiveSentence } from "../lib/lessonText";
+import { heartsAtRiskFor } from "../lib/heartsPolicy";
 import { Hearts } from "./ui/Hearts";
 import { Stars } from "./ui/Stars";
 import { Button } from "./ui/Button";
@@ -61,6 +63,14 @@ const RECOVERY_HEARTS = 3;
  * then the same exercise again once hearts are partially restored — the
  * "recovery exercise" is a real retry with fresh context, not a new
  * content type authored per-lesson.
+ *
+ * Hearts only carry real stakes on a mastery-challenge lesson
+ * (lib/heartsPolicy.ts) — a genuine assessment of everything the unit
+ * taught. On every regular sub-lesson (first exposure to a new piece or
+ * idea), `hearts` stays full and a wrong answer never risks the recovery
+ * interstitial: it's guided teaching/experimentation, so a wrong guess
+ * just gets an explanation and an immediate retry, same as always, with
+ * nothing to lose.
  */
 export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps) {
   const [stepIndex, setStepIndex] = useState(0);
@@ -77,7 +87,8 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
 
   const step = lesson.steps[stepIndex];
   const isLastStep = stepIndex === lesson.steps.length - 1;
-  const hearts = Math.max(0, START_HEARTS - mistakes);
+  const heartsAtRisk = heartsAtRiskFor(lesson);
+  const hearts = heartsAtRisk ? Math.max(0, START_HEARTS - mistakes) : START_HEARTS;
 
   // Phase 4's "in progress" learning-path status: a pure UI signal, not a
   // progress record (see lib/lessonProgressUI.ts) — marked as soon as a
@@ -149,7 +160,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
     setAttempts((a) => [...a, { stepId: step.id, correct: false, wrongAnswerKey: key }]);
     const newMistakes = mistakes + 1;
     setMistakes(newMistakes);
-    if (START_HEARTS - newMistakes <= 0) {
+    if (heartsAtRisk && START_HEARTS - newMistakes <= 0) {
       // Hearts just hit zero — go straight to guided recovery instead of
       // showing ordinary wrong-answer feedback the learner would just
       // retry past without a reset.
@@ -249,7 +260,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
 
       {stepIndex === 0 && !recovering && (
         <p className="mw-lesson-objective">
-          <strong>By the end of this lesson, you&apos;ll be able to</strong> {lesson.objectives[0]}
+          <strong>By the end of this lesson, you&apos;ll be able to</strong> {formatObjectiveSentence(lesson.objectives[0])}
         </p>
       )}
 
