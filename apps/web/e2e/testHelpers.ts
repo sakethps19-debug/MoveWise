@@ -126,3 +126,36 @@ export async function seedGuestProgress(page: Page, lessonIds: string[]): Promis
     window.localStorage.setItem("movewise_guest_progress", serialized);
   }, JSON.stringify(progress));
 }
+
+/**
+ * P1-A: a genuinely fresh visitor (no progress at all) now sees a
+ * one-time skippable onboarding quiz, then a compact "current chapter /
+ * next chapter preview" homepage instead of every unit's full lesson
+ * list immediately (see components/LearningPath.tsx, OnboardingQuiz.tsx)
+ * — the intentional new default, not a regression. Specs that verify the
+ * full syllabus's lock/unlock display (lesson-node classes, unit
+ * headings, mastery badges) against a fresh account/guest need that full
+ * view rendered, so this dismisses the quiz and expands the compact
+ * preview if either is showing; a no-op for a page state where neither
+ * is (already-expanded, or a returning learner who skips both).
+ */
+export async function ensureFullCurriculumVisible(page: Page): Promise<void> {
+  const skipButton = page.getByRole("button", { name: "Skip for now" });
+  // `waitFor` (not a plain `isVisible()` snapshot) so a caller landing
+  // here right after a server action whose data hasn't finished
+  // revalidating yet (e.g. a dev-only progress reset) still gets a real
+  // chance to see the transition instead of concluding "not shown" from
+  // whatever was on screen a moment too early.
+  const skipShown = await skipButton
+    .waitFor({ state: "visible", timeout: 3000 })
+    .then(() => true)
+    .catch(() => false);
+  if (skipShown) await skipButton.click();
+
+  const expandButton = page.getByRole("button", { name: "View full curriculum" });
+  const expandShown = await expandButton
+    .waitFor({ state: "visible", timeout: 3000 })
+    .then(() => true)
+    .catch(() => false);
+  if (expandShown) await expandButton.click();
+}

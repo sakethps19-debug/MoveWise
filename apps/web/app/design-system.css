@@ -417,6 +417,143 @@
   color: var(--mw-text-dim);
 }
 
+/* ---------- Onboarding quiz (P1-A) ---------- */
+.mw-onboarding-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-4);
+  padding: var(--mw-space-6);
+  background: var(--mw-surface);
+  border: 1px solid var(--mw-border);
+  border-radius: var(--mw-radius-lg);
+  box-shadow: var(--mw-shadow-raised);
+  max-width: 480px;
+  margin: var(--mw-space-6) auto;
+}
+.mw-onboarding-progress {
+  font-family: var(--mw-font-mono);
+  font-size: 12px;
+  color: var(--mw-text-dim);
+}
+.mw-onboarding-question {
+  font-size: 19px;
+  margin: 0;
+}
+.mw-onboarding-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-2);
+}
+.mw-onboarding-option {
+  text-align: left;
+  padding: 12px 14px;
+  min-height: 44px;
+  box-sizing: border-box;
+  border-radius: var(--mw-radius);
+  border: 1px solid var(--mw-border);
+  background: var(--mw-surface);
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--mw-duration-fast) var(--mw-ease), background-color var(--mw-duration-fast) var(--mw-ease);
+}
+.mw-onboarding-option:hover {
+  border-color: var(--mw-moss);
+  background: var(--mw-surface-2);
+}
+.mw-onboarding-option:focus-visible {
+  outline: 2px solid var(--mw-moss);
+  outline-offset: 1px;
+}
+.mw-onboarding-back {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  color: var(--mw-text-dim);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px 0;
+}
+.mw-onboarding-skip {
+  align-self: center;
+  border: none;
+  background: none;
+  color: var(--mw-text-dim);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 6px;
+}
+.mw-onboarding-greeting {
+  font-size: 14.5px;
+  color: var(--mw-text-dim);
+  margin: 0;
+}
+.mw-onboarding-practice-link {
+  font-size: 13.5px;
+  color: var(--mw-moss-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.mw-onboarding-practice-link:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Compact curriculum preview (P1-A, fresh users) ---------- */
+.mw-curriculum-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-3);
+}
+.mw-curriculum-preview-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--mw-space-4);
+  border-radius: var(--mw-radius);
+  border: 1px solid var(--mw-border);
+  background: var(--mw-surface);
+}
+.mw-curriculum-preview-row--locked {
+  opacity: 0.7;
+}
+.mw-curriculum-preview-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--mw-text-dim);
+}
+.mw-curriculum-preview-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.mw-curriculum-preview-detail {
+  font-size: 12.5px;
+  color: var(--mw-text-dim);
+}
+.mw-curriculum-preview-more {
+  font-size: 13px;
+  color: var(--mw-text-dim);
+  margin: 0;
+}
+.mw-curriculum-preview-expand {
+  align-self: flex-start;
+  border: 1px solid var(--mw-border-strong);
+  background: none;
+  color: var(--mw-text);
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 10px 16px;
+  min-height: 44px;
+  box-sizing: border-box;
+  border-radius: var(--mw-radius-sm);
+  cursor: pointer;
+}
+.mw-curriculum-preview-expand:hover {
+  border-color: var(--mw-moss);
+}
+
 .mw-continue-card {
   position: relative;
   display: block;

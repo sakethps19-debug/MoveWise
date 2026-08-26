@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { ensureFullCurriculumVisible } from "./testHelpers";
 
 function uniqueEmail(prefix: string) {
   return `${prefix}${Date.now()}${Math.floor(Math.random() * 1000)}@example.com`;
@@ -52,5 +53,9 @@ test("dev reset control clears a signed-in account's lesson progress", async ({ 
   // just show a success message.
   await page.getByRole("button", { name: "Reset progress" }).click();
   await expect(page.getByText("Progress reset.")).toBeVisible();
+  // Zero progress again means this now looks like a fresh account (P1-A's
+  // compact preview, possibly the onboarding quiz) — a real, expected
+  // side effect of a real reset, not a bug; re-expand to check the row.
+  await ensureFullCurriculumVisible(page);
   await expect(welcomeRow).toHaveClass(/mw-lesson-node--available/);
 });

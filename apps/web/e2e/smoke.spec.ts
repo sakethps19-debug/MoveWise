@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { ensureFullCurriculumVisible } from "./testHelpers";
 
 test("home page loads and shows both units @smoke", async ({ page }) => {
   await page.goto("/");
@@ -6,6 +7,10 @@ test("home page loads and shows both units @smoke", async ({ page }) => {
   // <h1> is "Learn & Play" (see components/Nav.tsx / app/page.tsx).
   await expect(page.getByText("MoveWise", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Learn & Play" })).toBeVisible();
+
+  // A fresh visitor's default view is now a compact preview (P1-A) —
+  // expand it to see every unit's own heading.
+  await ensureFullCurriculumVisible(page);
   await expect(page.getByRole("heading", { name: "Meet the Pieces" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Check and Checkmate Basics" })).toBeVisible();
 });
