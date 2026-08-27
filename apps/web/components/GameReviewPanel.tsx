@@ -17,6 +17,21 @@ const CLASSIFICATION_BADGE_VARIANT: Record<MoveClassification, "success" | "warn
   forced: "neutral",
 };
 
+/** A short, real summary line built only from `review.summary`'s actual counts — never a fabricated compliment. */
+function summaryLine(summary: GameReview["summary"]): string {
+  const { blunder, mistake, inaccuracy, brilliant, best } = summary;
+  const problems: string[] = [];
+  if (blunder > 0) problems.push(`${blunder} blunder${blunder === 1 ? "" : "s"}`);
+  if (mistake > 0) problems.push(`${mistake} mistake${mistake === 1 ? "" : "s"}`);
+  if (inaccuracy > 0) problems.push(`${inaccuracy} inaccurac${inaccuracy === 1 ? "y" : "ies"}`);
+
+  if (problems.length === 0) {
+    const strong = brilliant + best;
+    return strong > 0 ? `Clean game — no blunders or mistakes, ${strong} best-or-better move${strong === 1 ? "" : "s"}.` : "Clean game — no blunders or mistakes found.";
+  }
+  return `${problems.join(", ")} to learn from below.`;
+}
+
 /**
  * Renders a `GameReview` — demo or real, distinguished only by
  * `review.isDemo` (previously two separate concerns bundled into one
@@ -49,6 +64,9 @@ export function GameReviewPanel({
       )}
 
       <h3 className="mw-game-review-heading">2. Review the game{review.isDemo ? " (sample)" : ""}</h3>
+      <p className="mw-game-review-summary" role="status">
+        {summaryLine(review.summary)}
+      </p>
       <div className="mw-game-review-table-wrap">
         <table className="mw-game-review-table">
           <thead>
@@ -65,17 +83,17 @@ export function GameReviewPanel({
           <tbody>
             {review.moves.map((move, index) => (
               <tr key={`${move.moveNumber}-${move.color}`}>
-                <td>
+                <td className="mw-game-review-mono">
                   {move.moveNumber}
                   {move.color === "b" ? "…" : "."}
                 </td>
-                <td>
+                <td className="mw-game-review-mono">
                   <code>{move.playedMove}</code>
                 </td>
-                <td>
+                <td className="mw-game-review-mono">
                   <code>{move.bestMove}</code>
                 </td>
-                <td>
+                <td className="mw-game-review-mono">
                   {formatEvalLoss(move.evalBefore, move.evalAfter, move.color, move.playedMove.endsWith("#"))}
                 </td>
                 <td>

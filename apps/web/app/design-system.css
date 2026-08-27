@@ -1306,13 +1306,26 @@
   box-sizing: border-box;
 }
 
-/* ---------- Play & Learn game review (Phase 6; demo data only) ---------- */
+/* ---------- Play & Learn game review (demo or real, GameReview.isDemo) ---------- */
 .mw-game-review {
   display: flex;
   flex-direction: column;
   gap: var(--mw-space-4);
   padding-top: var(--mw-space-4);
   border-top: 1px solid var(--mw-border);
+}
+.mw-game-review-summary {
+  margin: calc(-1 * var(--mw-space-2)) 0 0;
+  padding: var(--mw-space-3) var(--mw-space-4);
+  background: var(--mw-surface-2);
+  border-left: 3px solid var(--mw-moss);
+  border-radius: var(--mw-radius-sm);
+  font-size: 13.5px;
+  color: var(--mw-text);
+}
+.mw-game-review-mono {
+  font-family: var(--mw-font-mono);
+  font-variant-numeric: tabular-nums;
 }
 .mw-game-review-demo-banner {
   display: flex;
