@@ -49,7 +49,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://movewise:movewise_ci@localhost:5432/movewise_ci
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
 
@@ -110,7 +110,7 @@ jobs:
       # real /login submissions against LOGIN_IP_LIMIT/LOGIN_EMAIL_LIMIT.
       LOGIN_RATE_LIMIT: "200"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
 
@@ -199,7 +199,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://movewise:movewise_ci@localhost:5432/movewise_ci
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
 
