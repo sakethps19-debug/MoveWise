@@ -341,8 +341,9 @@
   color: var(--mw-text-dim);
   text-decoration: none;
 }
-.mw-nav-bottom-item span:first-child {
-  font-size: 18px;
+.mw-nav-item svg,
+.mw-nav-bottom-item svg {
+  flex-shrink: 0;
 }
 .mw-nav-bottom-item--active {
   color: var(--mw-moss-ink);

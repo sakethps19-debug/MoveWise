@@ -267,6 +267,7 @@ animation ever obscures the board or the exercise instruction.
 | JetBrains Mono | Google Fonts (JetBrains) | OFL 1.1 | `next/font/google` |
 | Chess piece glyphs | Existing Cburnett SVG set | CC BY-SA 3.0 | `apps/web/public/pieces/` — unchanged, already credited in `CREDITS.md` |
 | Unit motifs | Original, code-native SVG/CSS (grid patterns, geometric line-art) | Original, MoveWise-owned | `apps/web/components/motifs/` |
+| Nav icons (Learn, Play, Practice, Progress, Profile) | Original, hand-authored inline SVG (20px viewBox, 1.6 stroke, `currentColor`) | Original, MoveWise-owned | `apps/web/components/icons/NavIcons.tsx` |
 | Sounds | **Not added this pass** | — | Section 10's sound requirements are Play & Learn scope (ADR-0008 Phase B), not this vertical slice; adding unlicensed sound now would violate this same section's own licensing requirement |
 
 No stock imagery, no third-party icon library — icons are a small
