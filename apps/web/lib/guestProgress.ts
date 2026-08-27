@@ -52,3 +52,65 @@ export function clearGuestProgress(): void {
     // ignore
   }
 }
+
+const GUEST_CHECKPOINTS_KEY = "movewise_guest_checkpoints";
+
+/** Mirrors the signed-in LessonCheckpoint row (packages/db) for a guest's in-progress lesson. */
+export interface GuestLessonCheckpoint {
+  lessonVersion: number;
+  stepIndex: number;
+  mistakes: number;
+  hintsUsed: number;
+  attempts: Array<{ stepId: string; correct: boolean; wrongAnswerKey: string | null }>;
+  updatedAt: number;
+}
+
+interface GuestCheckpoints {
+  [lessonId: string]: GuestLessonCheckpoint;
+}
+
+function readGuestCheckpoints(): GuestCheckpoints {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(GUEST_CHECKPOINTS_KEY);
+    if (!raw) return {};
+    const parsed: unknown = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? (parsed as GuestCheckpoints) : {};
+  } catch {
+    return {};
+  }
+}
+
+/** Returns null if there's no saved checkpoint, or it was saved against a since-edited lesson version. */
+export function readGuestLessonCheckpoint(lessonId: string, lessonVersion: number): GuestLessonCheckpoint | null {
+  const checkpoint = readGuestCheckpoints()[lessonId];
+  if (!checkpoint || checkpoint.lessonVersion !== lessonVersion) return null;
+  return checkpoint;
+}
+
+export function saveGuestLessonCheckpoint(
+  lessonId: string,
+  lessonVersion: number,
+  state: { stepIndex: number; mistakes: number; hintsUsed: number; attempts: GuestLessonCheckpoint["attempts"] },
+): void {
+  if (typeof window === "undefined") return;
+  const checkpoints = readGuestCheckpoints();
+  checkpoints[lessonId] = { ...state, lessonVersion, updatedAt: Date.now() };
+  try {
+    window.localStorage.setItem(GUEST_CHECKPOINTS_KEY, JSON.stringify(checkpoints));
+  } catch {
+    // Storage full or unavailable — resume just won't be offered next time.
+  }
+}
+
+export function clearGuestLessonCheckpoint(lessonId: string): void {
+  if (typeof window === "undefined") return;
+  const checkpoints = readGuestCheckpoints();
+  if (!(lessonId in checkpoints)) return;
+  delete checkpoints[lessonId];
+  try {
+    window.localStorage.setItem(GUEST_CHECKPOINTS_KEY, JSON.stringify(checkpoints));
+  } catch {
+    // ignore
+  }
+}

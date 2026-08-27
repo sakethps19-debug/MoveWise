@@ -10,13 +10,7 @@ import { allLessonTitles } from "../../../../lib/lessons";
 import { buildStoredGameReview } from "../../../../lib/studyPlan";
 import type { MasteryStatus } from "../../../../lib/masteryModel";
 import type { MoveAnalysis } from "../../../../lib/gameAnalysis";
-
-const RESULT_LABEL: Record<string, string> = {
-  win: "Won",
-  loss: "Lost",
-  draw: "Draw",
-  resigned: "Resigned",
-};
+import { RESULT_LABEL } from "../../../../lib/gameResult";
 
 /**
  * Revisits one persisted `Game` (ADR-0008 Phase B). Already analyzed:

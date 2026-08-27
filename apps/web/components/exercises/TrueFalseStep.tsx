@@ -13,9 +13,15 @@ export function TrueFalseStep({
   isLastStep,
   onAdvance,
   feedback,
+  finishLabel,
 }: {
   step: TrueFalseStepData;
-} & ExerciseHandlers & { isLastStep: boolean; onAdvance: () => void; feedback: string | null }) {
+} & ExerciseHandlers & {
+    isLastStep: boolean;
+    onAdvance: () => void;
+    feedback: string | null;
+    finishLabel?: string;
+  }) {
   function handlePick(value: boolean) {
     if (status === "correct") return;
     if (status === "incorrect") onReset();
@@ -47,6 +53,7 @@ export function TrueFalseStep({
         xp={STEP_XP}
         isLastStep={isLastStep}
         onAdvance={onAdvance}
+        finishLabel={finishLabel}
       />
     </>
   );

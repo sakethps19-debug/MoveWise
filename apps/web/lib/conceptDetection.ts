@@ -213,6 +213,26 @@ export interface DetectConceptsInput {
   classification: MoveClassification;
 }
 
+/**
+ * Every concept id `detectConcepts` can ever emit — the single source of
+ * truth both it and scripts/validate-content.ts use, so a detector that
+ * emits an id with no matching packages/content/concepts.json entry (a
+ * real gap this list's cross-check caught: `opposition-key-squares` was
+ * detected here but had no registry entry at all) fails validation
+ * instead of quietly rendering as a raw slug wherever a concept title is
+ * displayed (e.g. the Progress dashboard's "Mistakes from analysed
+ * games", lib/principles.ts's loadConceptTitles()).
+ */
+export const DETECTABLE_CONCEPT_IDS = [
+  "hanging-pieces",
+  "knight-fork",
+  "king-safety-castling",
+  "queen-development-timing",
+  "back-rank-safety",
+  "trade-evaluation",
+  "opposition-key-squares",
+] as const;
+
 /** Real concept ids from docs/concept-taxonomy.md's mapping table — see this file's own doc comment for which rows are, and aren't, detected. */
 export function detectConcepts(input: DetectConceptsInput): string[] {
   if (input.classification !== "mistake" && input.classification !== "blunder") return [];

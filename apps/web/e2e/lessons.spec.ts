@@ -26,7 +26,7 @@ test("explain, select-square, and true-false steps: click through Welcome to the
 
   // step-6: review (recap) — this is the lesson's last step.
   await expect(page.getByText("You can now read the board")).toBeVisible();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
 
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
   await expect(page.getByText("+30 XP")).toBeVisible(); // 3×5 XP steps + 15 XP lesson reward
@@ -54,7 +54,7 @@ test("mcq and true-false steps: What is check? / What is checkmate?", async ({ p
   await page.getByRole("button", { name: "Get out of check, no matter what" }).click();
   await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
 
   await page.goto("/learn/check-and-checkmate.02-what-is-checkmate");
@@ -64,6 +64,6 @@ test("mcq and true-false steps: What is check? / What is checkmate?", async ({ p
   await page.getByRole("button", { name: "False" }).click();
   await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
 });

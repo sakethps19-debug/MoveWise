@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { ensureFullCurriculumVisible } from "./testHelpers";
 
 function uniqueEmail(prefix: string) {
   return `${prefix}${Date.now()}${Math.floor(Math.random() * 1000)}@example.com`;
@@ -10,6 +11,9 @@ test("a fresh guest and a fresh account both see later lessons locked", async ({
   // lib/guestProgress.ts) instead of always showing everything open —
   // there'd be no point tracking guest completions otherwise.
   await page.goto("/");
+  // A fresh guest's default view is a compact preview (P1-A) — expand it
+  // to see every lesson's own lock state.
+  await ensureFullCurriculumVisible(page);
   // Guest locking depends on an effect reading localStorage after mount
   // (LearningPath.tsx) — wait for at least one lock icon to actually
   // render instead of counting synchronously right after navigation,
@@ -26,6 +30,7 @@ test("a fresh guest and a fresh account both see later lessons locked", async ({
   await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
   await page.click("button[type=submit]");
   await page.waitForURL("/");
+  await ensureFullCurriculumVisible(page);
 
   await expect(page.getByText("🔒").first()).toBeVisible();
   const lockCount = await page.getByText("🔒").count();
@@ -54,7 +59,7 @@ test("guest progress persists locally, unlocks the next lesson, and migrates int
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -104,7 +109,7 @@ test("a perfect first run earns 3 stars; a run with mistakes earns fewer @smoke"
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -143,6 +148,7 @@ test("meet-the-pieces shows principle groupings with a mastery badge (ADR-0008)"
   await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
   await page.click("button[type=submit]");
   await page.waitForURL("/");
+  await ensureFullCurriculumVisible(page);
 
   // The learning path groups meet-the-pieces' lessons under principle
   // headings ("Board basics", "The rook", ...) instead of a flat list —
@@ -159,7 +165,7 @@ test("meet-the-pieces shows principle groupings with a mastery badge (ADR-0008)"
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -196,7 +202,7 @@ test("completing a principle's lessons sloppily doesn't unlock the next principl
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -245,7 +251,7 @@ test("strong performance in a principle unlocks the next one (ADR-0008)", async 
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -289,7 +295,7 @@ test("a zero-mistake run that used a hint doesn't earn 3 stars", async ({ page }
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByText(/hint used/)).toBeVisible();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");

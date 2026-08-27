@@ -43,9 +43,12 @@ test("practice hub: aggregates unlocked/locked pools across units, plus needs-re
   await page.waitForURL("/practice");
   await expect(page.getByRole("heading", { name: "Practice" })).toBeVisible();
 
-  // Nothing completed yet — every pool is locked.
-  await expect(page.getByText("The rook")).toBeVisible();
-  await expect(page.getByRole("link", { name: /The rook/ })).toHaveCount(0);
+  // Nothing completed yet — every pool is locked. Matched on the pool's
+  // own title element (exact) — its locked card also now names its
+  // prerequisite lesson, "Meet the rook", a substring match of "the rook"
+  // too.
+  await expect(page.getByText("The rook", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "The rook", exact: true })).toHaveCount(0);
 
   const userId = dbHelper("get-user-id", { email });
   dbHelper("seed-completions", {
@@ -69,10 +72,15 @@ test("practice hub: aggregates unlocked/locked pools across units, plus needs-re
   await rookLink.click();
   await page.waitForURL("/practice/meet-the-pieces.the-rook");
 
-  // The bishop's pool is still locked — its own sub-lessons aren't done.
+  // The bishop's pool is still locked — its own sub-lessons aren't done —
+  // and names the exact lesson that unlocks it, with a working link.
   await page.goto("/practice");
-  await expect(page.getByText("The bishop")).toBeVisible();
-  await expect(page.getByText("finish its lessons to unlock").first()).toBeVisible();
+  await expect(page.getByText("The bishop", { exact: true })).toBeVisible();
+  const bishopPool = page.locator(".mw-lesson-node--locked").filter({ hasText: "The bishop" });
+  await expect(bishopPool).toContainText("finish");
+  const bishopPrereqLink = bishopPool.getByRole("link", { name: "Meet the bishop" });
+  await expect(bishopPrereqLink).toBeVisible();
+  await expect(bishopPrereqLink).toHaveAttribute("href", "/learn/meet-the-pieces.05-meet-the-bishop");
   await expect(page.getByRole("link", { name: /The bishop/ })).toHaveCount(0);
 
   // A concept that's regressed to "struggling" surfaces in "Review needed",

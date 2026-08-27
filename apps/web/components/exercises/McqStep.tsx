@@ -13,9 +13,15 @@ export function McqStep({
   isLastStep,
   onAdvance,
   feedback,
+  finishLabel,
 }: {
   step: McqStepData;
-} & ExerciseHandlers & { isLastStep: boolean; onAdvance: () => void; feedback: string | null }) {
+} & ExerciseHandlers & {
+    isLastStep: boolean;
+    onAdvance: () => void;
+    feedback: string | null;
+    finishLabel?: string;
+  }) {
   function handlePick(index: number) {
     if (status === "correct") return;
     if (status === "incorrect") onReset();
@@ -46,6 +52,7 @@ export function McqStep({
         xp={STEP_XP}
         isLastStep={isLastStep}
         onAdvance={onAdvance}
+        finishLabel={finishLabel}
       />
     </>
   );

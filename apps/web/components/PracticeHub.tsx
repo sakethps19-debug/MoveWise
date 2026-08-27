@@ -61,7 +61,8 @@ export function PracticeHub({
           .map((id) => unit.lessons.find((l) => l.id === id))
           .filter((l): l is Lesson => l !== undefined);
         const unlocked = subLessons.length > 0 && subLessons.every((l) => statusFor(l) === "completed");
-        return { unit, principle, unlocked };
+        const nextNeededLesson = subLessons.find((l) => statusFor(l) !== "completed") ?? null;
+        return { unit, principle, unlocked, nextNeededLesson };
       }),
   );
   const unlockedPools = pools.filter((p) => p.unlocked);
@@ -69,6 +70,20 @@ export function PracticeHub({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-6)" }}>
+      <section>
+        <Link href="/practice/warm-up" className="mw-lesson-node-link">
+          <div className="mw-lesson-node mw-lesson-node--available">
+            <span className="mw-lesson-node-icon" aria-hidden="true">
+              ☀️
+            </span>
+            <span className="mw-lesson-node-body">
+              <span className="mw-lesson-node-title">Daily warm-up</span>
+              <span className="mw-lesson-node-reason">2 quick puzzles — play now, no lesson required</span>
+            </span>
+          </div>
+        </Link>
+      </section>
+
       {needsReview.length > 0 && (
         <div className="mw-review-needed">
           <h2 className="mw-review-needed-title">Review needed</h2>
@@ -112,7 +127,7 @@ export function PracticeHub({
                 </Link>
               );
             })}
-            {lockedPools.map(({ unit, principle }) => (
+            {lockedPools.map(({ unit, principle, nextNeededLesson }) => (
               <div key={principle.id} aria-disabled="true">
                 <div className="mw-lesson-node mw-lesson-node--locked">
                   <span className="mw-lesson-node-icon" aria-hidden="true">
@@ -120,7 +135,18 @@ export function PracticeHub({
                   </span>
                   <span className="mw-lesson-node-body">
                     <span className="mw-lesson-node-title">{principle.title}</span>
-                    <span className="mw-lesson-node-reason">{unit.title} · finish its lessons to unlock</span>
+                    <span className="mw-lesson-node-reason">
+                      {unit.title}
+                      {nextNeededLesson ? (
+                        <>
+                          {" · finish "}
+                          <Link href={`/learn/${nextNeededLesson.id}`}>{nextNeededLesson.title}</Link>
+                          {" to unlock"}
+                        </>
+                      ) : (
+                        " · finish its lessons to unlock"
+                      )}
+                    </span>
                   </span>
                 </div>
               </div>

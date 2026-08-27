@@ -44,8 +44,8 @@ export interface MasteryComputationResult {
 
 export interface AttemptEvidence {
   correct: boolean;
-  /** Which content type produced this attempt — a Lesson's step or a pooled Puzzle (ADR-0008). Defaults to "lesson" when absent, so every pre-existing caller (and test) is unaffected. */
-  source?: "lesson" | "puzzle";
+  /** Which content type produced this attempt — a Lesson's step, a pooled Puzzle, or a mistake detected in a real analysed game (ADR-0008 Phase B). Defaults to "lesson" when absent, so every pre-existing caller (and test) is unaffected. */
+  source?: "lesson" | "puzzle" | "game";
 }
 
 /**

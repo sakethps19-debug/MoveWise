@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { ensureFullCurriculumVisible } from "./testHelpers";
 
 /**
  * Coverage map for the 10 progression requirements this file exists to
@@ -42,6 +43,7 @@ test("1. initial state: only the first lesson is accessible, everything else is 
   await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
   await page.click("button[type=submit]");
   await page.waitForURL("/");
+  await ensureFullCurriculumVisible(page);
 
   // The very first lesson is open. Filtered by the row's own title
   // element, not hasText on the whole row — a locked row's "Unlocks
@@ -101,7 +103,7 @@ test("10. anonymous-user progression: a guest unlocking a principle-gated lesson
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -179,7 +181,7 @@ test("a guest CAN open a lesson directly by URL once its prerequisite is really 
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "False" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 

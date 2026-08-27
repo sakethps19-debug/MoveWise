@@ -1,17 +1,19 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { prisma } from "@movewise/db";
+import { prisma, Prisma } from "@movewise/db";
 import { createSession, destroySession, getSession, hashPassword, verifyPassword } from "../lib/auth";
 import { checkRateLimit, formatRetryAfter } from "../lib/rate-limit";
+import { parseEnvNumberOverride } from "../lib/envNumber";
 import { loadLesson } from "../lib/lessons";
 import { findPuzzle } from "../lib/puzzles";
 import { computeMasteryStatus, type MasteryStatus } from "../lib/masteryModel";
 import { canAnalyze, summarize, type GameReview, type MoveAnalysis } from "../lib/gameAnalysis";
 import { buildStoredGameReview } from "../lib/studyPlan";
-import type { AttemptRecord } from "../components/LessonRunner";
+import type { AttemptRecord, LessonCheckpointState } from "../components/LessonRunner";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -35,9 +37,21 @@ const MIN_SIGNUP_AGE = 13;
 // connection to an actual regression. Widening the window/count here
 // would weaken real abuse protection; widening it only for CI's own
 // traffic (ci.yml sets this explicitly) doesn't.
-const SIGNUP_LIMIT = { limit: Number(process.env.SIGNUP_RATE_LIMIT) || 20, windowMs: 60 * 60 * 1000 }; // 20/hour per IP by default
-const LOGIN_IP_LIMIT = { limit: 15, windowMs: 15 * 60 * 1000 }; // 15/15min per IP
-const LOGIN_EMAIL_LIMIT = { limit: 8, windowMs: 15 * 60 * 1000 }; // 8/15min per email, catches distributed attempts against one account
+const SIGNUP_LIMIT = { limit: parseEnvNumberOverride(process.env.SIGNUP_RATE_LIMIT, 20), windowMs: 60 * 60 * 1000 }; // 20/hour per IP by default
+// Same "CI's own traffic collides with its own budget" reasoning as
+// SIGNUP_LIMIT above — the full E2E suite performs real /login
+// submissions across many spec files (auth, account, play-analysis,
+// signup-trust, lesson-resume...) from the single runner IP, and that
+// total sits close enough to production's real 15/15min-per-IP tuning
+// that added test coverage can push it over with no connection to an
+// actual regression. LOGIN_RATE_LIMIT (ci.yml sets it) scales both
+// per-IP and per-email limits together; production's real tuning is
+// unaffected whenever it's unset.
+const LOGIN_IP_LIMIT = { limit: parseEnvNumberOverride(process.env.LOGIN_RATE_LIMIT, 15), windowMs: 15 * 60 * 1000 }; // 15/15min per IP by default
+const LOGIN_EMAIL_LIMIT = { limit: parseEnvNumberOverride(process.env.LOGIN_RATE_LIMIT, 8), windowMs: 15 * 60 * 1000 }; // 8/15min per email by default, catches distributed attempts against one account
+const DELETE_ACCOUNT_LIMIT = { limit: 8, windowMs: 15 * 60 * 1000 }; // 8/15min per account — reauthentication itself is a password guess surface
+const PASSWORD_RESET_LIMIT = { limit: 5, windowMs: 15 * 60 * 1000 }; // 5/15min per IP and per email — bounds request-flooding/enumeration probing
+const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 async function clientIp(): Promise<string> {
   const h = await headers();
@@ -215,9 +229,100 @@ export async function logoutAction(): Promise<void> {
   redirect("/");
 }
 
+export interface RequestPasswordResetState {
+  message?: string;
+  error?: string;
+  /**
+   * The real reset link — set only in development. MoveWise has no
+   * transactional email provider configured yet (a real one needs a
+   * credential and isn't added without approval — see docs/known-risks.md),
+   * so there is currently no channel to deliver this link to a real user
+   * outside development. Surfacing it here lets the reset flow itself be
+   * built and tested end to end now; a production deploy must wire up
+   * real email delivery before this feature does anything for an actual
+   * user. Never set unless NODE_ENV is exactly "development" — the same
+   * strict check devResetProgressAction below uses, not just "not
+   * production" (which would also loosen for an unexpected NODE_ENV value).
+   */
+  devResetLink?: string;
+}
+
+/**
+ * Never reveals whether an account exists for the given email — every
+ * path (invalid email, no account, rate-limited) returns the same
+ * generic message. Only whether a *token* was actually created differs
+ * internally, and that never reaches the response outside development.
+ */
+export async function requestPasswordResetAction(
+  _prevState: RequestPasswordResetState,
+  formData: FormData,
+): Promise<RequestPasswordResetState> {
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
+  const genericMessage = "If an account exists for that email, a password reset link has been sent to it.";
+
+  const ip = await clientIp();
+  const ipLimit = await checkRateLimit(`password-reset-ip:${ip}`, PASSWORD_RESET_LIMIT.limit, PASSWORD_RESET_LIMIT.windowMs);
+  if (!ipLimit.allowed) {
+    return { error: `Too many requests. Try again in ${formatRetryAfter(ipLimit.retryAfterMs!)}.` };
+  }
+
+  const user = email ? await prisma.user.findUnique({ where: { email } }) : null;
+  if (!user) return { message: genericMessage };
+
+  const emailLimit = await checkRateLimit(
+    `password-reset-email:${email}`,
+    PASSWORD_RESET_LIMIT.limit,
+    PASSWORD_RESET_LIMIT.windowMs,
+  );
+  if (!emailLimit.allowed) return { message: genericMessage }; // don't reveal *why* — same generic message either way
+
+  const token = randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
+  await prisma.passwordResetToken.create({ data: { token, userId: user.id, expiresAt } });
+
+  if (process.env.NODE_ENV === "development") {
+    return { message: genericMessage, devResetLink: `/reset-password/${token}` };
+  }
+  return { message: genericMessage };
+}
+
+export async function resetPasswordAction(_prevState: FormState, formData: FormData): Promise<FormState> {
+  const token = String(formData.get("token") ?? "");
+  const password = String(formData.get("password") ?? "");
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` };
+  }
+
+  const resetToken = await prisma.passwordResetToken.findUnique({ where: { token } });
+  if (!resetToken || resetToken.usedAt || resetToken.expiresAt < new Date()) {
+    return { error: "This reset link is invalid or has expired. Request a new one." };
+  }
+
+  const passwordHash = await hashPassword(password);
+  await prisma.$transaction([
+    prisma.user.update({ where: { id: resetToken.userId }, data: { passwordHash } }),
+    prisma.passwordResetToken.update({ where: { token }, data: { usedAt: new Date() } }),
+    // A password reset should shut out every existing session — otherwise
+    // a hijacked session survives the very reset meant to end it.
+    prisma.session.deleteMany({ where: { userId: resetToken.userId } }),
+  ]);
+
+  redirect("/login?reset=success");
+}
+
 export async function deleteAccountAction(_prevState: FormState, formData: FormData): Promise<FormState> {
   const user = await getSession();
   if (!user) return { error: "You must be signed in." };
+
+  // Reauthentication is itself a password-guessing surface for whoever
+  // holds a hijacked session (an XSS, a shared/unlocked device) — rate
+  // limited per account, same reasoning as LOGIN_EMAIL_LIMIT above.
+  const deleteLimit = await checkRateLimit(`delete-account:${user.id}`, DELETE_ACCOUNT_LIMIT.limit, DELETE_ACCOUNT_LIMIT.windowMs);
+  if (!deleteLimit.allowed) {
+    return { error: `Too many attempts. Try again in ${formatRetryAfter(deleteLimit.retryAfterMs!)}.` };
+  }
 
   const password = String(formData.get("password") ?? "");
   if (!(await verifyPassword(password, user.passwordHash))) {
@@ -280,8 +385,47 @@ export async function completeLessonAction(
     create: { userId: user.id, lessonId, xpEarned, mistakes, hintsUsed },
   });
 
+  // Completion supersedes any in-progress checkpoint — finishing clears it,
+  // the same "completed beats in-progress" rule lessonProgressUI.ts already
+  // uses for the lighter-weight "started" UI marker.
+  await prisma.lessonCheckpoint.deleteMany({ where: { userId: user.id, lessonId } });
+
   await recordAttemptsAndUpdateMastery(user.id, lessonId, attempts);
   revalidatePath("/");
+}
+
+/**
+ * Saves a signed-in learner's in-progress position in a lesson — the "In
+ * progress" fix: reopening a lesson previously always restarted at step 1
+ * with full hearts because nothing but the cosmetic
+ * lessonProgressUI.ts "started" flag was ever persisted mid-lesson. Called
+ * from LessonRunner on every step advance; best-effort (fire-and-forget
+ * from the caller) since losing a checkpoint write only costs a resume
+ * point, never real progress data (LessonCompletion/ExerciseAttempt are
+ * unaffected either way).
+ */
+export async function saveLessonCheckpointAction(
+  lessonId: string,
+  lessonVersion: number,
+  state: LessonCheckpointState,
+): Promise<void> {
+  const user = await getSession();
+  if (!user) return; // guest: checkpoint lives in localStorage instead (see guestProgress.ts)
+
+  const { stepIndex, mistakes, hintsUsed, attempts } = state;
+  const attemptsJson = attempts as unknown as Prisma.InputJsonValue;
+  await prisma.lessonCheckpoint.upsert({
+    where: { userId_lessonId: { userId: user.id, lessonId } },
+    update: { lessonVersion, stepIndex, mistakes, hintsUsed, attempts: attemptsJson },
+    create: { userId: user.id, lessonId, lessonVersion, stepIndex, mistakes, hintsUsed, attempts: attemptsJson },
+  });
+}
+
+/** Explicit "Start over" — discards a saved checkpoint rather than resuming it. */
+export async function clearLessonCheckpointAction(lessonId: string): Promise<void> {
+  const user = await getSession();
+  if (!user) return;
+  await prisma.lessonCheckpoint.deleteMany({ where: { userId: user.id, lessonId } });
 }
 
 /**
@@ -302,13 +446,16 @@ async function recomputeMasteryForConcepts(userId: string, conceptIds: string[])
       prisma.exerciseAttempt.findMany({
         where: { userId, conceptIds: { has: conceptId } },
         orderBy: { createdAt: "asc" },
-        select: { correct: true, puzzleId: true },
+        select: { correct: true, puzzleId: true, gameId: true },
       }),
     ]);
 
     const { status, exerciseConfidence } = computeMasteryStatus(
       (existingMastery?.status as MasteryStatus | undefined) ?? null,
-      history.map((a) => ({ correct: a.correct, source: a.puzzleId ? ("puzzle" as const) : ("lesson" as const) })),
+      history.map((a) => ({
+        correct: a.correct,
+        source: a.puzzleId ? ("puzzle" as const) : a.gameId ? ("game" as const) : ("lesson" as const),
+      })),
     );
 
     await prisma.userConceptMastery.upsert({
@@ -409,6 +556,38 @@ export async function saveCompletedGameAction(input: SaveCompletedGameInput): Pr
 export type SubmittedMoveAnalysis = Omit<MoveAnalysis, "recommendedLessonIds">;
 
 /**
+ * The game-analysis equivalent of recordAttemptsAndUpdateMastery/
+ * recordPuzzleAttemptAction above — a mistake lib/conceptDetection.ts
+ * found in a real analysed game is exactly as real a signal that a
+ * concept needs review as a wrong lesson step or puzzle attempt, but
+ * until now nothing fed it into UserConceptMastery, so a concept a
+ * learner kept mishandling in real play could never surface in the
+ * Practice hub's "Review needed" section or the Progress dashboard's
+ * review queue — only in the game's own review table. Only moves with a
+ * detected concept are recorded (conceptDetection.ts already returns an
+ * empty list for every non-mistake move, per its own doc comment), and
+ * every one is `correct: false` — a detected mistake is itself the
+ * negative evidence, there's no "correct" game-derived attempt to record.
+ */
+async function recordGameMistakesAndUpdateMastery(userId: string, gameId: string, moves: SubmittedMoveAnalysis[]): Promise<void> {
+  const mistakes = moves.filter((m) => m.conceptIds.length > 0);
+  if (mistakes.length === 0) return;
+
+  await prisma.exerciseAttempt.createMany({
+    data: mistakes.map((m, i) => ({
+      userId,
+      gameId,
+      stepId: `${gameId}-ply-${i}`,
+      conceptIds: m.conceptIds,
+      correct: false,
+    })),
+  });
+
+  const conceptIds = [...new Set(mistakes.flatMap((m) => m.conceptIds))];
+  await recomputeMasteryForConcepts(userId, conceptIds);
+}
+
+/**
  * Persists the result of a client-side analysis pass (lib/moveClassification.ts
  * + lib/conceptDetection.ts, run in-browser against the same Stockfish Web
  * Worker Play mode already uses — see components/PlayRunner.tsx and
@@ -479,6 +658,7 @@ export async function saveGameAnalysisAction(
         },
       },
     });
+    await recordGameMistakesAndUpdateMastery(user.id, gameId, moves);
   }
 
   return buildStoredGameReview(storedMoves, conceptMastery);

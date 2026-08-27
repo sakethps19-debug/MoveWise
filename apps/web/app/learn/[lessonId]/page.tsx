@@ -3,10 +3,11 @@ import { prisma } from "@movewise/db";
 import { loadLesson } from "../../../lib/lessons";
 import { loadUnitPrinciples, findPreviousPrinciple } from "../../../lib/principles";
 import { PROFICIENT_STATUSES, type MasteryStatus } from "../../../lib/masteryModel";
-import { LessonRunner } from "../../../components/LessonRunner";
+import { LessonResumeGate } from "../../../components/LessonResumeGate";
 import { LessonGate } from "../../../components/LessonGate";
-import { completeLessonAction } from "../../actions";
+import { completeLessonAction, saveLessonCheckpointAction, clearLessonCheckpointAction } from "../../actions";
 import { getSession } from "../../../lib/auth";
+import type { LessonCheckpointState } from "../../../components/LessonRunner";
 
 export default async function LessonPage({
   params,
@@ -63,8 +64,42 @@ export default async function LessonPage({
     }
   }
 
+  // Real lesson resume: a signed-in learner's saved position is looked up
+  // here (server-side, so the very first paint can already show the
+  // "Welcome back" choice with no flash — see LessonResumeGate). A
+  // checkpoint saved against an edited lesson (lessonVersion mismatch) is
+  // discarded rather than resumed into step semantics that may have
+  // changed since — deleted outright so it doesn't linger as a dangling row.
+  let initialCheckpoint: LessonCheckpointState | null = null;
+  if (user) {
+    const checkpoint = await prisma.lessonCheckpoint.findUnique({
+      where: { userId_lessonId: { userId: user.id, lessonId: lesson.id } },
+    });
+    if (checkpoint) {
+      if (checkpoint.lessonVersion === lesson.version) {
+        initialCheckpoint = {
+          stepIndex: checkpoint.stepIndex,
+          mistakes: checkpoint.mistakes,
+          hintsUsed: checkpoint.hintsUsed,
+          attempts: checkpoint.attempts as unknown as LessonCheckpointState["attempts"],
+        };
+      } else {
+        await prisma.lessonCheckpoint.deleteMany({ where: { userId: user.id, lessonId: lesson.id } });
+      }
+    }
+  }
+
   const runner = (
-    <LessonRunner lesson={lesson} onComplete={completeLessonAction.bind(null, lesson.id)} isGuest={!user} />
+    <LessonResumeGate
+      lesson={lesson}
+      isGuest={!user}
+      initialCheckpoint={initialCheckpoint}
+      onComplete={completeLessonAction.bind(null, lesson.id)}
+      onCheckpoint={
+        user ? saveLessonCheckpointAction.bind(null, lesson.id, lesson.version) : undefined
+      }
+      onClearCheckpoint={user ? clearLessonCheckpointAction.bind(null, lesson.id) : undefined}
+    />
   );
 
   // A signed-in learner is already fully gated above (real

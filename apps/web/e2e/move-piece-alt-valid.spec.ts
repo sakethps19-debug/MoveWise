@@ -114,7 +114,10 @@ for (const c of CASES) {
     await page.locator(`[aria-label*="${c.illegalDestination},"]`).click();
 
     await expect(page.locator('p[role="alert"]')).toBeVisible();
-    await expect(page.getByText("♥♥♥♥♡")).toBeVisible();
+    // Rejected, but hearts stay full — every lesson here is a regular
+    // sub-lesson (guided teaching), not a mastery-challenge assessment,
+    // so a wrong answer never costs a heart (lib/heartsPolicy.ts).
+    await expect(page.getByText("♥♥♥♥♥")).toBeVisible();
   });
 }
 

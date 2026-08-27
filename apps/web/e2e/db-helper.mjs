@@ -67,6 +67,13 @@ async function main() {
       process.stdout.write(String(count));
       break;
     }
+    case "get-lesson-checkpoint": {
+      const checkpoint = await prisma.lessonCheckpoint.findUnique({
+        where: { userId_lessonId: { userId: args.userId, lessonId: args.lessonId } },
+      });
+      process.stdout.write(checkpoint ? JSON.stringify(checkpoint) : "");
+      break;
+    }
     case "count-games": {
       const count = await prisma.game.count({ where: { userId: args.userId } });
       process.stdout.write(String(count));
@@ -84,6 +91,22 @@ async function main() {
     }
     case "count-game-analysis": {
       const count = await prisma.gameAnalysis.count({ where: { gameId: args.gameId } });
+      process.stdout.write(String(count));
+      break;
+    }
+    case "expire-session": {
+      // Backdates every real Session row for this user so getSession()'s
+      // own `session.expiresAt < new Date()` check fires for real — not
+      // a fake/tampered cookie, the actual DB-backed expiry path.
+      const result = await prisma.session.updateMany({
+        where: { userId: args.userId },
+        data: { expiresAt: new Date(Date.now() - 60_000) },
+      });
+      process.stdout.write(String(result.count));
+      break;
+    }
+    case "count-rate-limit-hits": {
+      const count = await prisma.rateLimitHit.count({ where: { key: args.key } });
       process.stdout.write(String(count));
       break;
     }

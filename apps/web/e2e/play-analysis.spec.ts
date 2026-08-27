@@ -86,6 +86,65 @@ test("real game analysis: play a short game, analyze it, verify real data lands 
   }
 });
 
+test("a real 4-ply opening (1.e4 ... 2.Nf3 ...) then resignation analyses those exact White moves, never the Scholar's Mate demo", async ({
+  page,
+}) => {
+  // The exact scenario from review: a learner plays a normal opening
+  // (not the demo's e4 e5 Bc4 Nc6 Qh5 Nf6 Qxf7# line) and resigns —
+  // the review must reflect that real game, never fall back to the
+  // demo. Only White's moves are scripted here (e4, then Nf3) since
+  // Black's replies come from a live engine and can't be forced to an
+  // exact SAN without scripting the opponent itself — nothing else in
+  // this suite does that either (see this file's other test). Nf3 is
+  // chosen specifically because it stays legal for White regardless of
+  // Black's first reply, so this remains deterministic on White's side
+  // while still proving a real multi-move game (not just one ply) gets
+  // analysed correctly end to end.
+  const email = `sicilianline${Date.now()}@example.com`;
+  const password = "password123";
+  dbHelper("create-user", { email, password });
+
+  await page.goto("/login");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", password);
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+
+  await page.goto("/play");
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 15_000 });
+
+  await page.locator('[aria-label*="e2,"]').click();
+  await page.locator('[aria-label*="e4,"]').click();
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 20_000 });
+
+  await page.locator('[aria-label*="g1,"]').click();
+  await page.locator('[aria-label*="f3,"]').click();
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 20_000 });
+
+  await page.getByRole("button", { name: "Resign" }).click();
+  await expect(page.getByText(/You resigned/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Analyze this game" }).click();
+  await expect(page.getByRole("heading", { name: "2. Review the game" })).toBeVisible({ timeout: 60_000 });
+
+  // The real moves this game actually contains are shown...
+  const reviewTable = page.locator(".mw-game-review-table");
+  await expect(reviewTable.getByText("e4", { exact: true }).first()).toBeVisible();
+  await expect(reviewTable.getByText("Nf3", { exact: true }).first()).toBeVisible();
+
+  // ...and the demo's own signature moves/labeling never appear.
+  await expect(page.getByText("Qxf7#")).toHaveCount(0);
+  await expect(page.getByText("Bc4")).toHaveCount(0);
+  await expect(page.getByText("Qh5")).toHaveCount(0);
+  await expect(page.getByText("DEMO")).toHaveCount(0);
+  await expect(page.getByText(/You resigned/)).toBeVisible(); // the real result — not Scholar's Mate's checkmate
+
+  const userId = dbHelper("get-user-id", { email });
+  const gameId = dbHelper("get-latest-game-id", { userId });
+  const moveAnalysisCount = Number(dbHelper("count-move-analysis", { gameId }));
+  expect(moveAnalysisCount).toBe(4); // e4, Black's reply, Nf3, Black's reply
+});
+
 test("a guest still sees the labeled demo, never the real analysis entry point", async ({ page }) => {
   await page.goto("/play");
   await expect(page.getByRole("status")).toContainText("Your move", { timeout: 15_000 });

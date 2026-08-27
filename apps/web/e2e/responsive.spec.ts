@@ -1,6 +1,10 @@
 import { test, expect } from "./fixtures";
 import { gotoGuestLesson } from "./testHelpers";
 
+function uniqueEmail(prefix: string) {
+  return `${prefix}${Date.now()}${Math.floor(Math.random() * 1000)}@example.com`;
+}
+
 /**
  * Enforces docs/design/system.md's responsive acceptance criterion:
  * "No horizontal scroll at 320/375/390/430/768/1024/1280/1536px" — the
@@ -39,6 +43,35 @@ for (const width of BREAKPOINTS) {
   test(`play mode has no horizontal scroll at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/play");
+    await expectNoHorizontalScroll(page);
+  });
+
+  test(`the progress dashboard has no horizontal scroll at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/progress");
+    await expectNoHorizontalScroll(page);
+  });
+}
+
+// The guest progress card above is deliberately light; the real
+// per-unit grid (mw-progress-grid/mw-progress-unit, app/design-system.css)
+// only renders signed-in, including the mobile-width layout swap at the
+// 600px breakpoint that its own stylesheet declares — checked on both
+// sides of that breakpoint since it's the one part of this page a bare
+// scrollWidth check above wouldn't meaningfully exercise for a guest.
+for (const width of [375, 1024]) {
+  test(`the signed-in progress dashboard's unit grid has no horizontal scroll at ${width}px`, async ({ page }) => {
+    const email = uniqueEmail("progressresponsive");
+    await page.goto("/signup");
+    await page.fill("input[name=email]", email);
+    await page.fill("input[name=password]", "password123");
+    await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
+    await page.click("button[type=submit]");
+    await page.waitForURL("/");
+
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/progress");
+    await expect(page.getByRole("heading", { name: "Unit progress" })).toBeVisible();
     await expectNoHorizontalScroll(page);
   });
 }

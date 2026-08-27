@@ -13,6 +13,14 @@ import { MasteryBadge } from "./ui/MasteryBadge";
 import { ProgressBar } from "./ui/ProgressBar";
 import { UnitMotif } from "./UnitMotif";
 import { DailyGoalStrip } from "./ui/DailyGoalStrip";
+import { OnboardingQuiz } from "./OnboardingQuiz";
+import {
+  hasSeenOnboarding,
+  readOnboardingAnswers,
+  greetingForGoal,
+  prefersPracticeFirst,
+  type OnboardingAnswers,
+} from "../lib/onboarding";
 
 export interface UnitWithLessons {
   id: string;
@@ -70,7 +78,38 @@ export function LearningPath({
     setStartedIds(readStartedLessons());
   }, []);
 
+  // Onboarding/curriculum-collapse (P1-A): both read after mount for the
+  // same hydration-mismatch reason as startedIds above — the server (and
+  // a guest's very first paint) always renders as if neither has run yet.
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingAnswers, setOnboardingAnswers] = useState<OnboardingAnswers | null>(null);
+  const [manuallyExpanded, setManuallyExpanded] = useState(false);
+
   const { effectiveCompletions, completedIds } = useEffectiveCompletions(completions);
+  // A true first-time visit: nothing completed, no lesson even started,
+  // and no real server-tracked mastery signal either (a UserConceptMastery
+  // row means real attempts already happened — e.g. a struggling concept
+  // flagged from puzzle/game attempts with no lesson ever fully
+  // completed — so it counts as real engagement too, not "fresh"). This
+  // is the exact case "confronted with ~20 disabled cards immediately"
+  // described. A returning learner (any real progress at all) always
+  // sees the full syllabus; only a genuinely fresh one gets the
+  // collapsed preview and the onboarding quiz below.
+  const hasAnyProgress = (completedIds?.size ?? 0) > 0 || startedIds.size > 0 || (conceptMastery?.size ?? 0) > 0;
+
+  useEffect(() => {
+    // `hasAnyProgress` starts false on every very first render (neither
+    // completedIds nor startedIds have been read from localStorage yet,
+    // even for a guest who actually has real completions) — so this
+    // must actively correct itself once the real value resolves, not
+    // just turn onboarding on and leave it latched.
+    if (hasAnyProgress) {
+      setShowOnboarding(false);
+    } else if (!hasSeenOnboarding()) {
+      setShowOnboarding(true);
+    }
+    setOnboardingAnswers(readOnboardingAnswers());
+  }, [hasAnyProgress]);
   // `conceptMastery` itself is already the right "do we have a real
   // session to check proficiency against" signal — `null` for a guest
   // (no UserConceptMastery rows exist without a session), a real Map
@@ -128,6 +167,17 @@ export function LearningPath({
           .flatMap((u) => u.principles.map((p) => ({ unit: u, principle: p })))
           .filter(({ principle }) => conceptMastery.get(principle.conceptId) === "struggling");
 
+  if (showOnboarding) {
+    return (
+      <OnboardingQuiz
+        onDone={() => {
+          setOnboardingAnswers(readOnboardingAnswers());
+          setShowOnboarding(false);
+        }}
+      />
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-6)" }}>
       <DailyGoalStrip />
@@ -148,6 +198,10 @@ export function LearningPath({
         </div>
       )}
 
+      {!hasAnyProgress && onboardingAnswers && (
+        <p className="mw-onboarding-greeting">{greetingForGoal(onboardingAnswers.goal)}</p>
+      )}
+
       {nextUp && (
         <Link href={`/learn/${nextUp.id}`} className="mw-continue-card">
           <div className="mw-continue-eyebrow">
@@ -160,7 +214,14 @@ export function LearningPath({
         </Link>
       )}
 
-      {units.map((unit) => {
+      {!hasAnyProgress && onboardingAnswers && prefersPracticeFirst(onboardingAnswers.experience) && (
+        <Link href="/practice" className="mw-onboarding-practice-link">
+          Already know the basics? Jump straight to practice puzzles →
+        </Link>
+      )}
+
+      {hasAnyProgress || manuallyExpanded ? (
+        units.map((unit) => {
         const completedInUnit = unit.lessons.filter((l) => statusFor(l) === "completed").length;
 
         // ADR-0008: group by Principle where the unit has been
@@ -300,7 +361,61 @@ export function LearningPath({
             </div>
           </section>
         );
-      })}
+      })
+      ) : (
+        <CompactCurriculumPreview
+          currentUnit={units[0]}
+          nextChapterUnit={units[1]}
+          remainingUnits={units.slice(2)}
+          nextChapterLockReason={units[1]?.lessons[0] ? unlockReasonFor(units[1].lessons[0]) : null}
+          onExpand={() => setManuallyExpanded(true)}
+        />
+      )}
+    </div>
+  );
+}
+
+function CompactCurriculumPreview({
+  currentUnit,
+  nextChapterUnit,
+  remainingUnits,
+  nextChapterLockReason,
+  onExpand,
+}: {
+  currentUnit: UnitWithLessons;
+  nextChapterUnit: UnitWithLessons | undefined;
+  remainingUnits: UnitWithLessons[];
+  nextChapterLockReason: string | null;
+  onExpand: () => void;
+}) {
+  return (
+    <div className="mw-curriculum-preview">
+      <div className="mw-curriculum-preview-row">
+        <span className="mw-curriculum-preview-label">Current chapter</span>
+        <span className="mw-curriculum-preview-title">{currentUnit.title}</span>
+        <span className="mw-curriculum-preview-detail">
+          {currentUnit.lessons.length} lesson{currentUnit.lessons.length === 1 ? "" : "s"} — next milestone: complete
+          them all
+        </span>
+      </div>
+      {nextChapterUnit && (
+        <div className="mw-curriculum-preview-row mw-curriculum-preview-row--locked">
+          <span className="mw-curriculum-preview-label">Next chapter</span>
+          <span className="mw-curriculum-preview-title">{nextChapterUnit.title}</span>
+          <span className="mw-curriculum-preview-detail">
+            🔒 {nextChapterLockReason ?? `Unlocks after "${currentUnit.title}"`}
+          </span>
+        </div>
+      )}
+      {remainingUnits.length > 0 && (
+        <p className="mw-curriculum-preview-more">
+          And {remainingUnits.length} more chapter{remainingUnits.length === 1 ? "" : "s"} ahead:{" "}
+          {remainingUnits.map((u) => u.title).join(", ")}.
+        </p>
+      )}
+      <button type="button" className="mw-curriculum-preview-expand" onClick={onExpand}>
+        View full curriculum
+      </button>
     </div>
   );
 }

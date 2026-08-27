@@ -5,9 +5,11 @@ import Link from "next/link";
 import type { Lesson } from "@movewise/exercise-schema";
 import { useStockfishEngine } from "../lib/useStockfishEngine";
 import { starsForPerformance, starsExplanation } from "../lib/mastery";
-import { recordGuestCompletion } from "../lib/guestProgress";
+import { recordGuestCompletion, saveGuestLessonCheckpoint, clearGuestLessonCheckpoint } from "../lib/guestProgress";
 import { markLessonStarted, clearLessonStarted } from "../lib/lessonProgressUI";
 import { recordCompletionToday } from "../lib/streak";
+import { formatObjectiveSentence } from "../lib/lessonText";
+import { heartsAtRiskFor } from "../lib/heartsPolicy";
 import { Hearts } from "./ui/Hearts";
 import { Stars } from "./ui/Stars";
 import { Button } from "./ui/Button";
@@ -29,6 +31,14 @@ export interface AttemptRecord {
   wrongAnswerKey: string | null;
 }
 
+/** A saved in-progress position in a lesson — see packages/db's LessonCheckpoint model / guestProgress.ts's guest equivalent. */
+export interface LessonCheckpointState {
+  stepIndex: number;
+  mistakes: number;
+  hintsUsed: number;
+  attempts: AttemptRecord[];
+}
+
 interface LessonRunnerProps {
   lesson: Lesson;
   onComplete?: (
@@ -39,6 +49,10 @@ interface LessonRunnerProps {
   ) => void | Promise<void>;
   /** True when there's no signed-in session — persists this completion to localStorage instead of the DB. */
   isGuest?: boolean;
+  /** Resumes into a previously saved position instead of starting at step 0 — see LessonResumeGate. */
+  initialCheckpoint?: LessonCheckpointState | null;
+  /** Signed-in checkpoint persistence (saveLessonCheckpointAction). Guests persist internally via guestProgress.ts instead. */
+  onCheckpoint?: (state: LessonCheckpointState) => void;
 }
 
 const START_HEARTS = 5;
@@ -61,23 +75,51 @@ const RECOVERY_HEARTS = 3;
  * then the same exercise again once hearts are partially restored — the
  * "recovery exercise" is a real retry with fresh context, not a new
  * content type authored per-lesson.
+ *
+ * Hearts only carry real stakes on a mastery-challenge lesson
+ * (lib/heartsPolicy.ts) — a genuine assessment of everything the unit
+ * taught. On every regular sub-lesson (first exposure to a new piece or
+ * idea), `hearts` stays full and a wrong answer never risks the recovery
+ * interstitial: it's guided teaching/experimentation, so a wrong guess
+ * just gets an explanation and an immediate retry, same as always, with
+ * nothing to lose.
  */
-export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps) {
-  const [stepIndex, setStepIndex] = useState(0);
+export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, onCheckpoint }: LessonRunnerProps) {
+  // Clamped defensively — a checkpoint saved against a lesson that has
+  // since shrunk shouldn't be possible (lessonVersion gates that at the
+  // read site), but an out-of-range index here would otherwise crash
+  // rather than degrade to "start fresh".
+  const initialStepIndex = initialCheckpoint
+    ? Math.min(Math.max(initialCheckpoint.stepIndex, 0), lesson.steps.length - 1)
+    : 0;
+  const [stepIndex, setStepIndex] = useState(initialStepIndex);
   const [status, setStatus] = useState<StepStatus>("active");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [xpEarned, setXpEarned] = useState(0);
-  const [mistakes, setMistakes] = useState(0);
-  const [hintsUsed, setHintsUsed] = useState(0);
-  const [attempts, setAttempts] = useState<AttemptRecord[]>([]);
-  const [recovering, setRecovering] = useState(false);
+  const [mistakes, setMistakes] = useState(initialCheckpoint?.mistakes ?? 0);
+  const [hintsUsed, setHintsUsed] = useState(initialCheckpoint?.hintsUsed ?? 0);
+  const [attempts, setAttempts] = useState<AttemptRecord[]>(initialCheckpoint?.attempts ?? []);
+  // Resuming into a checkpoint saved mid-recovery (hearts already spent)
+  // must re-enter the recovery screen, not silently show the exercise
+  // with 0 hearts and no way back in — `recovering` itself isn't part of
+  // the checkpoint (it's a transient UI mode, not saved progress), so it
+  // has to be re-derived here from the saved mistake count instead.
+  const [recovering, setRecovering] = useState(
+    () => heartsAtRiskFor(lesson) && !!initialCheckpoint && START_HEARTS - initialCheckpoint.mistakes <= 0,
+  );
   const [finished, setFinished] = useState<{ xp: number; mistakes: number; hintsUsed: number } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(false);
 
   const step = lesson.steps[stepIndex];
   const isLastStep = stepIndex === lesson.steps.length - 1;
-  const hearts = Math.max(0, START_HEARTS - mistakes);
+  const heartsAtRisk = heartsAtRiskFor(lesson);
+  const hearts = heartsAtRisk ? Math.max(0, START_HEARTS - mistakes) : START_HEARTS;
+  // "Complete unit" previously showed on every lesson's last step
+  // regardless of kind, wrongly implying finishing this one sub-lesson
+  // finishes the whole unit. Only the actual mastery-challenge lesson —
+  // the one that really does complete the unit — earns that wording.
+  const finishLabel = lesson.kind === "mastery-challenge" ? "Complete mastery challenge" : "Finish lesson";
 
   // Phase 4's "in progress" learning-path status: a pure UI signal, not a
   // progress record (see lib/lessonProgressUI.ts) — marked as soon as a
@@ -95,7 +137,13 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
   }, [lesson, stepIndex]);
 
   const hasMiniGame = useMemo(() => lesson.steps.some((s) => s.type === "mini-game"), [lesson]);
-  const { engineRef, ready: engineReady, error: engineError } = useStockfishEngine(hasMiniGame);
+  const {
+    engineRef,
+    ready: engineReady,
+    error: engineError,
+    stage: engineStage,
+    retry: retryEngine,
+  } = useStockfishEngine(hasMiniGame);
 
   async function advance() {
     setStatus("active");
@@ -108,6 +156,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
       if (isGuest) {
         recordGuestCompletion(lesson.id, totalXp, mistakes, hintsUsed);
         clearLessonStarted(lesson.id);
+        clearGuestLessonCheckpoint(lesson.id);
         recordCompletionToday();
         setFinished({ xp: totalXp, mistakes, hintsUsed });
         return;
@@ -134,7 +183,21 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
         setSaving(false);
       }
     } else {
-      setStepIndex((i) => i + 1);
+      const newStepIndex = stepIndex + 1;
+      setStepIndex(newStepIndex);
+      persistCheckpoint({ stepIndex: newStepIndex, mistakes, hintsUsed, attempts });
+    }
+  }
+
+  // Best-effort, fire-and-forget — a dropped checkpoint write only costs a
+  // resume point (the learner falls back to restarting), never real
+  // progress data, so this deliberately doesn't block navigation or show
+  // an error the way completion saves do.
+  function persistCheckpoint(state: LessonCheckpointState) {
+    if (isGuest) {
+      saveGuestLessonCheckpoint(lesson.id, lesson.version, state);
+    } else {
+      onCheckpoint?.(state);
     }
   }
 
@@ -146,10 +209,15 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
   }
 
   function handleIncorrect(key: string) {
-    setAttempts((a) => [...a, { stepId: step.id, correct: false, wrongAnswerKey: key }]);
+    const newAttempts = [...attempts, { stepId: step.id, correct: false, wrongAnswerKey: key }];
+    setAttempts(newAttempts);
     const newMistakes = mistakes + 1;
     setMistakes(newMistakes);
-    if (START_HEARTS - newMistakes <= 0) {
+    // Keeps hearts-remaining accurate in a saved checkpoint even for a
+    // learner who leaves mid-step (before advancing) — the step-transition
+    // persist in advance() alone would otherwise miss these wrong attempts.
+    persistCheckpoint({ stepIndex, mistakes: newMistakes, hintsUsed, attempts: newAttempts });
+    if (heartsAtRisk && START_HEARTS - newMistakes <= 0) {
       // Hearts just hit zero — go straight to guided recovery instead of
       // showing ordinary wrong-answer feedback the learner would just
       // retry past without a reset.
@@ -249,7 +317,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
 
       {stepIndex === 0 && !recovering && (
         <p className="mw-lesson-objective">
-          <strong>By the end of this lesson, you&apos;ll be able to</strong> {lesson.objectives[0]}
+          <strong>By the end of this lesson, you&apos;ll be able to</strong> {formatObjectiveSentence(lesson.objectives[0])}
         </p>
       )}
 
@@ -275,6 +343,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -286,6 +355,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -297,6 +367,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -308,6 +379,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -319,6 +391,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -330,6 +403,7 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
               feedback={feedback}
               isLastStep={isLastStep}
               onAdvance={advance}
+              finishLabel={finishLabel}
             />
           )}
 
@@ -344,10 +418,15 @@ export function LessonRunner({ lesson, onComplete, isGuest }: LessonRunnerProps)
               engineRef={engineRef}
               engineReady={engineReady}
               engineError={engineError}
+              engineStage={engineStage}
+              onRetryEngine={retryEngine}
+              finishLabel={finishLabel}
             />
           )}
 
-          {step.type === "review" && <ReviewStep key={step.id} step={step} onAdvance={advance} />}
+          {step.type === "review" && (
+            <ReviewStep key={step.id} step={step} onAdvance={advance} finishLabel={finishLabel} />
+          )}
         </>
       )}
     </div>

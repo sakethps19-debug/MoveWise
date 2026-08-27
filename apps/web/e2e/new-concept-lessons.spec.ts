@@ -37,7 +37,7 @@ test("move-piece step with castling: King safety and castling", async ({ page })
 
   // step-4: review — this is the lesson's last step.
   await expect(page.getByText("A centralized king is a target")).toBeVisible();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
 });
 
@@ -58,7 +58,7 @@ test("capture step: Hanging pieces", async ({ page }) => {
 
   // step-4: review — this is the lesson's last step.
   await expect(page.getByText("A hanging piece is attacked and undefended")).toBeVisible();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
 });
 
@@ -78,7 +78,7 @@ test("mcq and true-false steps: Develop your minor pieces first", async ({ page 
 
   // step-4: review — this is the lesson's last step.
   await expect(page.getByText("Develop your minor pieces before your queen")).toBeVisible();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
 });
 
@@ -99,7 +99,7 @@ test("move-piece step: Back-rank safety", async ({ page }) => {
 
   // step-4: review — this is the lesson's last step.
   await expect(page.getByText("A castled king with an untouched pawn shield")).toBeVisible();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
 });
 
@@ -120,6 +120,6 @@ test("capture step: Is this trade worth it?", async ({ page }) => {
 
   // step-4: review — this is the lesson's last step.
   await expect(page.getByText("Before capturing, count what you actually get")).toBeVisible();
-  await page.getByRole("button", { name: "Complete unit" }).click();
+  await page.getByRole("button", { name: "Finish lesson" }).click();
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
 });

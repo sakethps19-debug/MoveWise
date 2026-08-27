@@ -21,8 +21,8 @@ const LESSON_PREREQUISITE: Record<string, string> = {
   "meet-the-pieces.09-meet-the-knight": "meet-the-pieces.08-meet-the-king",
   "meet-the-pieces.10-meet-the-pawn": "meet-the-pieces.09-meet-the-knight",
   "meet-the-pieces.11-capturing-piece-values": "meet-the-pieces.10-meet-the-pawn",
-  "meet-the-pieces.12-unit-mastery-challenge": "meet-the-pieces.11-capturing-piece-values",
-  "meet-the-pieces.13-king-safety-and-castling": "meet-the-pieces.12-unit-mastery-challenge",
+  "meet-the-pieces.13-king-safety-and-castling": "meet-the-pieces.11-capturing-piece-values",
+  "meet-the-pieces.12-unit-mastery-challenge": "meet-the-pieces.13-king-safety-and-castling",
   "check-and-checkmate.01-what-is-check": "meet-the-pieces.12-unit-mastery-challenge",
   "check-and-checkmate.02-what-is-checkmate": "check-and-checkmate.01-what-is-check",
   "check-and-checkmate.03-thinking-under-check": "check-and-checkmate.02-what-is-checkmate",
@@ -60,7 +60,33 @@ export async function gotoGuestLesson(page: Page, lessonId: string): Promise<voi
     await page.goto("/");
     await seedGuestProgress(page, [prerequisite]);
   }
+  // Real lesson resume (P1-C) means a second visit to the same lessonId
+  // within one test — several specs call this helper more than once per
+  // lesson purely to reset the exercise for a fresh attempt — would now
+  // hit LessonResumeGate's "Welcome back" screen instead of the fresh
+  // start these callers expect, since the first visit's own step-advance
+  // saved a real guest checkpoint. Clears it first; only runs when
+  // already on the app's origin (this call's own prerequisite branch
+  // above, or an earlier navigation this same test made) — a context's
+  // very first navigation has nothing to clear yet.
+  if (page.url().startsWith("http")) {
+    await clearGuestLessonCheckpoint(page, lessonId);
+  }
   await page.goto(`/learn/${lessonId}`);
+}
+
+async function clearGuestLessonCheckpoint(page: Page, lessonId: string): Promise<void> {
+  await page.evaluate((id) => {
+    try {
+      const raw = window.localStorage.getItem("movewise_guest_checkpoints");
+      if (!raw) return;
+      const checkpoints = JSON.parse(raw) as Record<string, unknown>;
+      delete checkpoints[id];
+      window.localStorage.setItem("movewise_guest_checkpoints", JSON.stringify(checkpoints));
+    } catch {
+      // ignore
+    }
+  }, lessonId);
 }
 
 /**
@@ -99,4 +125,37 @@ export async function seedGuestProgress(page: Page, lessonIds: string[]): Promis
   await page.evaluate((serialized) => {
     window.localStorage.setItem("movewise_guest_progress", serialized);
   }, JSON.stringify(progress));
+}
+
+/**
+ * P1-A: a genuinely fresh visitor (no progress at all) now sees a
+ * one-time skippable onboarding quiz, then a compact "current chapter /
+ * next chapter preview" homepage instead of every unit's full lesson
+ * list immediately (see components/LearningPath.tsx, OnboardingQuiz.tsx)
+ * — the intentional new default, not a regression. Specs that verify the
+ * full syllabus's lock/unlock display (lesson-node classes, unit
+ * headings, mastery badges) against a fresh account/guest need that full
+ * view rendered, so this dismisses the quiz and expands the compact
+ * preview if either is showing; a no-op for a page state where neither
+ * is (already-expanded, or a returning learner who skips both).
+ */
+export async function ensureFullCurriculumVisible(page: Page): Promise<void> {
+  const skipButton = page.getByRole("button", { name: "Skip for now" });
+  // `waitFor` (not a plain `isVisible()` snapshot) so a caller landing
+  // here right after a server action whose data hasn't finished
+  // revalidating yet (e.g. a dev-only progress reset) still gets a real
+  // chance to see the transition instead of concluding "not shown" from
+  // whatever was on screen a moment too early.
+  const skipShown = await skipButton
+    .waitFor({ state: "visible", timeout: 3000 })
+    .then(() => true)
+    .catch(() => false);
+  if (skipShown) await skipButton.click();
+
+  const expandButton = page.getByRole("button", { name: "View full curriculum" });
+  const expandShown = await expandButton
+    .waitFor({ state: "visible", timeout: 3000 })
+    .then(() => true)
+    .catch(() => false);
+  if (expandShown) await expandButton.click();
 }
