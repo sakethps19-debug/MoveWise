@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { legalMoves, moveUci, parseUci, tryMove, type Move } from "@movewise/chess-rules";
+import { legalMoves, moveUci, resolveUciToSan, type Move } from "@movewise/chess-rules";
 import type { EngineHandle } from "@movewise/engine";
 import { buildMoveAnalysis, type GameReview } from "./gameAnalysis";
 import { saveGameAnalysisAction, buildGuestGameReviewAction, type SubmittedMoveAnalysis } from "../app/actions";
@@ -45,8 +45,11 @@ export function useGameAnalysisRunner(engineRef: React.RefObject<EngineHandle | 
         const legalCountBefore = legalMoves(ply.fenBefore).length;
         const before = await engine.bestMove(ply.fenBefore, { depth: 10 });
         const after = await engine.evaluate(ply.fenAfter, { depth: 10 });
-        const bestAttempt = parseUci(before.bestMove);
-        const bestMoveSan = tryMove(ply.fenBefore, bestAttempt)?.move.san ?? before.bestMove;
+        // P0 "verify every best move is legal in the associated FEN" —
+        // resolveUciToSan checks legality before turning the engine's raw
+        // UCI string into a displayed SAN (see its own doc comment and
+        // packages/chess-rules/src/index.test.ts for the illegal-move case).
+        const bestMoveSan = resolveUciToSan(ply.fenBefore, before.bestMove);
         // Compared by UCI, not SAN — see lib/moveClassification.ts's
         // isEngineBestByIdentity for why (a real production bug: two
         // independent engine searches can disagree by a few cp even when

@@ -36,10 +36,28 @@ export function statusOf(
   principlesById: Map<string, Principle>,
   principlesInOrder: Principle[],
   conceptMastery: Map<string, MasteryStatus> | null,
+  /**
+   * Concept ids a placement assessment has already demonstrated real
+   * evidence for (lib/placement.ts's `scorePlacement`) — a second,
+   * additive way past both gates below, alongside `completedIds` and
+   * `conceptMastery`, never in place of either. Deliberately does NOT
+   * make a lesson read as "completed": a rated player who tested out of
+   * meet-the-pieces still sees its lessons as "available" (so they can
+   * open one to double-check or review), not falsely marked done — a
+   * placement result is exactly evidence-based, unlike an onboarding
+   * self-report (which the codebase already documents as never gating
+   * anything, in lib/onboarding.ts). Satisfies the P0 "do not unlock
+   * advanced content solely from self-reported ability" requirement
+   * without violating "never falsely mark a concept completed".
+   */
+  demonstratedConceptIds?: Set<string>,
 ): CoreStatus {
   if (completedIds === null) return "available"; // guest: no progress tracked, nothing to lock against
   if (completedIds.has(lesson.id)) return "completed";
-  if (!lesson.prerequisites.every((p) => completedIds.has(p))) return "locked";
+
+  const demonstratedLessonIds = demonstratedLessonIdsFrom(principlesById, demonstratedConceptIds);
+  const passesPrereq = (p: string) => completedIds.has(p) || demonstratedLessonIds.has(p);
+  if (!lesson.prerequisites.every(passesPrereq)) return "locked";
 
   // No signed-in session to check proficiency against at all (a guest) —
   // skip the principle gate entirely rather than reading "no data" as
@@ -51,12 +69,28 @@ export function statusOf(
       const previous = index > 0 ? principlesInOrder[index - 1] : undefined;
       if (previous) {
         const status = conceptMastery.get(previous.conceptId);
-        if (!status || !PROFICIENT_STATUSES.has(status)) return "locked";
+        const demonstratedPrevious = demonstratedConceptIds?.has(previous.conceptId) ?? false;
+        if ((!status || !PROFICIENT_STATUSES.has(status)) && !demonstratedPrevious) return "locked";
       }
     }
   }
 
   return "available";
+}
+
+/** Every lesson id belonging to a principle whose conceptId is in `demonstratedConceptIds` — the concrete bypass `statusOf`/`unlockReason` apply on top of `completedIds`. Exported so PracticeHub.tsx's own pool-unlock check (a separate literal-completion check `statusOf` doesn't control) can apply the identical bypass rather than re-deriving it. */
+export function demonstratedLessonIdsFrom(
+  principlesById: Map<string, Principle>,
+  demonstratedConceptIds?: Set<string>,
+): Set<string> {
+  if (!demonstratedConceptIds || demonstratedConceptIds.size === 0) return new Set();
+  const lessonIds = new Set<string>();
+  for (const principle of principlesById.values()) {
+    if (demonstratedConceptIds.has(principle.conceptId)) {
+      for (const lessonId of principle.subLessonIds) lessonIds.add(lessonId);
+    }
+  }
+  return lessonIds;
 }
 
 /**
@@ -71,9 +105,11 @@ export function unlockReason(
   principlesById: Map<string, Principle>,
   principlesInOrder: Principle[],
   hasConceptMasteryTracking: boolean,
+  demonstratedConceptIds?: Set<string>,
 ): string | null {
   if (completedIds === null) return null; // guest: no per-row reason, matches statusOf's "everything open" treatment
-  const missingPrereq = lesson.prerequisites.find((p) => !completedIds.has(p));
+  const demonstratedLessonIds = demonstratedLessonIdsFrom(principlesById, demonstratedConceptIds);
+  const missingPrereq = lesson.prerequisites.find((p) => !completedIds.has(p) && !demonstratedLessonIds.has(p));
   if (missingPrereq) {
     const title = lessonsById.get(missingPrereq)?.title ?? missingPrereq;
     return `Unlocks after "${title}"`;
@@ -86,7 +122,9 @@ export function unlockReason(
     if (principle && principle.subLessonIds[0] === lesson.id) {
       const index = principlesInOrder.findIndex((p) => p.id === principle.id);
       const previous = index > 0 ? principlesInOrder[index - 1] : undefined;
-      if (previous) return `Unlocks once "${previous.title}" is proficient`;
+      if (previous && !demonstratedConceptIds?.has(previous.conceptId)) {
+        return `Unlocks once "${previous.title}" is proficient`;
+      }
     }
   }
   return null;

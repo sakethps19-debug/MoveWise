@@ -3,6 +3,7 @@ import { prisma } from "@movewise/db";
 import { findPrincipleById } from "../../../lib/principles";
 import { loadPuzzlesForPrinciple } from "../../../lib/puzzles";
 import { getSession } from "../../../lib/auth";
+import { PROFICIENT_STATUSES, type MasteryStatus } from "../../../lib/masteryModel";
 import { PuzzleRunner } from "../../../components/PuzzleRunner";
 import { recordPuzzleAttemptAction } from "../../actions";
 
@@ -27,13 +28,26 @@ export default async function PracticePage({
   // as the lesson route guard, guest sequencing is enforced client-side
   // in LearningPath.tsx instead.
   if (user) {
-    const completed = await prisma.lessonCompletion.findMany({
-      where: { userId: user.id, lessonId: { in: principle.subLessonIds } },
-      select: { lessonId: true },
-    });
+    const [completed, mastery] = await Promise.all([
+      prisma.lessonCompletion.findMany({
+        where: { userId: user.id, lessonId: { in: principle.subLessonIds } },
+        select: { lessonId: true },
+      }),
+      prisma.userConceptMastery.findUnique({
+        where: { userId_conceptId: { userId: user.id, conceptId: principle.conceptId } },
+      }),
+    ]);
     const completedIds = new Set(completed.map((c) => c.lessonId));
     const missing = principle.subLessonIds.some((id) => !completedIds.has(id));
-    if (missing) {
+    // A concept already proficient (placement, or ordinary practice) bypasses
+    // the sub-lesson requirement, mirroring lib/lessonStatus.ts's
+    // demonstratedConceptIds bypass — never falsely marks the lessons
+    // "completed", just recognizes real evidence the pool's own gate would
+    // otherwise ignore. This is the exact PracticeHub.tsx "brutal user
+    // journey" bug, fixed at the server route too.
+    const demonstratedStatus = mastery?.status as MasteryStatus | undefined;
+    const demonstrated = !!demonstratedStatus && PROFICIENT_STATUSES.has(demonstratedStatus);
+    if (missing && !demonstrated) {
       redirect(`/?locked=${encodeURIComponent(`${principle.title} practice`)}&needs=${encodeURIComponent(principle.title)}`);
     }
   }

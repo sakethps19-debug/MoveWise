@@ -3,8 +3,9 @@
 import Link from "next/link";
 import type { Lesson } from "@movewise/exercise-schema";
 import type { MasteryStatus } from "../lib/masteryModel";
-import { statusOf } from "../lib/lessonStatus";
+import { statusOf, demonstratedLessonIdsFrom } from "../lib/lessonStatus";
 import { useEffectiveCompletions, type CompletionRecord } from "../lib/useEffectiveCompletions";
+import { useDemonstratedConcepts } from "../lib/useDemonstratedConcepts";
 import { MasteryBadge } from "./ui/MasteryBadge";
 import type { UnitWithLessons } from "./LearningPath";
 
@@ -32,8 +33,17 @@ export function PracticeHub({
   conceptMastery: Map<string, MasteryStatus> | null;
 }) {
   const { completedIds } = useEffectiveCompletions(completions);
+  // See lib/lessonStatus.ts's statusOf doc comment: real evidence (a
+  // placement assessment or ordinary practice) that bypasses the literal-
+  // completion check below without ever marking a lesson "completed".
+  // This is the exact fix for PracticeHub's own "brutal user journey" bug
+  // — `unlocked` used to require every sub-lesson literally "completed",
+  // forcing a rated player through meet-the-pieces before reaching any
+  // tactics pool no matter what their placement demonstrated.
+  const demonstratedConceptIds = useDemonstratedConcepts(conceptMastery);
 
   const allPrinciplesById = new Map(units.flatMap((u) => u.principles).map((p) => [p.id, p]));
+  const demonstratedLessonIds = demonstratedLessonIdsFrom(allPrinciplesById, demonstratedConceptIds);
   const statusFor = (lesson: Lesson) =>
     statusOf(
       lesson,
@@ -41,7 +51,9 @@ export function PracticeHub({
       allPrinciplesById,
       units.find((u) => u.id === lesson.unitId)?.principles ?? [],
       conceptMastery,
+      demonstratedConceptIds,
     );
+  const isDone = (lesson: Lesson) => statusFor(lesson) === "completed" || demonstratedLessonIds.has(lesson.id);
 
   // Same "regressed to struggling" signal LearningPath's own "Review
   // needed" section surfaces — repeated here rather than aggregated
@@ -60,8 +72,8 @@ export function PracticeHub({
         const subLessons = principle.subLessonIds
           .map((id) => unit.lessons.find((l) => l.id === id))
           .filter((l): l is Lesson => l !== undefined);
-        const unlocked = subLessons.length > 0 && subLessons.every((l) => statusFor(l) === "completed");
-        const nextNeededLesson = subLessons.find((l) => statusFor(l) !== "completed") ?? null;
+        const unlocked = subLessons.length > 0 && subLessons.every(isDone);
+        const nextNeededLesson = subLessons.find((l) => !isDone(l)) ?? null;
         return { unit, principle, unlocked, nextNeededLesson };
       }),
   );

@@ -62,6 +62,10 @@ test("a fresh guest sees a compact preview, not every unit's full lesson list, u
 test("onboarding answers shape the homepage greeting and never gate or unlock any content", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Casual player" }).click();
+  // Casual/rated players now get a real branching step (P0) instead of
+  // going straight to the goal question — choosing to answer the quick
+  // questions anyway still reaches the same goal/minutes flow as before.
+  await page.getByRole("button", { name: "Just ask me a couple quick questions" }).click();
   await page.getByRole("button", { name: "Improve my tactics" }).click();
   await page.getByRole("button", { name: "10 minutes a day" }).click();
 
@@ -74,6 +78,50 @@ test("onboarding answers shape the homepage greeting and never gate or unlock an
 
   await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
   await expect(page).toHaveURL(/\/\?locked=/); // still gated normally — onboarding never bypassed real prerequisites
+});
+
+/**
+ * P0's "do not unlock advanced content solely from self-reported ability"
+ * requirement, verified from the onboarding UI side: a casual/rated
+ * learner gets real, functional branches (placement assessment, a game to
+ * analyze, straight to tactics, or fundamentals review) rather than only
+ * a self-report that changes copy. A rated player can also optionally
+ * volunteer an approximate rating — never required, never an external
+ * username.
+ */
+test("a casual/rated player sees a real branching path, and only a rated player is offered the optional rating field", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Casual player" }).click();
+  await expect(page.getByRole("heading", { name: "Want to skip ahead?" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /Take a placement assessment/ })).toHaveAttribute("href", "/placement");
+  await expect(page.getByRole("link", { name: /Play a game/ })).toHaveAttribute("href", "/play");
+  await expect(page.getByRole("link", { name: "Start with tactics practice" })).toHaveAttribute("href", "/practice");
+  await expect(page.getByRole("link", { name: "Review the fundamentals" })).toHaveAttribute(
+    "href",
+    "/learn/meet-the-pieces.01-welcome",
+  );
+  await expect(page.locator("#mw-onboarding-rating")).toHaveCount(0); // casual, not rated — no rating prompt
+
+  await page.getByRole("button", { name: "← Back" }).click();
+  await page.getByRole("button", { name: "Rated player" }).click();
+  await expect(page.getByRole("heading", { name: "How would you like to start?" })).toBeVisible();
+  await expect(page.locator("#mw-onboarding-rating")).toBeVisible();
+});
+
+test("choosing the placement assessment from onboarding leaves the quiz permanently and lands on a real assessment", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Rated player" }).click();
+  await page.getByRole("link", { name: /Take a placement assessment/ }).click();
+  await page.waitForURL("/placement");
+  await expect(page.getByText("Placement assessment")).toBeVisible();
+  await expect(page.getByText("Question 1")).toBeVisible();
+
+  await page.goto("/");
+  await expect(page.getByRole("region", { name: "A few quick questions" })).toHaveCount(0);
 });
 
 test("a learner with any real progress never sees onboarding and always sees the full curriculum directly", async ({

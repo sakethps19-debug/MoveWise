@@ -18,6 +18,8 @@ export interface OnboardingAnswers {
   experience: ChessExperience;
   goal: LearningGoal;
   minutesPerDay: DailyMinutes;
+  /** Optional, self-reported — collected only from a casual/rated player who volunteers it (never a required field, never an external username). Framing only: never unlocks or gates content, same rule as every other onboarding answer — real unlocking only ever comes from a placement assessment or actual practice (lib/placement.ts, lib/lessonStatus.ts). */
+  approximateRating?: number;
 }
 
 interface StoredOnboarding {

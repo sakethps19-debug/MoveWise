@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { sanToSquares } from "@movewise/chess-rules";
+import { buildPgn, sanToSquares } from "@movewise/chess-rules";
 import type { GameReview, MoveAnalysis, MoveClassification } from "../lib/gameAnalysis";
 import { CLASSIFICATION_LABEL } from "../lib/gameAnalysis";
 import { formatEval } from "../lib/evalFormat";
@@ -71,6 +71,7 @@ export function GameReviewWorkspace({
   const [selectedPly, setSelectedPly] = useState(0);
   const [filter, setFilter] = useState<"learner" | "full">(learnerColor ? "learner" : "full");
   const [tryingBetterMove, setTryingBetterMove] = useState(false);
+  const [pgnCopied, setPgnCopied] = useState(false);
 
   const lastPly = review.moves.length;
   const currentMove = selectedPly > 0 ? review.moves[selectedPly - 1] : null;
@@ -93,6 +94,26 @@ export function GameReviewWorkspace({
     setSelectedPly(Math.max(0, Math.min(lastPly, ply)));
   }
 
+  /**
+   * P1 "PGN copy/export" — reconstructed from the moves this review
+   * already has (each ply's own played SAN, chess-rules' own `buildPgn`),
+   * not a second, separately-maintained copy of the game. Real games
+   * only (an `isDemo` review's SAN sequence isn't a game that was
+   * actually played, so exporting it as if it were would be exactly the
+   * kind of fabricated-data problem this pass exists to remove).
+   */
+  async function copyPgn() {
+    const pgn = buildPgn(review.moves.map((m) => m.playedMove));
+    try {
+      await navigator.clipboard.writeText(pgn);
+      setPgnCopied(true);
+      setTimeout(() => setPgnCopied(false), 2500);
+    } catch {
+      // Clipboard access can be denied/unavailable — the button itself
+      // silently not confirming is preferable to throwing at the learner.
+    }
+  }
+
   const turningPoints = review.moves
     .map((move, i) => ({ move, ply: i + 1 }))
     .filter(({ move }) => TURNING_POINT_CLASSIFICATIONS.has(move.classification));
@@ -113,6 +134,19 @@ export function GameReviewWorkspace({
       <p className="mw-game-review-summary" role="status">
         {summaryLine(review.summary)}
       </p>
+
+      {!review.isDemo && review.moves.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: "var(--mw-space-3)" }}>
+          <Button variant="ghost" onClick={copyPgn}>
+            Copy PGN
+          </Button>
+          {pgnCopied && (
+            <span role="status" style={{ margin: 0, fontSize: 14.5, color: "var(--mw-text-dim)" }}>
+              Copied to clipboard.
+            </span>
+          )}
+        </div>
+      )}
 
       {learnerColor && (
         <div className="mw-segmented mw-review-filter" role="group" aria-label="Which moves to review">

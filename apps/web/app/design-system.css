@@ -446,7 +446,10 @@
   gap: var(--mw-space-2);
 }
 .mw-onboarding-option {
+  display: block;
   text-align: left;
+  text-decoration: none;
+  color: var(--mw-text);
   padding: 12px 14px;
   min-height: 44px;
   box-sizing: border-box;
@@ -465,6 +468,32 @@
 .mw-onboarding-option:focus-visible {
   outline: 2px solid var(--mw-moss);
   outline-offset: 1px;
+}
+.mw-warmup-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--mw-space-3);
+  padding: var(--mw-space-3);
+  background: var(--mw-surface-2);
+  border-radius: var(--mw-radius);
+  border: 1px solid var(--mw-border);
+}
+.mw-warmup-difficulty-btn--active {
+  border-color: var(--mw-moss);
+  background: var(--mw-surface);
+  font-weight: 700;
+}
+.mw-onboarding-rating-input {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: var(--mw-radius);
+  border: 1px solid var(--mw-border);
+  background: var(--mw-surface);
+  color: var(--mw-text);
+  font-size: 14.5px;
 }
 .mw-onboarding-back {
   align-self: flex-start;

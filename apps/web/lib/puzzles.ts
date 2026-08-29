@@ -30,3 +30,8 @@ export function loadPuzzlesForPrinciple(principle: Principle): Puzzle[] {
   const byId = new Map(pool.map((p) => [p.id, p]));
   return principle.puzzleIds.map((id) => byId.get(id)).filter((p): p is Puzzle => p !== undefined);
 }
+
+/** The placement assessment's own item bank (packages/content/puzzles/placement.json) — not tied to any unit/principle, reused here since it lives in the same directory `loadUnitPuzzles` already reads from. */
+export function loadPlacementPuzzles(): Puzzle[] {
+  return loadUnitPuzzles("placement");
+}
