@@ -8,7 +8,7 @@
     "Understand why the knight's L-shaped jump makes it a natural forker",
     "Find and play a knight move that forks two pieces, including the king"
   ],
-  "prerequisites": ["check-and-checkmate.03-thinking-under-check"],
+  "prerequisites": ["check-and-checkmate.04-back-rank-safety"],
   "xpReward": 25,
   "masteryTags": ["tactics", "fork", "knight"],
   "difficulty": 2,
