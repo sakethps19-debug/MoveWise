@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  explainIllegalMove,
   gameStatus,
   inCheck,
   isGameOver,
   legalTargetsFrom,
   parseUci,
+  pieceAt,
   pieceNameOf,
   tryMove,
   buildPgn,
@@ -16,13 +18,11 @@ import {
 } from "@movewise/chess-rules";
 import { sideToMove } from "@movewise/engine";
 import { useStockfishEngine } from "../lib/useStockfishEngine";
-import type { GameReview } from "../lib/gameAnalysis";
 import { useGameAnalysisRunner } from "../lib/useGameAnalysisRunner";
 import { saveCompletedGameAction } from "../app/actions";
 import { computeGameResult } from "../lib/gameResult";
 import { Board } from "./Board";
 import { Button } from "./ui/Button";
-import { GameReviewPanel } from "./GameReviewPanel";
 import { GameReviewWithRetry } from "./GameReviewWithRetry";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -64,17 +64,14 @@ function statusText(fen: string, playerColor: PlayerColor, thinking: boolean, re
 }
 
 export function PlayRunner({
-  demoReview,
   lessonTitleById,
   signedIn,
 }: {
-  demoReview: GameReview;
   lessonTitleById: Record<string, string>;
-  /** Real game persistence + analysis needs a session to own the Game row — guests stay on the demo path. */
+  /** Signed-in games are persisted (Game row, history, mastery updates); a guest's real analysis still runs (buildGuestGameReviewAction) but is ephemeral to the session — never written to the database. */
   signedIn: boolean;
 }) {
   const [fen, setFen] = useState(START_FEN);
-  const [showReview, setShowReview] = useState(false);
   const [playerColor, setPlayerColor] = useState<PlayerColor>("w");
   const [skill, setSkill] = useState<number>(10);
   const [selected, setSelected] = useState<Square | null>(null);
@@ -217,10 +214,32 @@ export function PlayRunner({
   const legalTargets = selected ? legalTargetsFrom(fen, selected) : [];
   const canInteract = engineReady && !thinking && !gameOver && sideToMove(fen) === playerColor;
 
+  // Real, confirmed gap: an illegal move attempt (e.g. selecting a pawn
+  // then an out-of-range destination) previously did nothing at all — no
+  // message, no announcement, and the empty destination square gave no
+  // indication anything had been attempted. `illegalAttempt` drives a
+  // brief, announced explanation plus a visible error highlight on the
+  // two squares involved, auto-clearing shortly after (or immediately on
+  // the learner's next interaction) so it never lingers as stale state.
+  const [illegalAttempt, setIllegalAttempt] = useState<{ from: Square; to: Square; message: string } | null>(null);
+
+  useEffect(() => {
+    if (!illegalAttempt) return;
+    const timer = setTimeout(() => setIllegalAttempt(null), 3000);
+    return () => clearTimeout(timer);
+  }, [illegalAttempt]);
+
   function handleSquareClick(square: Square) {
     if (!canInteract) return;
 
     if (!selected) {
+      const piece = pieceAt(fen, square);
+      if (!piece) return; // nothing there to select — no move was attempted, nothing to explain
+      if (piece.color !== playerColor) {
+        setIllegalAttempt({ from: square, to: square, message: "That's Stockfish's piece — you can't move it." });
+        return;
+      }
+      setIllegalAttempt(null);
       setSelected(square);
       return;
     }
@@ -228,10 +247,25 @@ export function PlayRunner({
       setSelected(null);
       return;
     }
+
+    // Clicking another one of your own pieces switches the selection —
+    // it isn't an illegal-move attempt on the previously selected piece.
+    const clickedPiece = pieceAt(fen, square);
+    if (clickedPiece && clickedPiece.color === playerColor) {
+      setIllegalAttempt(null);
+      setSelected(square);
+      return;
+    }
+
     const fenBefore = fen;
     const result = tryMove(fenBefore, { from: selected, to: square });
+    if (!result) {
+      setIllegalAttempt({ from: selected, to: square, message: explainIllegalMove(fenBefore, selected, square) });
+      setSelected(null);
+      return;
+    }
+    setIllegalAttempt(null);
     setSelected(null);
-    if (!result) return;
     setFen(result.fenAfter);
     setLastMove({ from: selected, to: square });
     recordMove(result.move, playerColor, fenBefore, result.fenAfter);
@@ -241,18 +275,18 @@ export function PlayRunner({
     setFen(START_FEN);
     setSelected(null);
     setLastMove(null);
+    setIllegalAttempt(null);
     setPlayerColor(color);
     setEngineFailure(null);
     setMoves([]);
     setResigned(false);
-    setShowReview(false);
     setGameId(null);
     resetAnalysis();
     gameSavedRef.current = false;
   }
 
   function analyzeThisGame() {
-    if (!gameId) return;
+    if (signedIn && !gameId) return; // signed-in game must finish saving before it can be attached
     runAnalysis(
       gameId,
       moves.map((m) => ({ move: m.move, fenBefore: m.fenBefore, fenAfter: m.fenAfter })),
@@ -369,11 +403,18 @@ export function PlayRunner({
               fen={fen}
               selected={selected}
               legalTargets={legalTargets}
+              errorSquares={illegalAttempt ? [illegalAttempt.from, illegalAttempt.to] : []}
               lastMove={lastMove}
               onSquareClick={handleSquareClick}
               interactive={canInteract}
               maxWidth={boardMaxWidth}
+              describedBy={illegalAttempt ? "mw-play-illegal-move" : undefined}
             />
+            {illegalAttempt && (
+              <p id="mw-play-illegal-move" role="alert" className="mw-feedback mw-feedback--error mw-play-illegal-move">
+                {illegalAttempt.message}
+              </p>
+            )}
           </div>
 
           <div ref={belowBoardCardRef} className={`mw-player-card${playerTurn ? " mw-player-card--active" : ""}`}>
@@ -408,14 +449,14 @@ export function PlayRunner({
             </div>
           )}
 
-          {gameOver && signedIn && !realReview && (
+          {gameOver && !realReview && (
             <div className="mw-play-analysis-entry">
               {analysisError && (
                 <p role="alert" className="mw-feedback mw-feedback--error">
                   {analysisError}
                 </p>
               )}
-              {gameSaveError && (
+              {signedIn && gameSaveError && (
                 <>
                   <p role="alert" className="mw-feedback mw-feedback--error">
                     This game couldn&apos;t be saved — your connection may have dropped. Try again to unlock
@@ -429,29 +470,23 @@ export function PlayRunner({
               <p>
                 {analyzing
                   ? `Analyzing move ${analysisProgress?.done ?? 0}/${analysisProgress?.total ?? moves.length}…`
-                  : "See a real, move-by-move engine review of the game you just played, with lesson recommendations for what to work on."}
+                  : signedIn
+                    ? "See a real, move-by-move engine review of the game you just played, with lesson recommendations for what to work on."
+                    : "See a real, move-by-move engine review of the game you just played. As a guest, this review isn't saved — create an account to keep your game history."}
               </p>
-              <Button variant="ghost" fullWidth onClick={analyzeThisGame} disabled={analyzing || !gameId}>
+              <Button
+                variant="ghost"
+                fullWidth
+                onClick={analyzeThisGame}
+                disabled={analyzing || (signedIn && !gameId)}
+              >
                 {analyzing ? "Analyzing…" : "Analyze this game"}
-              </Button>
-            </div>
-          )}
-
-          {gameOver && !signedIn && !showReview && (
-            <div className="mw-play-analysis-entry">
-              <p>
-                The game is over. See what a full move-by-move review and lesson recommendations will look like
-                (sample data, not yet a real analysis of this game).
-              </p>
-              <Button variant="ghost" fullWidth onClick={() => setShowReview(true)}>
-                Review this game (demo)
               </Button>
             </div>
           )}
         </aside>
       </div>
 
-      {showReview && <GameReviewPanel review={demoReview} lessonTitleById={lessonTitleById} />}
       {realReview && (
         <GameReviewWithRetry
           review={realReview}

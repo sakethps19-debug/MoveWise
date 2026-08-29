@@ -27,7 +27,7 @@ const LESSON_PREREQUISITE: Record<string, string> = {
   "check-and-checkmate.02-what-is-checkmate": "check-and-checkmate.01-what-is-check",
   "check-and-checkmate.03-thinking-under-check": "check-and-checkmate.02-what-is-checkmate",
   "check-and-checkmate.04-back-rank-safety": "check-and-checkmate.03-thinking-under-check",
-  "basic-tactics.01-the-knight-fork": "check-and-checkmate.03-thinking-under-check",
+  "basic-tactics.01-the-knight-fork": "check-and-checkmate.04-back-rank-safety",
   "basic-tactics.02-hanging-pieces": "basic-tactics.01-the-knight-fork",
   "basic-tactics.03-opening-development": "basic-tactics.02-hanging-pieces",
   "basic-tactics.04-is-this-trade-worth-it": "basic-tactics.03-opening-development",

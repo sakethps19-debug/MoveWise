@@ -22,11 +22,13 @@ import path from "node:path";
  * meet-the-pieces.12, the unit's actual mastery-challenge lesson (the
  * concrete "completing the final lesson unlocks the next unit" claim) —
  * are driven for real, as are check-and-checkmate.01/.02.
- * check-and-checkmate.03 is seeded too: its mini-game step requires
- * actually winning a live Stockfish endgame, which exercise-types.spec.ts
- * already exercises directly (it verifies the engine replies to a played
- * move); re-solving the endgame here would test the engine integration a
- * second time, not the gating logic this file is for.
+ * check-and-checkmate.04 (the unit's real terminal lesson — basic-tactics.01
+ * depends directly on it, not on .03, since a cross-unit prerequisite must
+ * always target a unit's last lesson, enforced by scripts/validate-content.ts)
+ * is seeded rather than driven: its own step types (explain/move-piece/mcq/
+ * review) are already exercised directly elsewhere (lessons.spec.ts,
+ * exercise-types.spec.ts); what this file needs from it is only that it's
+ * completed, not a second proof of its own mechanics.
  */
 
 function uniqueEmail(prefix: string) {
@@ -176,14 +178,15 @@ test("cross-unit progression: final-lesson unlock, unrelated-unit lock, persiste
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
-  // --- Still locked: basic-tactics needs check-and-checkmate.03 too, not
-  // just "some progress" in check-and-checkmate. ---
+  // --- Still locked: basic-tactics needs check-and-checkmate.04 (the
+  // unit's actual last lesson) too, not just "some progress" in
+  // check-and-checkmate. ---
   await page.goto("/learn/basic-tactics.01-the-knight-fork");
   await page.waitForURL(/\/\?locked=/);
 
-  // Seed the unit's final lesson (its own mini-game is real-tested in
-  // exercise-types.spec.ts — see file doc comment).
-  dbHelper("seed-completions", { userId, lessonIds: ["check-and-checkmate.03-thinking-under-check"] });
+  // Seed the unit's final lesson (its own step types are real-tested
+  // elsewhere — see file doc comment).
+  dbHelper("seed-completions", { userId, lessonIds: ["check-and-checkmate.04-back-rank-safety"] });
 
   // --- Now unlocked: the third unit opens once the second unit's final
   // lesson is actually done. ---

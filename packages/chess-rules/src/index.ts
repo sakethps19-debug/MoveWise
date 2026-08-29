@@ -98,6 +98,12 @@ export function legalMoves(fen: string): Move[] {
   return new Chess(fen).moves({ verbose: true }) as Move[];
 }
 
+/** The piece on a square, or null if empty — for callers that just need to know what's there (e.g. Play mode's own-piece-vs-opponent-piece selection logic) without pulling in chess.js directly. */
+export function pieceAt(fen: string, square: Square): { color: "w" | "b"; type: PieceSymbol } | null {
+  const piece = new Chess(fen).get(square);
+  return piece ? { color: piece.color, type: piece.type } : null;
+}
+
 /**
  * Attempts a move. Returns the resulting Move + new FEN on success,
  * or null if the move is illegal from this position — callers should
@@ -223,6 +229,73 @@ export function describeMoveOutcome(move: Move): string {
     return `${move.san} captures the ${PIECE_NAMES[move.captured]} — the ${piece} moved ${geometry} to ${move.to}.`;
   }
   return `That's a legal move — the ${piece} moved ${geometry} to ${move.to}.`;
+}
+
+const FILES = "abcdefgh";
+
+function fileIndex(square: Square): number {
+  return FILES.indexOf(square[0]);
+}
+function rankIndex(square: Square): number {
+  return Number(square[1]);
+}
+
+/**
+ * A concise, beginner-friendly reason a specific move attempt is illegal —
+ * for live Play-mode feedback, not lesson content (lessons already have
+ * their own authored wrong-answer copy). Real, confirmed gap: selecting a
+ * piece then clicking an illegal destination previously did nothing at
+ * all — no message, no explanation, just a silent no-op — leaving the
+ * learner with no idea why. Deliberately approximate for the "blocked
+ * path" / "leaves your king in check" cases (both share one fallback
+ * message below) since chess.js doesn't expose *why* a geometrically-
+ * plausible move was rejected, only that it was — this still beats no
+ * explanation at all, and every distinguishable case (wrong piece,
+ * wrong turn, own-piece capture, wrong shape for the piece) gets its
+ * own accurate sentence.
+ */
+export function explainIllegalMove(fen: string, from: Square, to: Square): string {
+  const game = new Chess(fen);
+  const piece = game.get(from);
+  if (!piece) return "There's no piece on that square.";
+  if (piece.color !== game.turn()) return "That piece isn't yours to move right now.";
+
+  const target = game.get(to);
+  if (target && target.color === piece.color) return "You can't capture your own piece.";
+
+  const pieceName = PIECE_NAMES[piece.type];
+  const fileDelta = Math.abs(fileIndex(to) - fileIndex(from));
+  const rankDelta = Math.abs(rankIndex(to) - rankIndex(from));
+
+  if (piece.type === "p") {
+    const forward = piece.color === "w" ? 1 : -1;
+    const rankStep = rankIndex(to) - rankIndex(from);
+    if (fileDelta === 0) {
+      if (rankStep * forward <= 0) return "Pawns can only move forward.";
+      if (rankDelta > 2) return `A pawn cannot move ${rankDelta} squares.`;
+      if (target) return "Pawns can't capture by moving straight ahead.";
+    } else if (fileDelta === 1 && rankDelta === 1) {
+      if (rankStep * forward <= 0) return "Pawns can only capture diagonally forward.";
+      if (!target) return "Pawns only move diagonally when capturing.";
+    } else {
+      return "Pawns move straight ahead, or diagonally only when capturing.";
+    }
+  } else if (piece.type === "n") {
+    const isLShape = (fileDelta === 1 && rankDelta === 2) || (fileDelta === 2 && rankDelta === 1);
+    if (!isLShape) return "That's not a knight move — it moves in an L-shape.";
+  } else if (piece.type === "b") {
+    if (fileDelta !== rankDelta || fileDelta === 0) return "Bishops only move diagonally.";
+  } else if (piece.type === "r") {
+    if (fileDelta !== 0 && rankDelta !== 0) return "Rooks only move in straight lines.";
+  } else if (piece.type === "q") {
+    if (fileDelta !== rankDelta && fileDelta !== 0 && rankDelta !== 0) {
+      return "Queens move in straight lines or diagonals.";
+    }
+  } else if (piece.type === "k") {
+    if (fileDelta > 1 || rankDelta > 1) return "Kings move only one square at a time (unless castling).";
+  }
+
+  return `That move would leave your king in check, or something blocks the ${pieceName}'s path.`;
 }
 
 /**

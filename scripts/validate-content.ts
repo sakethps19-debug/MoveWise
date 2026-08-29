@@ -353,6 +353,47 @@ if (existsSync(PRINCIPLES_ROOT)) {
       }
     }
   }
+
+  // 5. A cross-unit prerequisite must point at its unit's own terminal
+  // lesson (the one nothing else in that unit lists as a prerequisite),
+  // not an earlier lesson partway through it — otherwise the next
+  // chapter can start before the previous one is actually finished. A
+  // real, confirmed instance of this: Basic Tactics' first lesson
+  // depended on Check and Checkmate's 3rd of 4 lessons, so a learner
+  // could reach Basic Tactics without ever seeing Check and Checkmate's
+  // last lesson. Skips units with no internal chain at all (a single-
+  // lesson unit, or one where every lesson only has cross-unit/no
+  // prerequisites) — nothing to be "partway through" there.
+  const referencedWithinUnit = new Map<string, Set<string>>(); // unitId -> lesson ids some other same-unit lesson depends on
+  for (const lesson of lessonsById.values()) {
+    for (const prereqId of lesson.prerequisites) {
+      const prereqLesson = lessonsById.get(prereqId);
+      if (!prereqLesson || prereqLesson.unitId !== lesson.unitId) continue;
+      const set = referencedWithinUnit.get(lesson.unitId) ?? new Set<string>();
+      set.add(prereqId);
+      referencedWithinUnit.set(lesson.unitId, set);
+    }
+  }
+  const terminalLessonsByUnit = new Map<string, Set<string>>();
+  for (const [unitId, unitLessons] of lessonsByUnit) {
+    const referenced = referencedWithinUnit.get(unitId) ?? new Set<string>();
+    if (referenced.size === 0) continue; // no internal chain in this unit — nothing to bypass
+    terminalLessonsByUnit.set(unitId, new Set(unitLessons.filter((l) => !referenced.has(l.id)).map((l) => l.id)));
+  }
+
+  for (const lesson of lessonsById.values()) {
+    for (const prereqId of lesson.prerequisites) {
+      const prereqLesson = lessonsById.get(prereqId);
+      if (!prereqLesson || prereqLesson.unitId === lesson.unitId) continue; // same-unit prerequisites are checked above, not here
+      const terminals = terminalLessonsByUnit.get(prereqLesson.unitId);
+      if (terminals && !terminals.has(prereqId)) {
+        failures += 1;
+        console.error(
+          `\n✗ ${lessonFilePathById.get(lesson.id)}\n  [${lesson.id}] depends on "${prereqId}", which isn't the last lesson of unit "${prereqLesson.unitId}" — a learner could start this lesson before finishing that unit`,
+        );
+      }
+    }
+  }
 }
 
 console.log(`\n${checked} lesson file(s), ${puzzlesChecked} puzzle(s) checked, ${failures} issue(s) found.`);

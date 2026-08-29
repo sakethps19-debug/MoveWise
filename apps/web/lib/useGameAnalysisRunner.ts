@@ -4,7 +4,7 @@ import { useState } from "react";
 import { legalMoves, parseUci, tryMove, type Move } from "@movewise/chess-rules";
 import type { EngineHandle } from "@movewise/engine";
 import { buildMoveAnalysis, type GameReview } from "./gameAnalysis";
-import { saveGameAnalysisAction, type SubmittedMoveAnalysis } from "../app/actions";
+import { saveGameAnalysisAction, buildGuestGameReviewAction, type SubmittedMoveAnalysis } from "../app/actions";
 
 export interface AnalyzableMove {
   move: Move;
@@ -30,7 +30,8 @@ export function useGameAnalysisRunner(engineRef: React.RefObject<EngineHandle | 
   const [review, setReview] = useState<GameReview | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function runAnalysis(gameId: string, plies: AnalyzableMove[]) {
+  /** `gameId` is null for a guest — nothing persisted server-side to attach it to (see buildGuestGameReviewAction). */
+  async function runAnalysis(gameId: string | null, plies: AnalyzableMove[]) {
     const engine = engineRef.current;
     if (!engine) return;
     setAnalyzing(true);
@@ -62,7 +63,7 @@ export function useGameAnalysisRunner(engineRef: React.RefObject<EngineHandle | 
         setProgress({ done: i + 1, total: plies.length });
       }
 
-      const saved = await saveGameAnalysisAction(gameId, analyses);
+      const saved = gameId ? await saveGameAnalysisAction(gameId, analyses) : await buildGuestGameReviewAction(analyses);
       if ("error" in saved) {
         setError(saved.error);
       } else {

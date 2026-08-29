@@ -4,6 +4,7 @@ import {
   replayPgn,
   describeMove,
   describeMoveOutcome,
+  explainIllegalMove,
   gameStatus,
   isCheckmateMove,
   isGameOver,
@@ -205,6 +206,70 @@ describe("describeMoveOutcome", () => {
   it("gets the 8th rank right too — the other boundary", () => {
     const rank8 = tryMove("1R4k1/8/8/4K3/8/8/8/8 w - - 0 1", { from: "b8", to: "a8" })!;
     expect(describeMoveOutcome(rank8.move)).toContain("8th rank");
+  });
+});
+
+describe("explainIllegalMove", () => {
+  // The exact reported reproduction: a pawn's opening square to a
+  // three-rank-away destination, with no piece in between to blame —
+  // real bug this closes was total silence, not a wrong message.
+  it("names a 3-square pawn move as too far, in these exact beginner-friendly words", () => {
+    expect(explainIllegalMove(START_FEN, "e2", "e5")).toBe("A pawn cannot move 3 squares.");
+  });
+
+  it("rejects a sideways pawn move", () => {
+    const fen = "7k/8/8/8/4P3/8/8/K7 w - - 0 1"; // White pawn alone on e4, d4 empty
+    expect(explainIllegalMove(fen, "e4", "d4")).toBe("Pawns move straight ahead, or diagonally only when capturing.");
+  });
+
+  it("rejects a pawn moving backward", () => {
+    const fen = "7k/8/8/8/4P3/8/8/K7 w - - 0 1"; // White pawn already on e4
+    expect(explainIllegalMove(fen, "e4", "e3")).toBe("Pawns can only move forward.");
+  });
+
+  it("rejects a diagonal pawn move with nothing to capture", () => {
+    expect(explainIllegalMove(START_FEN, "e2", "d3")).toBe("Pawns only move diagonally when capturing.");
+  });
+
+  it("rejects a non-L-shaped knight move", () => {
+    expect(explainIllegalMove(START_FEN, "b1", "b3")).toBe("That's not a knight move — it moves in an L-shape.");
+  });
+
+  it("rejects a non-diagonal bishop move", () => {
+    const fen = "7k/8/8/8/4B3/8/8/K7 w - - 0 1";
+    expect(explainIllegalMove(fen, "e4", "e5")).toBe("Bishops only move diagonally.");
+  });
+
+  it("rejects a non-straight rook move", () => {
+    const fen = "7k/8/8/8/4R3/8/8/K7 w - - 0 1";
+    expect(explainIllegalMove(fen, "e4", "f5")).toBe("Rooks only move in straight lines.");
+  });
+
+  it("rejects a queen move that's neither straight nor diagonal", () => {
+    const fen = "7k/8/8/8/4Q3/8/8/K7 w - - 0 1";
+    expect(explainIllegalMove(fen, "e4", "f6")).toBe("Queens move in straight lines or diagonals.");
+  });
+
+  it("rejects a king move of more than one square", () => {
+    expect(explainIllegalMove(START_FEN, "e1", "e3")).toBe("Kings move only one square at a time (unless castling).");
+  });
+
+  it("rejects capturing your own piece", () => {
+    expect(explainIllegalMove(START_FEN, "a1", "a2")).toBe("You can't capture your own piece.");
+  });
+
+  it("rejects moving the opponent's piece on your own turn", () => {
+    expect(explainIllegalMove(START_FEN, "e7", "e5")).toBe("That piece isn't yours to move right now.");
+  });
+
+  it("rejects an empty source square", () => {
+    expect(explainIllegalMove(START_FEN, "e4", "e5")).toBe("There's no piece on that square.");
+  });
+
+  it("falls back to a blocked-path/check explanation for a geometrically valid but otherwise illegal move", () => {
+    // a1 rook to a4 is a straight line (a real rook shape) and a4 is
+    // empty, but the rook's own pawn on a2 blocks the path there.
+    expect(explainIllegalMove(START_FEN, "a1", "a4")).toContain("blocks");
   });
 });
 

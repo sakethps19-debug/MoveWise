@@ -67,6 +67,8 @@ export interface BoardProps {
   selected?: Square | null;
   legalTargets?: Square[];
   highlightSquares?: Square[];
+  /** Brief error feedback for a rejected move attempt (source + destination) — distinct from highlightSquares (hints) and lastMove (a real, successful move). */
+  errorSquares?: Square[];
   lastMove?: { from: Square; to: Square } | null;
   /** Drawn as an arrow line/arrowhead overlay, e.g. for a hint's suggested move. */
   arrow?: { from: Square; to: Square } | null;
@@ -95,6 +97,7 @@ export function Board({
   selected = null,
   legalTargets = [],
   highlightSquares = [],
+  errorSquares = [],
   lastMove = null,
   arrow = null,
   onSquareClick,
@@ -126,6 +129,7 @@ export function Board({
               const isSelected = selected === square;
               const isLegal = legalTargets.includes(square);
               const isHighlighted = highlightSquares.includes(square);
+              const isError = errorSquares.includes(square);
               const wasLastMove = lastMove?.from === square || lastMove?.to === square;
               const isLeftEdge = colIndex === 0;
               const isBottomEdge = rowIndex === 7;
@@ -151,14 +155,20 @@ export function Board({
                     // geometry-affecting property (size, border, radius,
                     // padding) lives in the static .mw-chess-square class
                     // so it can never drift from square per-instance.
-                    background: isHighlighted
-                      ? "var(--mw-warning-bg)"
-                      : wasLastMove
-                        ? "var(--mw-sq-last-move)"
-                        : isLight
-                          ? "var(--mw-sq-light)"
-                          : "var(--mw-sq-dark)",
-                    boxShadow: isSelected ? "inset 0 0 0 3px var(--mw-moss)" : "none",
+                    background: isError
+                      ? "var(--mw-error-bg)"
+                      : isHighlighted
+                        ? "var(--mw-warning-bg)"
+                        : wasLastMove
+                          ? "var(--mw-sq-last-move)"
+                          : isLight
+                            ? "var(--mw-sq-light)"
+                            : "var(--mw-sq-dark)",
+                    boxShadow: isError
+                      ? "inset 0 0 0 3px var(--mw-error)"
+                      : isSelected
+                        ? "inset 0 0 0 3px var(--mw-moss)"
+                        : "none",
                     cursor: interactive ? "pointer" : "default",
                   }}
                 >
@@ -173,8 +183,8 @@ export function Board({
                         // them (e.g. a light label on the light warning-bg
                         // highlight) — use the theme's ink color instead,
                         // which contrasts with every square background.
-                        color: isHighlighted || wasLastMove ? "var(--mw-text)" : isLight ? "var(--mw-sq-dark)" : "var(--mw-sq-light)",
-                        opacity: isHighlighted || wasLastMove ? 0.85 : 0.7,
+                        color: isError || isHighlighted || wasLastMove ? "var(--mw-text)" : isLight ? "var(--mw-sq-dark)" : "var(--mw-sq-light)",
+                        opacity: isError || isHighlighted || wasLastMove ? 0.85 : 0.7,
                       }}
                     >
                       {8 - rowIndex}
@@ -185,8 +195,8 @@ export function Board({
                       aria-hidden="true"
                       className="mw-chess-coord mw-chess-coord--file"
                       style={{
-                        color: isHighlighted || wasLastMove ? "var(--mw-text)" : isLight ? "var(--mw-sq-dark)" : "var(--mw-sq-light)",
-                        opacity: isHighlighted || wasLastMove ? 0.85 : 0.7,
+                        color: isError || isHighlighted || wasLastMove ? "var(--mw-text)" : isLight ? "var(--mw-sq-dark)" : "var(--mw-sq-light)",
+                        opacity: isError || isHighlighted || wasLastMove ? 0.85 : 0.7,
                       }}
                     >
                       {FILES[colIndex]}
