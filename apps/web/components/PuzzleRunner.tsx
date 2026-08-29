@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Puzzle } from "@movewise/exercise-schema";
 import { legalTargetsFrom, moveMatches, tryMove, type Square } from "@movewise/chess-rules";
@@ -54,6 +54,20 @@ export function PuzzleRunner({
 
   const puzzle = puzzles[index];
   const isLastPuzzle = index === puzzles.length - 1;
+
+  // The board's own displayed position — real, confirmed defect: this
+  // component always rendered `puzzle.fen` (the fixed starting position)
+  // directly, so a correct answer never actually showed the piece having
+  // moved; the "Correct!" banner appeared with the board frozen at its
+  // pre-move square. Every other exercise runner in this codebase
+  // (MoveStep, MiniGameStep, GuidedSequenceStep) tracks its own fen state
+  // and updates it to `result.fenAfter` on a real move — this brings
+  // PuzzleRunner in line with that same pattern. Resets whenever the
+  // puzzle itself changes (a new puzzle starts from its own position).
+  const [fen, setFen] = useState(puzzle.fen);
+  useEffect(() => {
+    setFen(puzzle.fen);
+  }, [puzzle.fen]);
 
   const legalTargets = useMemo(
     () => (selected && puzzle ? legalTargetsFrom(puzzle.fen, selected) : []),
@@ -129,6 +143,7 @@ export function PuzzleRunner({
     }
     if (onAttempt) Promise.resolve(onAttempt(puzzle.id, true)).catch(() => setSyncError(true));
     else recordGuestPracticeAttempt(true);
+    setFen(result.fenAfter);
     setSolved((s) => s + 1);
     setStatus("correct");
     setFeedback(null);
@@ -160,7 +175,7 @@ export function PuzzleRunner({
       </p>
       <div style={{ display: "flex", justifyContent: "center", margin: "var(--mw-space-2) 0" }}>
         <Board
-          fen={puzzle.fen}
+          fen={fen}
           selected={selected}
           legalTargets={legalTargets}
           highlightSquares={[]}
