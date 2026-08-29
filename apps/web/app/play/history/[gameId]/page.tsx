@@ -4,10 +4,11 @@ import { prisma } from "@movewise/db";
 import { replayPgn } from "@movewise/chess-rules";
 import { Nav } from "../../../../components/Nav";
 import { AnalyzeStoredGame } from "../../../../components/AnalyzeStoredGame";
-import { GameReviewWithRetry } from "../../../../components/GameReviewWithRetry";
+import { GameReviewWorkspace } from "../../../../components/GameReviewWorkspace";
 import { getSession } from "../../../../lib/auth";
 import { allLessonTitles } from "../../../../lib/lessons";
 import { buildStoredGameReview } from "../../../../lib/studyPlan";
+import { positionsFromPlies } from "../../../../lib/gameAnalysis";
 import type { MasteryStatus } from "../../../../lib/masteryModel";
 import type { MoveAnalysis } from "../../../../lib/gameAnalysis";
 import { RESULT_LABEL } from "../../../../lib/gameResult";
@@ -55,13 +56,14 @@ export default async function GameHistoryDetailPage({ params }: { params: Promis
         </div>
 
         {analysis ? (
-          <GameReviewWithRetry
+          <GameReviewWorkspace
             review={await buildAnalyzedReview(analysis.moves, user.id)}
             lessonTitleById={lessonTitleById}
-            fenBeforeByPly={replayPgn(game.pgn).map((p) => p.fenBefore)}
+            positions={positionsFromPlies(replayPgn(game.pgn))}
+            learnerColor={game.playerColor as "w" | "b"}
           />
         ) : (
-          <AnalyzeStoredGame gameId={game.id} pgn={game.pgn} lessonTitleById={lessonTitleById} />
+          <AnalyzeStoredGame gameId={game.id} pgn={game.pgn} lessonTitleById={lessonTitleById} playerColor={game.playerColor as "w" | "b"} />
         )}
       </main>
     </div>

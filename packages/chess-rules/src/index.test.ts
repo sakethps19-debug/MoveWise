@@ -12,7 +12,9 @@ import {
   legalMoves,
   legalTargetsFrom,
   moveMatches,
+  moveUci,
   parseUci,
+  sanToSquares,
   staticExchangeEval,
   tryMove,
 } from "./index";
@@ -117,6 +119,49 @@ describe("moveMatches", () => {
     expect(moveMatches(result.move, ["e4"])).toBe(true);
     expect(moveMatches(result.move, ["e2e4"])).toBe(true);
     expect(moveMatches(result.move, ["d4"])).toBe(false);
+  });
+});
+
+describe("moveUci", () => {
+  it("formats from+to with no promotion", () => {
+    const result = tryMove(START_FEN, { from: "e2", to: "e4" })!;
+    expect(moveUci(result.move)).toBe("e2e4");
+  });
+
+  it("appends the promotion piece letter when the move promotes", () => {
+    const result = tryMove("4k3/P7/8/8/8/8/8/4K3 w - - 0 1", { from: "a7", to: "a8", promotion: "q" })!;
+    expect(moveUci(result.move)).toBe("a7a8q");
+  });
+
+  it("strips decorations SAN carries but UCI never does — the exact reason it exists as its own function (isEngineBestByIdentity compares by this, never by SAN)", () => {
+    // Fool's mate's final move: SAN carries a "#" checkmate suffix;
+    // moveUci must carry none of that.
+    const beforeQh4 = "rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq - 0 2";
+    const result = tryMove(beforeQh4, { from: "d8", to: "h4" })!;
+    expect(result.move.san).toBe("Qh4#");
+    expect(moveUci(result.move)).toBe("d8h4");
+  });
+});
+
+describe("sanToSquares", () => {
+  it("resolves an ordinary SAN move to its from/to squares", () => {
+    expect(sanToSquares(START_FEN, "e4")).toEqual({ from: "e2", to: "e4" });
+    expect(sanToSquares(START_FEN, "Nf3")).toEqual({ from: "g1", to: "f3" });
+  });
+
+  it("resolves a checkmating SAN move (with its '#' decoration) to the same squares as its undecorated form", () => {
+    const beforeQh4 = "rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq - 0 2";
+    expect(sanToSquares(beforeQh4, "Qh4#")).toEqual({ from: "d8", to: "h4" });
+    // Never inferring the position from the SAN string — this only asks
+    // "which squares does this SAN touch in the position already given,"
+    // not "what position would this SAN produce" — so the same resolved
+    // squares must come back whether or not the caller happens to
+    // include the "#" suffix.
+    expect(sanToSquares(beforeQh4, "Qh4")).toEqual({ from: "d8", to: "h4" });
+  });
+
+  it("returns null when no legal move in the given position matches the SAN string", () => {
+    expect(sanToSquares(START_FEN, "Qh4#")).toBeNull();
   });
 });
 

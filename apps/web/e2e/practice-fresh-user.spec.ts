@@ -26,18 +26,21 @@ test("a fresh guest with zero completed lessons has at least one playable practi
   await expect(page.getByText(/^Correct!/)).toBeVisible();
 });
 
-test("locked pools name the exact prerequisite lesson, with a working link to it", async ({ page }) => {
+test("locked pools name the exact prerequisite lesson, with a working, always-enabled CTA to it", async ({ page }) => {
   await page.goto("/practice");
 
-  const rookPool = page.locator(".mw-lesson-node--locked").filter({ hasText: "The rook" });
+  const rookPool = page.locator(".mw-lesson-node--locked-cta").filter({ hasText: "The rook" });
   await expect(rookPool).toBeVisible();
   await expect(rookPool).toContainText("finish");
+  await expect(rookPool).toContainText("Meet the rook");
 
   // Points at the real lesson that unlocks it — not just any lesson link,
   // and not a lesson this guest hasn't yet reached (visiting it directly
   // would just redirect back to a locked banner, per LessonGate.tsx's own
-  // guest-sequencing check, which isn't what this test is about).
-  const prereqLink = rookPool.getByRole("link", { name: "Meet the rook" });
+  // guest-sequencing check, which isn't what this test is about). A real,
+  // always-enabled "Go to lesson" button, not a link dimmed along with
+  // the rest of a disabled-looking row.
+  const prereqLink = rookPool.getByRole("link", { name: "Go to lesson" });
   await expect(prereqLink).toBeVisible();
   await expect(prereqLink).toHaveAttribute("href", "/learn/meet-the-pieces.03-meet-the-rook");
 });

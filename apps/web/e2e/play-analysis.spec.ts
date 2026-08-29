@@ -71,18 +71,26 @@ test("real game analysis: play a short game, analyze it, verify real data lands 
   const moveAnalysisCount = Number(dbHelper("count-move-analysis", { gameId }));
   expect(moveAnalysisCount).toBe(2); // White's e4 + the engine's one reply
 
-  // Retry-position UI (docs/testing-strategy.md row 8) is only offered
-  // for a mistake/blunder move — not guaranteed to appear against a real,
-  // live engine opponent (unlike authored puzzle content, the engine's
-  // actual reply can't be scripted the way a fixed FEN can), so this is
-  // checked when present rather than forced. The retry mechanics
-  // themselves aren't re-proven here — they're the same board-interaction
-  // pattern PuzzleRunner already has E2E coverage for; this just confirms
-  // the entry point renders and opens when real data actually has one.
-  const retryButton = page.getByRole("button", { name: "Retry" }).first();
-  if ((await retryButton.count()) > 0) {
-    await retryButton.click();
-    await expect(page.getByRole("region", { name: "Retry this position" })).toBeVisible();
+  // "Try the better move" (docs/testing-strategy.md row 8) is only
+  // offered for a selected ply that isn't already Best/Brilliant/Forced —
+  // not guaranteed to appear against a real, live engine opponent (unlike
+  // authored puzzle content, the engine's actual reply can't be scripted
+  // the way a fixed FEN can), so this selects through the real move list
+  // and checks when the button is present rather than forcing it. The
+  // retry mechanics themselves aren't re-proven here — they're the same
+  // board-interaction pattern PuzzleRunner already has E2E coverage for;
+  // this just confirms the entry point renders and opens when a ply
+  // actually has a better move to find.
+  const moveRows = page.locator(".mw-review-move-row");
+  const rowCount = await moveRows.count();
+  for (let i = 0; i < rowCount; i++) {
+    await moveRows.nth(i).click();
+    const tryButton = page.getByRole("button", { name: "Try the better move" });
+    if ((await tryButton.count()) > 0) {
+      await tryButton.click();
+      await expect(page.getByRole("region", { name: "Retry this position" })).toBeVisible();
+      break;
+    }
   }
 });
 

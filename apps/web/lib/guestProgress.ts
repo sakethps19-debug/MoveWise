@@ -114,3 +114,196 @@ export function clearGuestLessonCheckpoint(lessonId: string): void {
     // ignore
   }
 }
+
+/**
+ * The rest of this file (below) extends guest tracking beyond lesson
+ * completions to everything the signed-in Progress dashboard already
+ * shows: streak, practice accuracy, warm-ups, and games played/analysed.
+ * A guest previously left every one of these unrecorded — not because
+ * the underlying activity didn't happen (real puzzle attempts, real
+ * games, real analysis all already ran client-side), but because nothing
+ * wrote it anywhere, so `/progress` for a guest showed only a lesson
+ * count. Same rules as the rest of this file: localStorage only, best-
+ * effort (a no-op off the client or when storage is unavailable), never
+ * synced to the server or migrated into an account — signup already
+ * offers the real, persisted alternative.
+ */
+
+const GUEST_ACTIVITY_KEY = "movewise_guest_activity_days";
+
+function todayKey(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Marks today as a day with real guest activity — the same signal `computeStreak` (lib/progressSummary.ts) already uses for signed-in learners, just sourced from localStorage instead of completion timestamps. */
+export function recordGuestActivityDay(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = window.localStorage.getItem(GUEST_ACTIVITY_KEY);
+    const days: string[] = raw ? JSON.parse(raw) : [];
+    const today = todayKey();
+    if (!days.includes(today)) days.push(today);
+    // Unbounded growth isn't a real concern (one short string per active
+    // day), but a guest session is realistically weeks/months, not years —
+    // capped generously so this never becomes a genuinely large value.
+    window.localStorage.setItem(GUEST_ACTIVITY_KEY, JSON.stringify(days.slice(-400)));
+  } catch {
+    // Storage full or unavailable — the streak just won't extend today.
+  }
+}
+
+/** The real activity-day dates `computeStreak` needs — parsed back into `Date`s at local midnight UTC, matching how it reads them. */
+export function readGuestActivityDates(): Date[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(GUEST_ACTIVITY_KEY);
+    if (!raw) return [];
+    const days: unknown = JSON.parse(raw);
+    if (!Array.isArray(days)) return [];
+    return days.filter((d): d is string => typeof d === "string").map((d) => new Date(`${d}T00:00:00Z`));
+  } catch {
+    return [];
+  }
+}
+
+const GUEST_PRACTICE_KEY = "movewise_guest_practice";
+
+interface GuestPracticeStats {
+  attempts: number;
+  correct: number;
+}
+
+/** A guest's puzzle-practice attempt (Daily warm-up or a unit's puzzle pool) — previously discarded entirely for a guest (recordPuzzleAttemptAction is a no-op without a session); now at least visible on their own device. */
+export function recordGuestPracticeAttempt(correct: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    const stats = readGuestPracticeStats();
+    stats.attempts += 1;
+    if (correct) stats.correct += 1;
+    window.localStorage.setItem(GUEST_PRACTICE_KEY, JSON.stringify(stats));
+    recordGuestActivityDay();
+  } catch {
+    // ignore
+  }
+}
+
+export function readGuestPracticeStats(): GuestPracticeStats {
+  if (typeof window === "undefined") return { attempts: 0, correct: 0 };
+  try {
+    const raw = window.localStorage.getItem(GUEST_PRACTICE_KEY);
+    if (!raw) return { attempts: 0, correct: 0 };
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return { attempts: 0, correct: 0 };
+    const { attempts, correct } = parsed as GuestPracticeStats;
+    return { attempts: typeof attempts === "number" ? attempts : 0, correct: typeof correct === "number" ? correct : 0 };
+  } catch {
+    return { attempts: 0, correct: 0 };
+  }
+}
+
+const GUEST_WARMUPS_KEY = "movewise_guest_warmups_completed";
+
+export function recordGuestWarmUpCompletion(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const count = readGuestWarmUpsCompleted() + 1;
+    window.localStorage.setItem(GUEST_WARMUPS_KEY, String(count));
+    recordGuestActivityDay();
+  } catch {
+    // ignore
+  }
+}
+
+export function readGuestWarmUpsCompleted(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const raw = window.localStorage.getItem(GUEST_WARMUPS_KEY);
+    const n = raw ? Number(raw) : 0;
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+const GUEST_GAMES_KEY = "movewise_guest_games";
+
+interface GuestGameRecord {
+  playedAt: number;
+  analysed: boolean;
+  /** Set only once the game has been analysed — the real per-classification counts from that game's GameReview.summary. */
+  classificationCounts: Partial<Record<string, number>> | null;
+}
+
+function readGuestGames(): GuestGameRecord[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(GUEST_GAMES_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as GuestGameRecord[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeGuestGames(games: GuestGameRecord[]): void {
+  try {
+    // A guest realistically plays a handful of games per session, not
+    // hundreds — capped so this never grows unbounded, same reasoning as
+    // the activity-day log above.
+    window.localStorage.setItem(GUEST_GAMES_KEY, JSON.stringify(games.slice(-100)));
+  } catch {
+    // Storage full or unavailable — this game's record just won't be kept.
+  }
+}
+
+/** Called once a guest's game ends (win/loss/draw/resignation) — mirrors when the signed-in path first persists a `Game` row, just local instead of a database write. */
+export function recordGuestGamePlayed(): void {
+  if (typeof window === "undefined") return;
+  const games = readGuestGames();
+  games.push({ playedAt: Date.now(), analysed: false, classificationCounts: null });
+  writeGuestGames(games);
+  recordGuestActivityDay();
+}
+
+/** Called once a guest's "Analyze this game" pass completes — attaches the real classification counts to the most recent not-yet-analysed game (there's always exactly one, since analysis only ever runs after `recordGuestGamePlayed` for the game that just ended). */
+export function recordGuestGameAnalysed(classificationCounts: Record<string, number>): void {
+  if (typeof window === "undefined") return;
+  const games = readGuestGames();
+  for (let i = games.length - 1; i >= 0; i--) {
+    if (!games[i].analysed) {
+      games[i] = { ...games[i], analysed: true, classificationCounts };
+      writeGuestGames(games);
+      recordGuestActivityDay();
+      return;
+    }
+  }
+}
+
+export interface GuestGameStats {
+  gamesPlayed: number;
+  gamesAnalysed: number;
+  /** Summed across every analysed guest game — the same shape as GameReview.summary, keyed loosely (string, not MoveClassification) so this file doesn't need to know that type's exact shape just to store and re-sum numbers it never interprets itself. */
+  classificationTotals: Record<string, number>;
+  /** mistake + blunder count across every analysed guest game — the guest-local equivalent of the signed-in dashboard's "Mistakes from analysed games" count. */
+  reviewItems: number;
+}
+
+export function readGuestGameStats(): GuestGameStats {
+  const games = readGuestGames();
+  const classificationTotals: Record<string, number> = {};
+  let reviewItems = 0;
+  for (const game of games) {
+    if (!game.classificationCounts) continue;
+    for (const [classification, count] of Object.entries(game.classificationCounts)) {
+      classificationTotals[classification] = (classificationTotals[classification] ?? 0) + (count ?? 0);
+      if (classification === "mistake" || classification === "blunder") reviewItems += count ?? 0;
+    }
+  }
+  return {
+    gamesPlayed: games.length,
+    gamesAnalysed: games.filter((g) => g.analysed).length,
+    classificationTotals,
+    reviewItems,
+  };
+}

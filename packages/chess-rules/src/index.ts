@@ -17,6 +17,9 @@ import { Chess, type Move, type PieceSymbol, type Square } from "chess.js";
 
 export type { Move, PieceSymbol, Square };
 
+/** The standard chess starting position — the one FEN literal every caller that needs it should import instead of re-typing. */
+export const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 export type GameStatus =
   | "in-progress"
   | "checkmate"
@@ -127,12 +130,43 @@ export function tryMove(
   }
 }
 
+/**
+ * The canonical UCI form of a move ("e2e4", "e7e8q") — the single place
+ * that formula lives, since SAN can be decorated (check "+", mate "#",
+ * disambiguation letters) in ways that make it the wrong basis for an
+ * identity comparison (e.g. "is the played move the engine's own best
+ * move?", packages/engine's own UCI wire format).
+ */
+export function moveUci(move: Move): string {
+  return `${move.from}${move.to}${move.promotion ?? ""}`;
+}
+
 /** Whether `move` (SAN or UCI-like from/to) matches any of `expected`. */
 export function moveMatches(move: Move, expected: string[]): boolean {
-  const uci = `${move.from}${move.to}${move.promotion ?? ""}`;
+  const uci = moveUci(move);
   return expected.some(
     (candidate) => candidate === move.san || candidate === uci || candidate === uci.slice(0, 4),
   );
+}
+
+/**
+ * Resolves a SAN move string (e.g. an engine's suggested "best move",
+ * stored as SAN) back into the board squares it touches, given the
+ * exact position it was legal in. Deterministic and safe: SAN already
+ * disambiguates a move uniquely within one legal position (chess
+ * notation's own rule — two knights that could both reach the same
+ * square get letter/number disambiguation), so this is not "inferring a
+ * position from SAN" (the position `fen` is already known from stored
+ * FEN history) — it only answers "which squares does this already-known-
+ * legal move touch," for drawing a board arrow/highlight. Returns null
+ * if no legal move in `fen` matches (shouldn't happen for a genuine
+ * engine suggestion, but callers must handle it — e.g. by not drawing
+ * an arrow — rather than assume it always resolves).
+ */
+export function sanToSquares(fen: string, san: string): { from: Square; to: Square } | null {
+  const normalized = san.replace(/[+#]/g, "");
+  const match = legalMoves(fen).find((m) => m.san.replace(/[+#]/g, "") === normalized);
+  return match ? { from: match.from, to: match.to } : null;
 }
 
 export function gameStatus(fen: string): GameStatus {

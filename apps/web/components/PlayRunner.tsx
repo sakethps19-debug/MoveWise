@@ -12,6 +12,7 @@ import {
   pieceNameOf,
   tryMove,
   buildPgn,
+  START_FEN,
   type Move,
   type PieceSymbol,
   type Square,
@@ -21,11 +22,11 @@ import { useStockfishEngine } from "../lib/useStockfishEngine";
 import { useGameAnalysisRunner } from "../lib/useGameAnalysisRunner";
 import { saveCompletedGameAction } from "../app/actions";
 import { computeGameResult } from "../lib/gameResult";
+import { positionsFromPlies } from "../lib/gameAnalysis";
+import { recordGuestGameAnalysed, recordGuestGamePlayed } from "../lib/guestProgress";
 import { Board } from "./Board";
 import { Button } from "./ui/Button";
-import { GameReviewWithRetry } from "./GameReviewWithRetry";
-
-const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+import { GameReviewWorkspace } from "./GameReviewWorkspace";
 
 const SKILL_LEVELS = [
   { label: "Beginner", value: 0 },
@@ -84,6 +85,8 @@ export function PlayRunner({
   const [gameId, setGameId] = useState<string | null>(null);
   const [gameSaveError, setGameSaveError] = useState(false);
   const gameSavedRef = useRef(false);
+  const guestGameRecordedRef = useRef(false);
+  const guestAnalysisRecordedRef = useRef(false);
 
   // Real, confirmed defect: the board was sized from available WIDTH only
   // (a fixed maxWidth=720 passed to <Board>), so on a shorter viewport —
@@ -211,6 +214,23 @@ export function PlayRunner({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- fires once per completed game, guarded by gameSavedRef
   }, [gameOver, signedIn]);
 
+  // The guest counterpart to the save effect above: nothing to persist
+  // server-side, but the fact that a game was played (and, once analysis
+  // finishes, its real classification counts) is still real activity a
+  // guest's own Progress page should be able to show — see
+  // lib/guestProgress.ts's own doc comment on why this exists now.
+  useEffect(() => {
+    if (!gameOver || signedIn || guestGameRecordedRef.current) return;
+    guestGameRecordedRef.current = true;
+    recordGuestGamePlayed();
+  }, [gameOver, signedIn]);
+
+  useEffect(() => {
+    if (!realReview || signedIn || guestAnalysisRecordedRef.current) return;
+    guestAnalysisRecordedRef.current = true;
+    recordGuestGameAnalysed(realReview.summary);
+  }, [realReview, signedIn]);
+
   const legalTargets = selected ? legalTargetsFrom(fen, selected) : [];
   const canInteract = engineReady && !thinking && !gameOver && sideToMove(fen) === playerColor;
 
@@ -283,6 +303,8 @@ export function PlayRunner({
     setGameId(null);
     resetAnalysis();
     gameSavedRef.current = false;
+    guestGameRecordedRef.current = false;
+    guestAnalysisRecordedRef.current = false;
   }
 
   function analyzeThisGame() {
@@ -488,10 +510,11 @@ export function PlayRunner({
       </div>
 
       {realReview && (
-        <GameReviewWithRetry
+        <GameReviewWorkspace
           review={realReview}
           lessonTitleById={lessonTitleById}
-          fenBeforeByPly={moves.map((m) => m.fenBefore)}
+          positions={positionsFromPlies(moves.map((m) => ({ fenBefore: m.fenBefore, fenAfter: m.fenAfter })))}
+          learnerColor={playerColor}
         />
       )}
     </div>

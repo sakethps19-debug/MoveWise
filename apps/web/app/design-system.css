@@ -655,6 +655,28 @@
 .mw-lesson-node--locked {
   opacity: 0.55;
 }
+.mw-lesson-node--locked-cta {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: var(--mw-space-2);
+}
+/* Opacity is deliberately NOT used to dim the title/reason text below,
+   unlike a genuinely-disabled `.mw-lesson-node--locked` row — this row's
+   CTA button is fully enabled, and opacity applied on top of an
+   already-toned text color is exactly what produced two real WCAG 1.4.3
+   contrast failures here (axe-core "serious", caught by
+   e2e/accessibility.spec.ts): 0.6 opacity dropped the reason text to
+   3.31:1 in dark mode, and separately dropped the title to 4.32:1 in
+   light mode — both under the 4.5:1 minimum, in two different color/
+   opacity combinations. The lock icon alone (decorative, aria-hidden)
+   carries the "still locked" signal; the CTA button below carries the
+   "but here's what to do" one. */
+.mw-lesson-node--locked-cta .mw-lesson-node-icon {
+  opacity: 0.6;
+}
+.mw-lesson-node-cta {
+  flex-shrink: 0;
+}
 .mw-lesson-node--completed {
   background: var(--mw-success-bg);
   border-color: var(--mw-success);
@@ -1349,33 +1371,163 @@
   font-weight: 700;
   margin: 0;
 }
+/* A long game's move list used to be one enormous horizontal <table>
+ * (min-width: 640px, forcing a side-scroll on anything narrower). It's
+ * now a plain vertical list of real <button> rows (no table markup,
+ * still the same `.mw-game-review-table` class name real e2e coverage
+ * already keys on for its move text) capped at a fixed height with its
+ * own internal scroll — usable on a phone width without ever widening
+ * the page, and a 60-ply game doesn't grow the page's own scroll height
+ * either. */
 .mw-game-review-table-wrap {
-  overflow-x: auto; /* the table must scroll within itself, never widen the page (Phase 1's no-horizontal-overflow rule) */
+  overflow-x: auto; /* belt-and-suspenders: no child here should ever need to force this, but nothing regresses Phase 1's no-horizontal-overflow rule if one somehow does */
 }
 .mw-game-review-table {
-  width: 100%;
-  min-width: 640px;
-  border-collapse: collapse;
+  display: flex;
+  flex-direction: column;
   font-size: 13px;
+  border: 1px solid var(--mw-border);
+  border-radius: var(--mw-radius-sm);
+  /* Same reasoning as .mw-move-history's own cap (260px) — a handful of
+     rows' worth of height, not "however tall the whole game happens to
+     be." Deliberately modest so even a short real game already scrolls
+     within its own box on a small viewport, instead of only kicking in
+     for an unusually long one. */
+  max-height: 260px;
+  overflow-y: auto;
 }
-.mw-game-review-table th {
+.mw-review-move-list-head,
+.mw-review-move-row {
+  display: grid;
+  grid-template-columns: 40px 1fr 56px 84px;
+  gap: var(--mw-space-2);
+  align-items: center;
+  padding: 8px 10px;
   text-align: left;
+}
+.mw-review-move-list-head {
+  position: sticky;
+  top: 0;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--mw-text-dim);
-  padding: 6px 10px;
   border-bottom: 1px solid var(--mw-border-strong);
+  background: var(--mw-surface-2);
 }
-.mw-game-review-table td {
-  padding: 8px 10px;
+.mw-review-move-row {
+  border: none;
   border-bottom: 1px solid var(--mw-border);
-  vertical-align: top;
+  background: var(--mw-surface);
+  color: var(--mw-text);
+  cursor: pointer;
+  font: inherit;
+  min-height: 44px; /* WCAG 2.5.5 / mobile touch-target floor */
+  box-sizing: border-box;
 }
-.mw-game-review-explanation {
-  max-width: 320px;
+.mw-review-move-row:last-child {
+  border-bottom: none;
+}
+.mw-review-move-row:hover {
+  background: var(--mw-surface-2);
+}
+.mw-review-move-row--selected {
+  background: var(--mw-success-bg);
+  box-shadow: inset 3px 0 0 var(--mw-moss);
+}
+.mw-review-move-row--context {
   color: var(--mw-text-dim);
 }
+.mw-review-context-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--mw-text-dim);
+}
+
+.mw-review-filter {
+  align-self: flex-start;
+}
+.mw-review-turning-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mw-space-2);
+}
+.mw-review-turning-point {
+  cursor: pointer;
+  border: none;
+  font: inherit;
+}
+.mw-review-workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) 1fr;
+  gap: var(--mw-space-4);
+  align-items: start;
+}
+.mw-review-board-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--mw-space-3);
+}
+.mw-review-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--mw-space-2);
+  width: 100%;
+}
+.mw-review-nav-position {
+  font-size: 12.5px;
+  color: var(--mw-text-dim);
+  min-width: 108px;
+  text-align: center;
+}
+.mw-review-move-list-col {
+  min-width: 0; /* lets the table-wrap's own overflow-x actually engage inside a grid track, instead of the track stretching to the content's natural width */
+}
+.mw-review-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-2);
+  width: 100%;
+  padding: var(--mw-space-3);
+  background: var(--mw-surface-2);
+  border-radius: var(--mw-radius-sm);
+  box-sizing: border-box;
+}
+.mw-review-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mw-space-2);
+}
+.mw-review-detail-evals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--mw-space-4);
+  font-size: 13px;
+  color: var(--mw-text-dim);
+}
+.mw-review-detail-explanation {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--mw-text);
+}
+
+/* Below two columns' worth of width (also where the play layout itself
+ * already stacks, docs/design/system.md's responsive strategy), the
+ * board+detail column and the move-list column stack vertically instead
+ * — still keeping board+selected-move+explanation together as one
+ * contiguous block, per the iPad-landscape requirement, just not
+ * side-by-side with the list at that width. */
+@media (max-width: 767px) {
+  .mw-review-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
 .mw-game-review-empty {
   font-size: 13px;
   color: var(--mw-text-dim);
