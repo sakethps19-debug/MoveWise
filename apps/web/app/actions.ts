@@ -10,7 +10,8 @@ import { checkRateLimit, formatRetryAfter } from "../lib/rate-limit";
 import { parseEnvNumberOverride } from "../lib/envNumber";
 import { loadLesson } from "../lib/lessons";
 import { findPuzzle } from "../lib/puzzles";
-import { computeMasteryStatus, type MasteryStatus } from "../lib/masteryModel";
+import { computeMasteryStatus, PROFICIENT_STATUSES, type MasteryStatus } from "../lib/masteryModel";
+import { scorePlacement, type PlacementAnswer, type PlacementResult } from "../lib/placement";
 import { canAnalyze, summarize, type GameReview, type MoveAnalysis } from "../lib/gameAnalysis";
 import { buildStoredGameReview } from "../lib/studyPlan";
 import type { AttemptRecord, LessonCheckpointState } from "../components/LessonRunner";
@@ -519,6 +520,48 @@ export async function recordPuzzleAttemptAction(puzzleId: string, correct: boole
 
   await recomputeMasteryForConcepts(user.id, puzzle.conceptIds);
   revalidatePath("/");
+}
+
+/**
+ * P0's real placement assessment (lib/placement.ts, packages/content/puzzles/placement.json):
+ * scores server-side (never trusts a client-computed level/demonstrated
+ * set directly) and writes each demonstrated concept as a real
+ * UserConceptMastery "proficient" row — the same status value and the
+ * same PROFICIENT_STATUSES gate the rest of the app already uses to
+ * decide a principle is proficient enough to unlock the next one. This is
+ * exactly how a rated player's assessment result reaches
+ * lib/lessonStatus.ts's bypass and app/practice/[principleId]/page.tsx's
+ * server-side gate, without a single lesson ever being marked
+ * "completed" — evidence-based unlocking, not a false completion.
+ *
+ * A concept already proficient from real lesson/puzzle practice is left
+ * alone rather than overwritten with a possibly-lower placement
+ * confidence — placement only ever adds evidence, never downgrades it.
+ * Guests get no server-side row (no session to attach one to); their
+ * result is instead stored client-side (lib/placementProgress.ts) by the
+ * caller, same "session-local only" reasoning as every other guest path
+ * in this file.
+ */
+export async function submitPlacementAction(answers: PlacementAnswer[]): Promise<PlacementResult> {
+  const result = scorePlacement(answers);
+  const user = await getSession();
+  if (!user) return result;
+
+  for (const conceptId of result.demonstratedConceptIds) {
+    const existing = await prisma.userConceptMastery.findUnique({
+      where: { userId_conceptId: { userId: user.id, conceptId } },
+    });
+    const existingStatus = existing?.status as MasteryStatus | undefined;
+    if (existingStatus && PROFICIENT_STATUSES.has(existingStatus)) continue;
+    await prisma.userConceptMastery.upsert({
+      where: { userId_conceptId: { userId: user.id, conceptId } },
+      update: { status: "proficient", exerciseConfidence: result.confidence, lastPracticedAt: new Date() },
+      create: { userId: user.id, conceptId, status: "proficient", exerciseConfidence: result.confidence, lastPracticedAt: new Date() },
+    });
+  }
+  revalidatePath("/");
+  revalidatePath("/practice");
+  return result;
 }
 
 export interface SaveCompletedGameInput {

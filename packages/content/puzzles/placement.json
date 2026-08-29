@@ -1,0 +1,170 @@
+[
+  {
+    "id": "placement.movement-rook",
+    "conceptIds": ["rook-movement", "captures", "blocked-paths"],
+    "fen": "4k3/8/8/8/8/3p4/8/3RK3 w - - 0 1",
+    "prompt": "Capture the pawn blocking your rook's path up the file.",
+    "correctMoves": ["d1d3"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "The rook moves in straight lines only, any distance until something blocks it. From d1, which square up the d-file has the pawn on it?"
+    },
+    "successExplanation": "Rxd3 slides straight up the d-file and captures the blocking pawn."
+  },
+  {
+    "id": "placement.movement-bishop",
+    "conceptIds": ["bishop-movement"],
+    "fen": "4k3/8/8/8/8/8/8/2B1K3 w - - 0 1",
+    "prompt": "Move the bishop along its diagonal as far as it can toward the top-right corner.",
+    "correctMoves": ["c1h6"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "The bishop only moves diagonally — pick the diagonal heading up and to the right from c1, and go as far as the board allows."
+    },
+    "successExplanation": "Bh6 travels the whole c1-h6 diagonal in one move."
+  },
+  {
+    "id": "placement.movement-queen",
+    "conceptIds": ["queen-movement"],
+    "fen": "k7/8/8/8/3Q4/8/8/4K3 w - - 0 1",
+    "prompt": "Move the queen diagonally down-right, all the way to the corner of the board.",
+    "correctMoves": ["d4g1"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "Use the queen's diagonal movement, like a bishop — head down and to the right from d4 until you reach the edge."
+    },
+    "successExplanation": "Qg1 travels the whole diagonal from d4 down to the corner — the queen's diagonal moves work exactly like a bishop's."
+  },
+  {
+    "id": "placement.movement-knight",
+    "conceptIds": ["knight-movement"],
+    "fen": "4k3/8/8/8/8/8/8/1N2K3 w - - 0 1",
+    "prompt": "Move the knight in its L-shape to reach d2.",
+    "correctMoves": ["b1d2"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "The knight jumps in an L-shape: two squares in one direction, then one square to the side. From b1, which squares can it reach?"
+    },
+    "successExplanation": "Nd2 is a legal L-shaped jump — two files across and one rank up."
+  },
+  {
+    "id": "placement.recognize-check",
+    "conceptIds": ["check"],
+    "fen": "k7/8/8/4Q3/8/8/8/4K3 w - - 0 1",
+    "prompt": "Move your queen so it delivers check to the black king along the back rank.",
+    "correctMoves": ["e5e8"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "Not check yet. The queen needs a clear line to the black king — same rank, file, or diagonal. Which square on the e-file lines up with rank 8?"
+    },
+    "successExplanation": "Qe8 lands on rank 8 with a clear path across to the black king on a8 — that's check. The queen moved straight up the e-file to get there."
+  },
+  {
+    "id": "placement.recognize-checkmate",
+    "conceptIds": ["checkmate"],
+    "fen": "6k1/5ppp/8/8/8/8/8/4R1K1 w - - 0 1",
+    "prompt": "Move your rook to deliver checkmate.",
+    "correctMoves": ["e1e8"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That would give check, but the black king could still escape along the back rank. Find the rook move that controls the entire rank, with the king's own pawns blocking every square in front of it."
+    },
+    "successExplanation": "Re8 is checkmate — it controls the entire back rank, and the king's own pawns block every escape square on the 7th rank."
+  },
+  {
+    "id": "placement.hanging-piece",
+    "conceptIds": ["hanging-pieces"],
+    "fen": "4k3/8/8/8/8/2n5/8/1N2K3 w - - 0 1",
+    "prompt": "Capture the undefended knight.",
+    "correctMoves": ["b1c3"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That doesn't capture anything hanging. Which square can your knight jump to that lands on an undefended black piece?"
+    },
+    "successExplanation": "Nxc3 wins the knight — nothing was defending it."
+  },
+  {
+    "id": "placement.knight-fork",
+    "conceptIds": ["knight-fork", "fork", "tactics"],
+    "fen": "8/8/2r3k1/8/2N5/8/8/K7 w - - 0 1",
+    "prompt": "Move the knight to attack both the black king and the rook at once.",
+    "correctMoves": ["c4e5"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That's a legal knight move, but it doesn't attack both the king and the rook. Look for the square where the knight's L-shape lines up with both pieces at once."
+    },
+    "successExplanation": "Ne5 forks the king on g6 (check!) and the rook on c6 at the same time — the rook falls next move."
+  },
+  {
+    "id": "placement.king-safety-castling",
+    "conceptIds": ["king-safety-castling"],
+    "fen": "4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1",
+    "prompt": "Castle kingside to get your king to safety.",
+    "correctMoves": ["e1g1"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That's not castling kingside — move your king two squares toward the h-file rook."
+    },
+    "successExplanation": "O-O gets the king to safety and brings the rook to f1, both in one move."
+  },
+  {
+    "id": "placement.decision-capture-checker",
+    "conceptIds": ["decision-making", "check"],
+    "fen": "4k3/8/8/8/8/5n2/8/4KR2 w - - 0 1",
+    "prompt": "Your king is in check from the knight. Deal with the check in the simplest way available.",
+    "correctMoves": ["f1f3"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "Moving the king isn't necessary here — check first whether you can simply capture the piece giving check. Which of your pieces attacks the knight on f3?"
+    },
+    "successExplanation": "Rxf3 captures the checking knight outright — always check for a capture first, since it removes the threat completely."
+  },
+  {
+    "id": "placement.trade-evaluation",
+    "conceptIds": ["trade-evaluation", "piece-values"],
+    "fen": "4k3/8/8/4p3/3p2n1/8/8/3QK3 w - - 0 1",
+    "prompt": "Two captures are available for your queen. Play the one that actually wins material.",
+    "correctMoves": ["d1g4"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That capture doesn't win material. Count what defends each target before you take it — one of these two is a trap."
+    },
+    "successExplanation": "Qxg4 wins the knight for free — nothing defends g4. Qxd4 would have lost the queen for a single pawn, since the pawn on e5 recaptures immediately."
+  },
+  {
+    "id": "placement.opening-development",
+    "conceptIds": ["queen-development-timing"],
+    "fen": "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+    "prompt": "Develop a minor piece instead of rushing your queen out.",
+    "correctMoves": ["g1f3"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That's not a developing move for a minor piece yet. Bring a knight or bishop out before touching the queen."
+    },
+    "successExplanation": "Nf3 develops a piece toward the center and prepares to castle — no target for Black's minor pieces to attack."
+  },
+  {
+    "id": "placement.back-rank-safety",
+    "conceptIds": ["back-rank-safety"],
+    "fen": "4r1k1/5ppp/8/3R4/8/8/5PPP/6K1 w - - 0 1",
+    "prompt": "White's king has no escape square — create luft before Black plays ...Re1#.",
+    "correctMoves": ["h2h3", "h2h4", "g2g3", "g2g4", "f2f3", "f2f4"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't give the king anywhere to go. Move a kingside pawn to open an escape square."
+    },
+    "successExplanation": "Any of these pawn pushes creates luft — now a rook or queen reaching the back rank is check, not checkmate."
+  },
+  {
+    "id": "placement.endgame-king-escort",
+    "conceptIds": ["opposition-key-squares"],
+    "fen": "4k3/8/8/4KP2/8/8/8/8 w - - 0 1",
+    "prompt": "Bring your king in front of the pawn to escort it forward safely.",
+    "correctMoves": ["e5f6"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "A pawn pushed on its own can be stopped or captured by the enemy king. Move your own king in front of the pawn first, to shepherd it up the board."
+    },
+    "successExplanation": "Kf6 puts the king in front of the pawn — an elementary endgame technique: escort a passed pawn with your king rather than pushing it unsupported."
+  }
+]

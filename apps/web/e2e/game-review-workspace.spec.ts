@@ -142,3 +142,28 @@ test("the learner-only / full-game filter shows and hides the opponent's moves",
   expect(rowCount).toBeGreaterThanOrEqual(2); // the learner's move plus at least Stockfish's reply
   await expect(page.locator(".mw-review-context-label")).toHaveText("Stockfish");
 });
+
+/** P1 "PGN copy/export" — a real gap the previous review workspace had no way to close (there was no PGN available to the client at all until this pass). */
+test("Copy PGN copies the actual game played, reconstructed from the review's own moves, to the clipboard", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/play");
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 15_000 });
+
+  await page.locator('[aria-label*="e2,"]').click();
+  await page.locator('[aria-label*="e4,"]').click();
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 20_000 });
+
+  await page.getByRole("button", { name: "Resign" }).click();
+  await expect(page.getByText(/You resigned/)).toBeVisible();
+  await page.getByRole("button", { name: "Analyze this game" }).click();
+  await expect(page.getByRole("heading", { name: "2. Review the game" })).toBeVisible({ timeout: 60_000 });
+
+  await page.getByRole("button", { name: "Copy PGN" }).click();
+  await expect(page.getByText("Copied to clipboard.")).toBeVisible();
+
+  const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
+  expect(clipboardText).toContain("1. e4"); // the real move actually played, not fabricated content
+});

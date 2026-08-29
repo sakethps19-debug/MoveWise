@@ -169,6 +169,23 @@ export function sanToSquares(fen: string, san: string): { from: Square; to: Squa
   return match ? { from: match.from, to: match.to } : null;
 }
 
+/**
+ * Turns an engine's raw UCI best-move string (e.g. packages/engine's
+ * `bestMove`) into SAN for display, but only after verifying it's
+ * actually legal in `fen` — the P0 "verify every best move is legal in
+ * the associated FEN" requirement. An engine's own search should never
+ * return an illegal move, but this is exactly the kind of invariant a
+ * learner-facing product should verify rather than trust blindly: were
+ * it ever wrong (a parsing bug, a stale position passed to the engine,
+ * a future engine swap), this is the one place a bad move would surface
+ * as a broken-looking display string rather than a wrong or misleading
+ * "Best move: ..." claim — the raw UCI is returned unchanged rather than
+ * a SAN, so it fails visibly instead of silently.
+ */
+export function resolveUciToSan(fen: string, uci: string): string {
+  return tryMove(fen, parseUci(uci))?.move.san ?? uci;
+}
+
 export function gameStatus(fen: string): GameStatus {
   const game = new Chess(fen);
   if (game.isCheckmate()) return "checkmate";

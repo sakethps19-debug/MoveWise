@@ -14,6 +14,7 @@ import {
   moveMatches,
   moveUci,
   parseUci,
+  resolveUciToSan,
   sanToSquares,
   staticExchangeEval,
   tryMove,
@@ -162,6 +163,30 @@ describe("sanToSquares", () => {
 
   it("returns null when no legal move in the given position matches the SAN string", () => {
     expect(sanToSquares(START_FEN, "Qh4#")).toBeNull();
+  });
+});
+
+describe("resolveUciToSan", () => {
+  it("resolves a legal engine best-move UCI string to its SAN — the P0 'verify every best move is legal' path", () => {
+    expect(resolveUciToSan(START_FEN, "e2e4")).toBe("e4");
+    expect(resolveUciToSan(START_FEN, "g1f3")).toBe("Nf3");
+  });
+
+  it("resolves a legal promotion UCI move correctly", () => {
+    const promotionFen = "4k3/P7/8/8/8/8/8/4K3 w - - 0 1";
+    expect(resolveUciToSan(promotionFen, "a7a8q")).toBe("a8=Q+"); // delivers check from the new queen
+  });
+
+  it("falls back to the raw UCI string, rather than a fabricated SAN, when the engine's move is illegal in the given position", () => {
+    // e2e5 is not a legal pawn move from the starting position (three
+    // squares) — a hypothetical bad engine response, or a stale FEN
+    // passed alongside a fresh bestMove. This must never silently
+    // resolve to *some* SAN for a different move; it must fail visibly.
+    expect(resolveUciToSan(START_FEN, "e2e5")).toBe("e2e5");
+  });
+
+  it("falls back to the raw string for a UCI move naming a square with no piece on it at all", () => {
+    expect(resolveUciToSan(START_FEN, "e4e5")).toBe("e4e5");
   });
 });
 

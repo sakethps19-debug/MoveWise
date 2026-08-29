@@ -5,8 +5,9 @@ import Link from "next/link";
 import type { Lesson, Principle } from "@movewise/exercise-schema";
 import { starsForPerformance } from "../lib/mastery";
 import type { MasteryStatus } from "../lib/masteryModel";
-import { statusOf, unlockReason } from "../lib/lessonStatus";
+import { statusOf, unlockReason, demonstratedLessonIdsFrom } from "../lib/lessonStatus";
 import { useEffectiveCompletions, type CompletionRecord } from "../lib/useEffectiveCompletions";
+import { useDemonstratedConcepts } from "../lib/useDemonstratedConcepts";
 import { readStartedLessons } from "../lib/lessonProgressUI";
 import { Stars } from "./ui/Stars";
 import { MasteryBadge } from "./ui/MasteryBadge";
@@ -86,6 +87,12 @@ export function LearningPath({
   const [manuallyExpanded, setManuallyExpanded] = useState(false);
 
   const { effectiveCompletions, completedIds } = useEffectiveCompletions(completions);
+  // Real evidence (a placement assessment, or ordinary proficiency earned
+  // from practice) that bypasses lesson prerequisites and the principle-
+  // proficiency gate without ever marking a lesson "completed" — see
+  // lib/lessonStatus.ts's statusOf doc comment. Guest-only data is read
+  // client-side after mount (lib/useDemonstratedConcepts.ts).
+  const demonstratedConceptIds = useDemonstratedConcepts(conceptMastery);
   // A true first-time visit: nothing completed, no lesson even started,
   // and no real server-tracked mastery signal either (a UserConceptMastery
   // row means real attempts already happened — e.g. a struggling concept
@@ -94,8 +101,14 @@ export function LearningPath({
   // is the exact case "confronted with ~20 disabled cards immediately"
   // described. A returning learner (any real progress at all) always
   // sees the full syllabus; only a genuinely fresh one gets the
-  // collapsed preview and the onboarding quiz below.
-  const hasAnyProgress = (completedIds?.size ?? 0) > 0 || startedIds.size > 0 || (conceptMastery?.size ?? 0) > 0;
+  // collapsed preview and the onboarding quiz below. A completed
+  // placement assessment counts too — it's real, evidence-based
+  // engagement, not a fresh, untouched account.
+  const hasAnyProgress =
+    (completedIds?.size ?? 0) > 0 ||
+    startedIds.size > 0 ||
+    (conceptMastery?.size ?? 0) > 0 ||
+    demonstratedConceptIds.size > 0;
 
   useEffect(() => {
     // `hasAnyProgress` starts false on every very first render (neither
@@ -132,6 +145,7 @@ export function LearningPath({
       allPrinciplesById,
       units.find((u) => u.id === lesson.unitId)?.principles ?? [],
       conceptMastery,
+      demonstratedConceptIds,
     );
   const unlockReasonFor = (lesson: Lesson) =>
     unlockReason(
@@ -141,7 +155,9 @@ export function LearningPath({
       allPrinciplesById,
       units.find((u) => u.id === lesson.unitId)?.principles ?? [],
       hasConceptMasteryTracking,
+      demonstratedConceptIds,
     );
+  const demonstratedLessonIds = demonstratedLessonIdsFrom(allPrinciplesById, demonstratedConceptIds);
   // Layers "in-progress" and "mastered" onto the three core, gating-
   // relevant statuses — see the LessonStatus/CoreStatus doc comment above.
   const displayStatusFor = (lesson: Lesson): LessonStatus => {
@@ -153,7 +169,35 @@ export function LearningPath({
     }
     return core;
   };
-  const nextUp = allLessons.find((l) => statusFor(l) === "available");
+  // The real fix for the "brutal user journey" bug: a rated player whose
+  // placement demonstrated meet-the-pieces/check-and-checkmate must not
+  // land on "Welcome to the chessboard" just because it's first in array
+  // order and technically "available" once bypassed. `isPassed` treats a
+  // demonstrated-bypass exactly like a completion for the purpose of
+  // finding the learner's real frontier — the lesson itself still
+  // *displays* as "available", never "completed" (see displayStatusFor),
+  // this only changes which one `nextUp` recommends first. A learner
+  // whose placement covered the entire curriculum gets no `nextUp` at all
+  // (handled below by the "tested out" card) rather than a stale first
+  // lesson.
+  // A unit's own mastery-challenge lesson (e.g. meet-the-pieces' lesson 12)
+  // belongs to no principle's subLessonIds at all, so demonstratedLessonIds
+  // never covers it directly even when every principle in its unit was
+  // demonstrated — without this, it was the one lesson left un-bypassed,
+  // so a learner who tested out of an entire unit still got recommended
+  // its mastery-challenge as `nextUp` instead of moving on. Bypassed only
+  // when every one of the unit's own principles was demonstrated — never
+  // from a partial result.
+  const unitFullyDemonstrated = (unitId: string) => {
+    const unit = units.find((u) => u.id === unitId);
+    return !!unit && unit.principles.length > 0 && unit.principles.every((p) => demonstratedConceptIds.has(p.conceptId));
+  };
+  const isPassed = (l: Lesson) =>
+    (completedIds?.has(l.id) ?? false) ||
+    demonstratedLessonIds.has(l.id) ||
+    (l.kind === "mastery-challenge" && unitFullyDemonstrated(l.unitId));
+  const nextUp = allLessons.find((l) => !isPassed(l) && statusFor(l) === "available");
+  const testedOutOfEverything = !nextUp && demonstratedConceptIds.size > 0 && allLessons.every(isPassed);
 
   // Phase 5's "review-needed section": principles whose concept has
   // regressed to "struggling" per lib/masteryModel.ts — real signal
@@ -208,6 +252,16 @@ export function LearningPath({
             {completedIds && completedIds.size > 0 ? "Continue learning" : "Start here"}
           </div>
           <div className="mw-continue-title">{nextUp.title}</div>
+          <span className="mw-continue-arrow" aria-hidden="true">
+            →
+          </span>
+        </Link>
+      )}
+
+      {testedOutOfEverything && (
+        <Link href="/practice" className="mw-continue-card">
+          <div className="mw-continue-eyebrow">Placement result: strong</div>
+          <div className="mw-continue-title">Your placement cleared the guided lessons — head to Practice</div>
           <span className="mw-continue-arrow" aria-hidden="true">
             →
           </span>
@@ -334,7 +388,9 @@ export function LearningPath({
                       // same reasoning as the lesson-locking mirror above.
                       const principle = unit.principles[groupIndex];
                       if (!principle || principle.puzzleIds.length === 0) return null;
-                      const allSubLessonsDone = group.lessons.every((l) => statusFor(l) === "completed");
+                      const allSubLessonsDone = group.lessons.every(
+                        (l) => statusFor(l) === "completed" || demonstratedLessonIds.has(l.id),
+                      );
                       if (!allSubLessonsDone) return null;
                       return (
                         <Link

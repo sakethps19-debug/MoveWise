@@ -33,9 +33,25 @@ export default async function LessonPage({
     const completedIds = new Set(completed.map((c) => c.lessonId));
     const missingId = lesson.prerequisites.find((p) => !completedIds.has(p));
     if (missingId) {
-      const missingLesson = loadLesson(missingId);
-      const needs = encodeURIComponent(missingLesson?.title ?? missingId);
-      redirect(`/?locked=${encodeURIComponent(lesson.title)}&needs=${needs}`);
+      // Real placement/practice evidence (a UserConceptMastery row already
+      // at a proficient value for the missing prerequisite's own
+      // principle) bypasses this the same way lib/lessonStatus.ts's
+      // demonstratedConceptIds bypasses it client-side — never a false
+      // "completed", just recognized evidence the literal-completion
+      // check alone would otherwise ignore.
+      const missingPrinciple = loadUnitPrinciples(lesson.unitId).find((p) => p.subLessonIds.includes(missingId));
+      const demonstrated = missingPrinciple
+        ? await prisma.userConceptMastery.findUnique({
+            where: { userId_conceptId: { userId: user.id, conceptId: missingPrinciple.conceptId } },
+          })
+        : null;
+      const demonstratedStatus = demonstrated?.status as MasteryStatus | undefined;
+      const bypassed = !!demonstratedStatus && PROFICIENT_STATUSES.has(demonstratedStatus);
+      if (!bypassed) {
+        const missingLesson = loadLesson(missingId);
+        const needs = encodeURIComponent(missingLesson?.title ?? missingId);
+        redirect(`/?locked=${encodeURIComponent(lesson.title)}&needs=${needs}`);
+      }
     }
   }
 
