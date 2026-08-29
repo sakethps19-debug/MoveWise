@@ -24,6 +24,14 @@ test("a fresh guest with zero completed lessons has at least one playable practi
   await page.locator('[aria-label*="a1,"]').click();
   await page.locator('[aria-label*="b2,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
+
+  // Real, confirmed defect: PuzzleRunner rendered the board from the
+  // puzzle's fixed starting FEN, never from the move actually played —
+  // "Correct!" appeared but the king visually stayed on a1, never
+  // appearing to move to b2 at all. The board must reflect the real
+  // post-move position once a correct answer is confirmed.
+  await expect(page.locator('[aria-label="b2, white king"]')).toBeVisible();
+  await expect(page.locator('[aria-label="a1, empty"]')).toBeVisible();
 });
 
 test("locked pools name the exact prerequisite lesson, with a working, always-enabled CTA to it", async ({ page }) => {
