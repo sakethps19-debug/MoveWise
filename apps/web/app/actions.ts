@@ -663,3 +663,22 @@ export async function saveGameAnalysisAction(
 
   return buildStoredGameReview(storedMoves, conceptMastery);
 }
+
+/**
+ * The guest counterpart to saveGameAnalysisAction — a guest has no
+ * account to own a Game row, so there's nothing to persist, cache, or
+ * enforce a fair-play invariant against. But the analysis itself
+ * (Stockfish calls, classification, concept detection) already runs
+ * entirely client-side (lib/useGameAnalysisRunner.ts) before either
+ * action is ever called — the only reason a guest previously fell back
+ * to buildDemoGameReview's unrelated sample data was that
+ * lessonIdsForConcepts/buildStudyPlan need filesystem access
+ * (lib/studyPlan.ts is `server-only`), not because real analysis itself
+ * requires an account. This wraps just that stateless composition step,
+ * so "review this game" reviews the game a guest actually played —
+ * ephemeral to the session, exactly like every other piece of guest
+ * state in this app, never written to the database.
+ */
+export async function buildGuestGameReviewAction(moves: SubmittedMoveAnalysis[]): Promise<GameReview> {
+  return buildStoredGameReview(moves, null);
+}

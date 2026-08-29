@@ -145,12 +145,54 @@ test("a real 4-ply opening (1.e4 ... 2.Nf3 ...) then resignation analyses those 
   expect(moveAnalysisCount).toBe(4); // e4, Black's reply, Nf3, Black's reply
 });
 
-test("a guest still sees the labeled demo, never the real analysis entry point", async ({ page }) => {
+test("a guest gets the same real analysis entry point as a signed-in learner, never the demo", async ({ page }) => {
   await page.goto("/play");
   await expect(page.getByRole("status")).toContainText("Your move", { timeout: 15_000 });
   await page.getByRole("button", { name: "Resign" }).click();
   await expect(page.getByText(/You resigned/)).toBeVisible();
 
-  await expect(page.getByRole("button", { name: "Analyze this game" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Review this game (demo)" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Review this game (demo)" })).toHaveCount(0);
+  const analyzeButton = page.getByRole("button", { name: "Analyze this game" });
+  await expect(analyzeButton).toBeVisible();
+  await analyzeButton.click();
+
+  await expect(page.getByRole("heading", { name: "2. Review the game" })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByText("DEMO")).toHaveCount(0);
+});
+
+test("guest P0 reproduction: 1.e4 e6 2.Nf3 c5 then resignation reviews those exact moves, never the Scholar's Mate demo", async ({
+  page,
+}) => {
+  // The exact reported scenario: a signed-out learner plays a real French/
+  // Sicilian-adjacent opening and resigns — the review must reflect that
+  // real game, never fall back to demo content, whether or not they have
+  // an account (buildGuestGameReviewAction — real analysis, not persisted).
+  await page.goto("/play");
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 15_000 });
+
+  await page.locator('[aria-label*="e2,"]').click();
+  await page.locator('[aria-label*="e4,"]').click();
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 20_000 });
+
+  await page.locator('[aria-label*="g1,"]').click();
+  await page.locator('[aria-label*="f3,"]').click();
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 20_000 });
+
+  await page.getByRole("button", { name: "Resign" }).click();
+  await expect(page.getByText(/You resigned/)).toBeVisible();
+
+  await page.getByRole("button", { name: "Analyze this game" }).click();
+  await expect(page.getByRole("heading", { name: "2. Review the game" })).toBeVisible({ timeout: 60_000 });
+
+  // The real moves this guest actually played are shown...
+  const reviewTable = page.locator(".mw-game-review-table");
+  await expect(reviewTable.getByText("e4", { exact: true }).first()).toBeVisible();
+  await expect(reviewTable.getByText("Nf3", { exact: true }).first()).toBeVisible();
+
+  // ...and the demo's own signature moves/labeling never appear.
+  await expect(page.getByText("Qxf7#")).toHaveCount(0);
+  await expect(page.getByText("Bc4")).toHaveCount(0);
+  await expect(page.getByText("Qh5")).toHaveCount(0);
+  await expect(page.getByText("DEMO")).toHaveCount(0);
+  await expect(page.getByText(/You resigned/)).toBeVisible(); // the real result — not Scholar's Mate's checkmate
 });

@@ -1194,6 +1194,11 @@
   color: var(--mw-text-dim);
 }
 .mw-play-analysis-entry .mw-badge { align-self: flex-start; }
+.mw-play-illegal-move {
+  margin: var(--mw-space-2) 0 0;
+  font-size: 13px;
+  padding: var(--mw-space-2) var(--mw-space-3);
+}
 
 /* A shorter viewport (a real, measured problem on 12.9" iPad landscape —
  * ~936px of usable height once Safari's own chrome is subtracted from the
