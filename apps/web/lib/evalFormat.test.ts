@@ -69,14 +69,23 @@ describe("formatEvalLoss", () => {
   it("shows the mate-transition phrase instead of a raw centipawn delta when either side of the move is a mate score", () => {
     // The exact real-world case this was found from: Black's blunder
     // handing White mate in 1 previously rendered as "-99020cp".
-    expect(formatEvalLoss(-20, 99000, "b", false)).toBe("Allowed mate in 1");
+    expect(formatEvalLoss(-20, 99000, "b", false, 0)).toBe("Allowed mate in 1");
   });
 
-  it("falls back to ordinary '-NNcp' formatting when neither side is a mate score", () => {
-    expect(formatEvalLoss(50, 20, "w", false)).toBe("-30cp");
+  it("falls back to ordinary 'NNcp' formatting when neither side is a mate score — a non-negative magnitude, never a signed '-NNcp' delta", () => {
+    expect(formatEvalLoss(50, 20, "w", false, 30)).toBe("30cp");
   });
 
   it("shows an em dash for zero loss", () => {
-    expect(formatEvalLoss(50, 50, "w", false)).toBe("—");
+    expect(formatEvalLoss(50, 50, "w", false, 0)).toBe("—");
+  });
+
+  it("displays exactly the evalLoss it's passed, never recomputed from evalBefore/evalAfter — the real production bug this signature exists to prevent", () => {
+    // A move classified `best` (evalLoss forced to 0 by the UCI-identity
+    // override, lib/moveClassification.ts) must never show a nonzero
+    // loss just because the caller happens to pass mismatched
+    // evalBefore/evalAfter alongside it — the displayed number is
+    // whatever the caller's already-computed evalLoss says, full stop.
+    expect(formatEvalLoss(20, 17, "w", false, 0)).toBe("—");
   });
 });

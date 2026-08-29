@@ -15,10 +15,31 @@
  * only server-side.
  */
 
-import type { Move } from "@movewise/chess-rules";
+import { START_FEN, legalMoves, pieceAt, pieceNameOf, type Move, type PieceSymbol, type Square } from "@movewise/chess-rules";
 import { detectConcepts } from "./conceptDetection";
 import { describeMateTransition } from "./evalFormat";
 import { classifyMove, computeEvalLoss } from "./moveClassification";
+
+/**
+ * The interactive review workspace (components/GameReviewWorkspace.tsx)
+ * needs the board position at every ply, not just before each move — and
+ * must reconstruct it from stored FEN history, never infer it from
+ * display SAN (a SAN string alone can't be replayed into a position
+ * without already knowing the position it was legal in, which is exactly
+ * the circularity this avoids). Every ply's `fenBefore`/`fenAfter` is
+ * already produced by chess-rules itself (`tryMove`, `replayPgn`) at the
+ * moment the move was made or replayed, so this just threads that chain
+ * into one array: `positions[0]` is the position before any move,
+ * `positions[k]` is the position after the k-th move (1-indexed) —
+ * `positions.length === plies.length + 1`. All three real callers
+ * (PlayRunner's live game, AnalyzeStoredGame's freshly-analyzed replay,
+ * the game-history detail page's already-analyzed replay) already carry
+ * both fields per ply, so none of them ever need to guess a position.
+ */
+export function positionsFromPlies(plies: { fenBefore: string; fenAfter: string }[]): string[] {
+  if (plies.length === 0) return [START_FEN];
+  return [plies[0].fenBefore, ...plies.map((p) => p.fenAfter)];
+}
 
 /**
  * ADR-0008's fixed 8-value enum ("Decision — move classification"). This
@@ -289,6 +310,115 @@ export function explanationFor(classification: MoveClassification, conceptIds: s
   }
 }
 
+const CENTER_SQUARES: ReadonlySet<string> = new Set(["d4", "d5", "e4", "e5"]);
+
+/** Where each side's minor pieces start — leaving one of these squares is the concrete, checkable fact "development" means. */
+const MINOR_PIECE_HOME_SQUARES: Record<"w" | "b", ReadonlySet<string>> = {
+  w: new Set(["b1", "c1", "f1", "g1"]),
+  b: new Set(["b8", "c8", "f8", "g8"]),
+};
+
+/** Flips only the side-to-move field — the same technique `isLegalFen` (chess-rules) uses to ask "is the other side in check," applied here to ask "what could the side that just moved do next." Not a claim about the actual next move (the opponent moves next in reality); framed to the learner as an immediate capture opportunity the position now contains, which is what it verifiably is. */
+function withFlippedTurn(fen: string): string {
+  const parts = fen.split(" ");
+  parts[1] = parts[1] === "w" ? "b" : "w";
+  return parts.join(" ");
+}
+
+/**
+ * A capture the just-moved piece could make if it got to move again
+ * immediately — a genuine, engine-verified (via chess-rules' own legal
+ * move generator, not a heuristic guess) newly-available threat, not an
+ * invented tactical claim. Returns null (never throws) if the flipped
+ * position is one chess.js rejects for unrelated structural reasons
+ * (same caveat `isLegalFen` documents) or there's simply no such capture.
+ */
+function immediateCaptureThreat(fenAfter: string, from: string): { to: string; captured: PieceSymbol } | null {
+  try {
+    const found = legalMoves(withFlippedTurn(fenAfter)).find((m) => m.from === from && m.captured !== undefined);
+    return found ? { to: found.to, captured: found.captured! } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** A real, checkable structural fact: 2+ of the mover's own pawns now share `file` — not a value judgment about whether that's bad here. */
+function createsDoubledPawn(fenAfter: string, file: string, color: "w" | "b"): boolean {
+  let count = 0;
+  for (let rank = 1; rank <= 8; rank++) {
+    const piece = pieceAt(fenAfter, `${file}${rank}` as Square);
+    if (piece && piece.color === color && piece.type === "p") count++;
+  }
+  return count >= 2;
+}
+
+/**
+ * Position-grounded explanations built from detectable, verifiable facts
+ * about the actual move played — central control, development, king
+ * safety (castling), captures, checks, a newly-created capture threat,
+ * and pawn structure (a new doubled pawn) — instead of a generic
+ * classification-tier phrase ("The strongest move available," "A solid,
+ * reasonable move"). Checked in priority order, first match wins; never
+ * fabricates a claim this file can't verify (no invented "this sets up a
+ * fork" or "this wins the exchange" language) — a quiet move that
+ * doesn't trip any detector below (an ordinary pawn shuffle to a
+ * non-central square that develops nothing and threatens nothing) simply
+ * falls through to the classification-tier text via `explanationFor`,
+ * same honest fallback as before this existed. Only reached for
+ * classifications outside mistake/blunder-with-a-matched-concept — those
+ * already get a real, specific problem description from
+ * `explanationFor`'s own concept branch, which nothing here overrides.
+ */
+function groundedExplanation(move: Move, fenAfter: string, classification: MoveClassification): string | null {
+  const pieceName = pieceNameOf(move.piece);
+  const isCheck = move.san.includes("+");
+  const threat = immediateCaptureThreat(fenAfter, move.to);
+
+  if (move.captured && isCheck) {
+    return `Captures the ${pieceNameOf(move.captured)} on ${move.to} with check — a forcing move that wins material and gives the opponent no time to respond freely.`;
+  }
+  if (move.captured) {
+    return `Captures the ${pieceNameOf(move.captured)} on ${move.to}, picking up material.`;
+  }
+  if (isCheck) {
+    return "Gives check, forcing an immediate response — real tempo, since the opponent has to deal with the king before doing anything else.";
+  }
+  if (move.san === "O-O" || move.san === "O-O-O") {
+    return `Castles ${move.san === "O-O" ? "kingside" : "queenside"}, tucking the king away from the center and connecting the rooks — a concrete king-safety improvement.`;
+  }
+  if (threat) {
+    return `Creates an immediate threat to capture the ${pieceNameOf(threat.captured)} on ${threat.to} next move.`;
+  }
+  if ((move.piece === "n" || move.piece === "b") && MINOR_PIECE_HOME_SQUARES[move.color].has(move.from)) {
+    return `Develops the ${pieceName} off its starting square toward the center — a normal early-game priority.`;
+  }
+  if (CENTER_SQUARES.has(move.to)) {
+    return `Moves into the center (${move.to}), claiming one of the board's most valuable squares.`;
+  }
+  if (move.piece === "p" && classification !== "forced" && createsDoubledPawn(fenAfter, move.to[0], move.color)) {
+    return `This pawn move creates a doubled pawn on the ${move.to[0]}-file — not necessarily bad, but a real structural change worth noticing.`;
+  }
+  return null;
+}
+
+/**
+ * The explanation `buildMoveAnalysis` actually stores: a matched mistake/
+ * blunder concept (`explanationFor`'s own branch) always wins first —
+ * that's the most specific, already-real information available. Every
+ * other case tries `groundedExplanation` before falling back to
+ * `explanationFor`'s generic classification-tier text, so a learner
+ * reading "Best" or "Good" gets a reason grounded in what the move
+ * actually did on the board, not just a repeated tier label.
+ */
+export function explainMove(move: Move, fenAfter: string, classification: MoveClassification, conceptIds: string[]): string {
+  const hasMatchedMistakeConcept = (classification === "mistake" || classification === "blunder") && conceptIds.length > 0;
+  if (!hasMatchedMistakeConcept) {
+    const grounded = groundedExplanation(move, fenAfter, classification);
+    if (grounded) return grounded;
+  }
+  return explanationFor(classification, conceptIds);
+}
+
 export interface BuildMoveAnalysisInput {
   moveNumber: number;
   color: "w" | "b";
@@ -302,6 +432,10 @@ export interface BuildMoveAnalysisInput {
   bestMoveSan: string;
   /** Number of legal moves available in the position before this move. */
   legalMoveCountBefore: number;
+  /** UCI form of the played move (chess-rules' `moveUci`) — see lib/moveClassification.ts's `isEngineBestByIdentity`. */
+  playedUci?: string;
+  /** UCI form of the engine's own best-move selection (packages/engine's raw `bestMove` string). */
+  bestUci?: string;
 }
 
 /**
@@ -320,6 +454,8 @@ export function buildMoveAnalysis(input: BuildMoveAnalysisInput): MoveAnalysis {
     evalBefore: input.evalBefore,
     evalAfter: input.evalAfter,
     legalMoveCountBefore: input.legalMoveCountBefore,
+    playedUci: input.playedUci,
+    bestUci: input.bestUci,
   });
   const conceptIds = detectConcepts({
     move: input.move,
@@ -347,9 +483,9 @@ export function buildMoveAnalysis(input: BuildMoveAnalysisInput): MoveAnalysis {
     bestMove: input.bestMoveSan,
     evalBefore: input.evalBefore,
     evalAfter: input.evalAfter,
-    evalLoss: computeEvalLoss(input.evalBefore, input.evalAfter, input.color),
+    evalLoss: computeEvalLoss(input.evalBefore, input.evalAfter, input.color, input.playedUci, input.bestUci),
     classification,
-    explanation: mateExplanation ?? explanationFor(classification, conceptIds),
+    explanation: mateExplanation ?? explainMove(input.move, input.fenAfter, classification, conceptIds),
     conceptIds,
     recommendedLessonIds: [],
   };

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildPgn, gameStatus, replayPgn, tryMove } from "@movewise/chess-rules";
-import { buildDemoGameReview, buildMoveAnalysis, canAnalyze, explanationFor, type MoveClassification } from "./gameAnalysis";
+import { buildDemoGameReview, buildMoveAnalysis, canAnalyze, explainMove, explanationFor, type MoveClassification } from "./gameAnalysis";
 
 const ALL_CLASSIFICATIONS: MoveClassification[] = [
   "brilliant",
@@ -32,6 +32,68 @@ describe("explanationFor", () => {
 
   it("falls back to generic classification text when no concept was detected", () => {
     expect(explanationFor("blunder", [])).toBe("A costly mistake — this loses significant material or position.");
+  });
+});
+
+describe("explainMove", () => {
+  it("names the capture and notes it also gives check", () => {
+    const result = tryMove("4k3/4p3/8/8/8/8/8/K3Q3 w - - 0 1", { from: "e1", to: "e7" })!;
+    expect(result.move.san).toBe("Qxe7+");
+    expect(explainMove(result.move, result.fenAfter, "best", [])).toMatch(/[Cc]aptures the pawn on e7 with check/);
+  });
+
+  it("names a capture with no check", () => {
+    const result = tryMove("4k3/8/8/3p4/8/2N5/8/4K3 w - - 0 1", { from: "c3", to: "d5" })!;
+    expect(explainMove(result.move, result.fenAfter, "best", [])).toMatch(/[Cc]aptures the pawn on d5/);
+    expect(explainMove(result.move, result.fenAfter, "best", [])).not.toMatch(/check/);
+  });
+
+  it("names a check with no capture", () => {
+    const result = tryMove("4k3/8/8/8/8/8/8/K3Q3 w - - 0 1", { from: "e1", to: "e7" })!;
+    expect(result.move.captured).toBeUndefined();
+    expect(explainMove(result.move, result.fenAfter, "best", [])).toMatch(/[Gg]ives check/);
+  });
+
+  it("names castling as a king-safety improvement", () => {
+    const result = tryMove("4k3/8/8/8/8/8/8/4K2R w K - 0 1", { from: "e1", to: "g1" })!;
+    expect(result.move.san).toBe("O-O");
+    expect(explainMove(result.move, result.fenAfter, "best", [])).toMatch(/[Cc]astles kingside/);
+  });
+
+  it("names a genuinely verified newly-created capture threat, not an invented tactic", () => {
+    const result = tryMove("4k3/8/8/4p3/8/8/8/2N1K3 w - - 0 1", { from: "c1", to: "d3" })!;
+    expect(explainMove(result.move, result.fenAfter, "good", [])).toMatch(/threat to capture the pawn on e5/);
+  });
+
+  it("names development off the starting square", () => {
+    const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    const result = tryMove(START_FEN, { from: "g1", to: "f3" })!;
+    expect(explainMove(result.move, result.fenAfter, "best", [])).toMatch(/[Dd]evelops the knight/);
+  });
+
+  it("names central control", () => {
+    const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    const result = tryMove(START_FEN, { from: "e2", to: "e4" })!;
+    expect(explainMove(result.move, result.fenAfter, "best", [])).toMatch(/into the center/);
+  });
+
+  it("names a newly-created doubled pawn as a real structural fact, not a value judgment", () => {
+    const result = tryMove("4k3/8/8/2P5/8/8/2P1P3/4K3 w - - 0 1", { from: "c2", to: "c3" })!;
+    expect(explainMove(result.move, result.fenAfter, "good", [])).toMatch(/doubled pawn on the c-file/);
+  });
+
+  it("a matched mistake/blunder concept always wins over any grounded detector", () => {
+    // hanging-pieces concept text must not be pre-empted by, say, a
+    // capture/check/development detector also matching the same move.
+    const result = tryMove("4k3/4p3/8/8/8/8/8/K3Q3 w - - 0 1", { from: "e1", to: "e7" })!;
+    expect(explainMove(result.move, result.fenAfter, "blunder", ["hanging-pieces"])).toMatch(/capture it for free/);
+  });
+
+  it("falls back to the plain classification text when no detector fires — never fabricates a claim", () => {
+    // A quiet rook shuffle: no capture, no check, not central, not a
+    // minor piece leaving its home square, no new threat, no doubled pawn.
+    const result = tryMove("4k3/8/8/8/8/8/8/R3K3 w - - 0 1", { from: "a1", to: "b1" })!;
+    expect(explainMove(result.move, result.fenAfter, "good", [])).toBe(explanationFor("good", []));
   });
 });
 

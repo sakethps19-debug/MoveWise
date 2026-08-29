@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { tryMove, legalMoves, type Move } from "@movewise/chess-rules";
-import { classifyMove, computeEvalLoss, isSacrifice } from "./moveClassification";
+import { tryMove, legalMoves, moveUci, type Move } from "@movewise/chess-rules";
+import { classifyMove, computeEvalLoss, isEngineBestByIdentity, isSacrifice } from "./moveClassification";
 
 describe("computeEvalLoss", () => {
   it("is zero for a White move that keeps the eval unchanged", () => {
@@ -20,6 +20,44 @@ describe("computeEvalLoss", () => {
     expect(computeEvalLoss(-10, 40, "b")).toBe(50);
     // Black's move made the White-relative eval go down — good for Black.
     expect(computeEvalLoss(-10, -60, "b")).toBe(0);
+  });
+
+  it("is forced to exactly 0 when playedUci matches bestUci, even if evalBefore/evalAfter would otherwise imply a loss — the exact live production contradiction (played d5, best d5, 'Excellent'/-3cp) this override exists to prevent", () => {
+    // Two independent depth-limited engine searches disagreeing by a few
+    // cp on the identical move is ordinary shallow-search noise, not a
+    // real loss — see isEngineBestByIdentity's doc comment.
+    expect(computeEvalLoss(-5, -8, "b", "d7d5", "d7d5")).toBe(0);
+    expect(computeEvalLoss(20, 17, "w", "e2e4", "e2e4")).toBe(0);
+  });
+
+  it("still applies the identity override regardless of which side has the (irrelevant) apparent loss", () => {
+    expect(computeEvalLoss(100, 900, "w", "g1f3", "g1f3")).toBe(0); // would otherwise read as a 0-loss "gain", unaffected either way
+    expect(computeEvalLoss(100, -900, "w", "g1f3", "g1f3")).toBe(0); // would otherwise read as a huge blunder-magnitude loss
+  });
+
+  it("does not override when playedUci and bestUci differ, or either is missing", () => {
+    expect(computeEvalLoss(20, -10, "w", "e2e4", "d2d4")).toBe(30);
+    expect(computeEvalLoss(20, -10, "w", "e2e4", undefined)).toBe(30);
+    expect(computeEvalLoss(20, -10, "w")).toBe(30);
+  });
+});
+
+describe("isEngineBestByIdentity", () => {
+  it("is true only when both UCI strings are present and identical", () => {
+    expect(isEngineBestByIdentity("e2e4", "e2e4")).toBe(true);
+    expect(isEngineBestByIdentity("e2e4", "d2d4")).toBe(false);
+    expect(isEngineBestByIdentity(undefined, "d2d4")).toBe(false);
+    expect(isEngineBestByIdentity("e2e4", undefined)).toBe(false);
+    expect(isEngineBestByIdentity(undefined, undefined)).toBe(false);
+  });
+
+  it("compares by UCI identity, not SAN — a decorated SAN string is never the comparison basis", () => {
+    // moveUci strips exactly what SAN can carry that UCI never does
+    // (check/mate suffixes, disambiguation letters).
+    const forced = tryMove(FORCED_FEN, { from: "h1", to: "g2" })!;
+    expect(forced.move.san).toBe("Kxg2"); // SAN carries a capture marker UCI doesn't
+    expect(moveUci(forced.move)).toBe("h1g2");
+    expect(isEngineBestByIdentity(moveUci(forced.move), "h1g2")).toBe(true);
   });
 });
 
@@ -140,5 +178,61 @@ describe("classifyMove", () => {
 
   it("classifies a >300cp loss as 'blunder' — a hung queen for nothing", () => {
     expect(classifyMove({ ...baseInput(), evalBefore: 20, evalAfter: -900 })).toBe("blunder");
+  });
+
+  it("classifies a White move as 'best' with zero loss when playedUci equals bestUci, even though evalBefore/evalAfter alone would imply a small loss (item 8: White)", () => {
+    expect(
+      classifyMove({
+        ...baseInput(),
+        evalBefore: 20,
+        evalAfter: 17, // would otherwise read as a 3cp loss -> "excellent"
+        playedUci: moveUci(baseInput().move),
+        bestUci: moveUci(baseInput().move),
+      }),
+    ).toBe("best");
+  });
+
+  it("classifies a Black move as 'best' with zero loss when playedUci equals bestUci, even though evalBefore/evalAfter alone would imply a small loss (item 8: Black)", () => {
+    // A genuine Black-to-move ply (bishop e5-d4, quiet and legal), not a
+    // White one reused with color flipped, so the mover-perspective sign
+    // logic in computeEvalLoss is actually exercised.
+    const blackMoved = tryMove("6k1/8/8/4b3/8/8/8/7K b - - 0 1", { from: "e5", to: "d4" })!;
+    expect(blackMoved.move.color).toBe("b");
+    expect(
+      classifyMove({
+        move: blackMoved.move,
+        fenAfter: blackMoved.fenAfter,
+        color: "b",
+        legalMoveCountBefore: 13,
+        evalBefore: -5,
+        evalAfter: -8, // would otherwise read (mirrored for Black) as a 3cp loss -> "excellent"
+        playedUci: moveUci(blackMoved.move),
+        bestUci: moveUci(blackMoved.move),
+      }),
+    ).toBe("best");
+  });
+
+  it("regression (item 9): the exact live production contradiction — played d5, best d5, small independent-search eval noise — classifies Best with zero loss, never Excellent with a nonzero loss", () => {
+    // Reproduces the reported live bug: Played=d5, Best=d5, displayed
+    // "Eval loss: -3cp", Rating: Excellent — internally inconsistent,
+    // since an identical played/best move can never have actually lost
+    // anything. A real Black pawn push to d5 (d7-d5), so this exercises
+    // the actual UCI string a "d5" move produces, not a hand-typed
+    // stand-in.
+    const blackMoved = tryMove("3k4/3p4/8/8/8/8/8/7K b - - 0 1", { from: "d7", to: "d5" })!;
+    expect(blackMoved.move.san).toBe("d5");
+    expect(moveUci(blackMoved.move)).toBe("d7d5");
+    const result = classifyMove({
+      move: blackMoved.move,
+      fenAfter: blackMoved.fenAfter,
+      color: "b",
+      legalMoveCountBefore: 6,
+      evalBefore: -5,
+      evalAfter: -8,
+      playedUci: moveUci(blackMoved.move),
+      bestUci: moveUci(blackMoved.move),
+    });
+    expect(result).toBe("best");
+    expect(computeEvalLoss(-5, -8, "b", moveUci(blackMoved.move), moveUci(blackMoved.move))).toBe(0);
   });
 });

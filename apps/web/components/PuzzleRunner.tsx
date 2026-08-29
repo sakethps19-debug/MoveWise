@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { Puzzle } from "@movewise/exercise-schema";
 import { legalTargetsFrom, moveMatches, tryMove, type Square } from "@movewise/chess-rules";
+import { recordGuestPracticeAttempt, recordGuestWarmUpCompletion } from "../lib/guestProgress";
 import { Board } from "./Board";
 import { StepFooter } from "./exercises/StepFooter";
 import type { StepStatus } from "./exercises/types";
@@ -27,10 +28,11 @@ export function PuzzleRunner({
   completionMessage,
   completionHref = "/",
   completionLinkText = "Back to learning path",
+  isWarmUp = false,
 }: {
   puzzles: Puzzle[];
   principleTitle: string;
-  /** Bound server action recording (puzzleId, correct) — omitted for a guest, whose puzzle practice is session-local only (see app/actions.ts's recordPuzzleAttemptAction). */
+  /** Bound server action recording (puzzleId, correct) — omitted for a guest, whose puzzle practice isn't persisted server-side (see app/actions.ts's recordPuzzleAttemptAction); a guest's attempts are instead recorded locally below (lib/guestProgress.ts), same "visible on this device only" rule as the rest of guest state. */
   onAttempt?: (puzzleId: string, correct: boolean) => void;
   /** Overrides the header's "{principleTitle} — Practice" label — used by the remediation flow (RemediationRunner.tsx), which reuses this same puzzle-solving UI for its easier-puzzle round under a "Review" framing instead. */
   heading?: string;
@@ -39,6 +41,8 @@ export function PuzzleRunner({
   completionMessage?: string;
   completionHref?: string;
   completionLinkText?: string;
+  /** Only the Daily warm-up route sets this — drives the guest "Warm-ups completed" Progress stat, distinct from an ordinary puzzle-pool completion. */
+  isWarmUp?: boolean;
 }) {
   const [index, setIndex] = useState(0);
   const [status, setStatus] = useState<StepStatus>("active");
@@ -84,6 +88,7 @@ export function PuzzleRunner({
     setSelected(null);
     if (isLastPuzzle) {
       setFinished(true);
+      if (!onAttempt && isWarmUp) recordGuestWarmUpCompletion();
     } else {
       setIndex((i) => i + 1);
     }
@@ -116,12 +121,14 @@ export function PuzzleRunner({
     // shouldn't block the puzzle flow on failure, but it also shouldn't
     // be silent — see the syncError notice below.
     if (!result || !moveMatches(result.move, puzzle.correctMoves)) {
-      Promise.resolve(onAttempt?.(puzzle.id, false)).catch(() => setSyncError(true));
+      if (onAttempt) Promise.resolve(onAttempt(puzzle.id, false)).catch(() => setSyncError(true));
+      else recordGuestPracticeAttempt(false);
       setStatus("incorrect");
       setFeedback(puzzle.feedback.default ?? "Not quite — try again.");
       return;
     }
-    Promise.resolve(onAttempt?.(puzzle.id, true)).catch(() => setSyncError(true));
+    if (onAttempt) Promise.resolve(onAttempt(puzzle.id, true)).catch(() => setSyncError(true));
+    else recordGuestPracticeAttempt(true);
     setSolved((s) => s + 1);
     setStatus("correct");
     setFeedback(null);

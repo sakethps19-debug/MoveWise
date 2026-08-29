@@ -73,13 +73,16 @@ test("practice hub: aggregates unlocked/locked pools across units, plus needs-re
   await page.waitForURL("/practice/meet-the-pieces.the-rook");
 
   // The bishop's pool is still locked — its own sub-lessons aren't done —
-  // and names the exact lesson that unlocks it, with a working link.
+  // names the exact lesson that unlocks it, and offers a real, always-
+  // enabled "Go to lesson" CTA there (not a dim inline link indistinguishable
+  // from the rest of the disabled-looking row).
   await page.goto("/practice");
   await expect(page.getByText("The bishop", { exact: true })).toBeVisible();
-  const bishopPool = page.locator(".mw-lesson-node--locked").filter({ hasText: "The bishop" });
-  await expect(bishopPool).toContainText("finish");
-  const bishopPrereqLink = bishopPool.getByRole("link", { name: "Meet the bishop" });
+  const bishopPool = page.locator(".mw-lesson-node--locked-cta").filter({ hasText: "The bishop" });
+  await expect(bishopPool).toContainText('finish "Meet the bishop" to unlock');
+  const bishopPrereqLink = bishopPool.getByRole("link", { name: "Go to lesson" });
   await expect(bishopPrereqLink).toBeVisible();
+  await expect(bishopPrereqLink).toBeEnabled();
   await expect(bishopPrereqLink).toHaveAttribute("href", "/learn/meet-the-pieces.05-meet-the-bishop");
   await expect(page.getByRole("link", { name: /The bishop/ })).toHaveCount(0);
 

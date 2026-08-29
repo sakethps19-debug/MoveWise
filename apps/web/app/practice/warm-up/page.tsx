@@ -33,6 +33,7 @@ export default async function WarmUpPracticePage() {
         puzzles={puzzles}
         principleTitle="Daily warm-up"
         onAttempt={user ? recordPuzzleAttemptAction : undefined}
+        isWarmUp
       />
     </main>
   );

@@ -138,3 +138,77 @@ test("play mode: the exact reported reproduction (1363x936) — board bottom no 
   expect(boardRect).not.toBeNull();
   expect(boardRect!.y + boardRect!.height).toBeLessThanOrEqual(936);
 });
+
+/**
+ * P1/P2: the interactive review workspace (GameReviewWorkspace.tsx)
+ * replaced a single, ever-widening `<table>` — this proves a genuinely
+ * multi-move ("realistic long") game's review stays usable on iPad
+ * landscape and mobile specifically: no page-level horizontal scroll,
+ * the move list scrolls within its own bounded box instead of growing
+ * the page, and the board + selected-move detail stay visible together
+ * (the iPad-landscape requirement) rather than the detail panel
+ * scrolling away from the board.
+ */
+const LONG_GAME_VIEWPORTS = [
+  { name: "12.9in iPad landscape", width: 1366, height: 1024 },
+  { name: "mobile portrait", width: 390, height: 844 },
+];
+
+for (const vp of LONG_GAME_VIEWPORTS) {
+  test(`a realistic long game's review workspace stays usable at ${vp.name} (${vp.width}x${vp.height})`, async ({ page }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto("/play");
+    await expect(page.getByRole("status")).toContainText("Your move", { timeout: 15_000 });
+
+    // Four real White moves (always legal from these squares regardless
+    // of Black's actual live-engine replies) — enough plies that the move
+    // list genuinely needs to scroll, not just an illustrative one-mover.
+    for (const [from, to] of [
+      ["e2", "e4"],
+      ["g1", "f3"],
+      ["f1", "c4"],
+      ["b1", "c3"],
+    ] as const) {
+      await page.locator(`[aria-label*="${from},"]`).click();
+      await page.locator(`[aria-label*="${to},"]`).click();
+      await expect(page.getByRole("status")).toContainText("Your move", { timeout: 20_000 });
+    }
+
+    await page.getByRole("button", { name: "Resign" }).click();
+    await expect(page.getByText(/You resigned/)).toBeVisible();
+    await page.getByRole("button", { name: "Analyze this game" }).click();
+    await expect(page.getByRole("heading", { name: "2. Review the game" })).toBeVisible({ timeout: 60_000 });
+
+    await expectNoHorizontalScroll(page);
+
+    // Full game (not just the learner's own 4 moves) to get a comfortable
+    // margin of rows past the list's own scroll cap.
+    await page.getByRole("button", { name: "Full game" }).click();
+
+    // The move list scrolls within its own box — it must not be tall
+    // enough to show all rows unclipped once there are this many plies.
+    const moveList = page.locator(".mw-game-review-table");
+    const { scrollHeight, clientHeight } = await moveList.evaluate((el) => ({
+      scrollHeight: el.scrollHeight,
+      clientHeight: el.clientHeight,
+    }));
+    expect(scrollHeight).toBeGreaterThan(clientHeight);
+
+    // Board, the selected move's detail, and its explanation are all
+    // visible together without scrolling *between* them — the page as a
+    // whole can (and does) need scrolling to reach the review section at
+    // all (the live final-position board and move history sit above it),
+    // but once scrolled to the board, the detail panel must already be
+    // in the same viewport, not one further scroll away.
+    await page.locator(".mw-review-move-row").first().click();
+    const board = page.locator(".mw-review-board-col .mw-chessboard");
+    const detail = page.locator(".mw-review-detail-explanation").first();
+    // scrollIntoViewIfNeeded only scrolls the minimum distance needed —
+    // block:"start" instead, so the board's *top* lands at the viewport's
+    // top, giving the nav controls and detail panel below it (same flex
+    // column) the most possible room to also land inside the viewport.
+    await board.evaluate((el) => el.scrollIntoView({ block: "start" }));
+    await expect(board).toBeInViewport();
+    await expect(detail).toBeInViewport();
+  });
+}

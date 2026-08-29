@@ -128,27 +128,33 @@ export function PracticeHub({
               );
             })}
             {lockedPools.map(({ unit, principle, nextNeededLesson }) => (
-              <div key={principle.id} aria-disabled="true">
-                <div className="mw-lesson-node mw-lesson-node--locked">
-                  <span className="mw-lesson-node-icon" aria-hidden="true">
-                    🔒
+              // Real, confirmed gap: the old design put a plain inline text
+              // link ("finish X") inside a row whose whole opacity was
+              // dimmed to 0.55 (the same treatment as a genuinely disabled
+              // lesson node) — the one actionable thing here read as
+              // disabled along with everything else, not as the enabled
+              // path forward it actually is. Only the lock icon stays
+              // dimmed now (design-system.css's own comment explains why
+              // title/reason don't — dimming them failed real WCAG
+              // contrast checks); the CTA to the real next lesson is a
+              // normal, full-opacity, full-size button — always enabled,
+              // since it always points somewhere real.
+              <div key={principle.id} className="mw-lesson-node mw-lesson-node--locked-cta">
+                <span className="mw-lesson-node-icon" aria-hidden="true">
+                  🔒
+                </span>
+                <span className="mw-lesson-node-body">
+                  <span className="mw-lesson-node-title">{principle.title}</span>
+                  <span className="mw-lesson-node-reason">
+                    {unit.title}
+                    {nextNeededLesson ? ` · finish "${nextNeededLesson.title}" to unlock` : " · finish its lessons to unlock"}
                   </span>
-                  <span className="mw-lesson-node-body">
-                    <span className="mw-lesson-node-title">{principle.title}</span>
-                    <span className="mw-lesson-node-reason">
-                      {unit.title}
-                      {nextNeededLesson ? (
-                        <>
-                          {" · finish "}
-                          <Link href={`/learn/${nextNeededLesson.id}`}>{nextNeededLesson.title}</Link>
-                          {" to unlock"}
-                        </>
-                      ) : (
-                        " · finish its lessons to unlock"
-                      )}
-                    </span>
-                  </span>
-                </div>
+                </span>
+                {nextNeededLesson && (
+                  <Link href={`/learn/${nextNeededLesson.id}`} className="mw-btn mw-btn--ghost mw-lesson-node-cta">
+                    Go to lesson
+                  </Link>
+                )}
               </div>
             ))}
           </div>

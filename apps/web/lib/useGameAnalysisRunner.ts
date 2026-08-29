@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { legalMoves, parseUci, tryMove, type Move } from "@movewise/chess-rules";
+import { legalMoves, moveUci, parseUci, tryMove, type Move } from "@movewise/chess-rules";
 import type { EngineHandle } from "@movewise/engine";
 import { buildMoveAnalysis, type GameReview } from "./gameAnalysis";
 import { saveGameAnalysisAction, buildGuestGameReviewAction, type SubmittedMoveAnalysis } from "../app/actions";
@@ -47,6 +47,11 @@ export function useGameAnalysisRunner(engineRef: React.RefObject<EngineHandle | 
         const after = await engine.evaluate(ply.fenAfter, { depth: 10 });
         const bestAttempt = parseUci(before.bestMove);
         const bestMoveSan = tryMove(ply.fenBefore, bestAttempt)?.move.san ?? before.bestMove;
+        // Compared by UCI, not SAN — see lib/moveClassification.ts's
+        // isEngineBestByIdentity for why (a real production bug: two
+        // independent engine searches can disagree by a few cp even when
+        // the played move IS the engine's own top choice).
+        const playedUci = moveUci(ply.move);
 
         analyses.push(
           buildMoveAnalysis({
@@ -58,6 +63,8 @@ export function useGameAnalysisRunner(engineRef: React.RefObject<EngineHandle | 
             evalAfter: after.score,
             bestMoveSan,
             legalMoveCountBefore: legalCountBefore,
+            playedUci,
+            bestUci: before.bestMove,
           }),
         );
         setProgress({ done: i + 1, total: plies.length });

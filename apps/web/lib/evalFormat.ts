@@ -12,7 +12,6 @@
  * showed as literally "-99020cp", the "absurd value" bug this fixes.
  */
 import { decodeMateDistance } from "@movewise/engine";
-import { computeEvalLoss } from "./moveClassification";
 
 /** True if `score` (White-relative, packages/engine's convention) encodes a forced mate rather than an ordinary centipawn evaluation. */
 export function isMateScore(score: number): boolean {
@@ -78,19 +77,29 @@ export function describeMateTransition(
 }
 
 /**
- * What the "Eval loss" column actually shows: the mate-transition
- * phrase when either side of the move touches a mate score, otherwise
- * the ordinary `-NNcp` (or "—" for zero loss) it always showed.
+ * What the "Eval loss" column actually shows: the mate-transition phrase
+ * when either side of the move touches a mate score, otherwise the
+ * ordinary `NNcp` (or "—" for zero) — a non-negative *magnitude*, never
+ * a signed delta. A previous version recomputed the loss here from raw
+ * evalBefore/evalAfter (via `computeEvalLoss` with no UCI arguments) and
+ * always prepended a literal "-", independently of whatever
+ * classification/evalLoss `MoveAnalysis` had already settled on — a real
+ * production bug: a move classified `best` (loss 0, by UCI identity —
+ * see lib/moveClassification.ts) could still display "-3cp" here,
+ * because this function had silently redone the computation with less
+ * information than `buildMoveAnalysis` had. Callers now pass the
+ * already-computed `evalLoss` directly so the displayed number can never
+ * drift from the classification it's shown next to.
  */
 export function formatEvalLoss(
   evalBefore: number,
   evalAfter: number,
   color: "w" | "b",
   isCheckmateNow: boolean,
+  evalLoss: number,
 ): string {
   if (isMateScore(evalBefore) || isMateScore(evalAfter)) {
     return describeMateTransition(evalBefore, evalAfter, color, isCheckmateNow) ?? "—";
   }
-  const loss = computeEvalLoss(evalBefore, evalAfter, color);
-  return loss > 0 ? `-${loss}cp` : "—";
+  return evalLoss > 0 ? `${evalLoss}cp` : "—";
 }

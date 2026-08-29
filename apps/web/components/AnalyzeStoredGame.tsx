@@ -3,8 +3,9 @@
 import { replayPgn } from "@movewise/chess-rules";
 import { useStockfishEngine } from "../lib/useStockfishEngine";
 import { useGameAnalysisRunner } from "../lib/useGameAnalysisRunner";
+import { positionsFromPlies } from "../lib/gameAnalysis";
 import { Button } from "./ui/Button";
-import { GameReviewWithRetry } from "./GameReviewWithRetry";
+import { GameReviewWorkspace } from "./GameReviewWorkspace";
 
 /**
  * The game-history counterpart to PlayRunner's own "Analyze this game"
@@ -19,10 +20,12 @@ export function AnalyzeStoredGame({
   gameId,
   pgn,
   lessonTitleById,
+  playerColor,
 }: {
   gameId: string;
   pgn: string;
   lessonTitleById: Record<string, string>;
+  playerColor: "w" | "b";
 }) {
   const { engineRef, ready: engineReady, error: engineError } = useStockfishEngine(true);
   const { analyzing, progress, review, error, runAnalysis } = useGameAnalysisRunner(engineRef);
@@ -30,10 +33,11 @@ export function AnalyzeStoredGame({
 
   if (review) {
     return (
-      <GameReviewWithRetry
+      <GameReviewWorkspace
         review={review}
         lessonTitleById={lessonTitleById}
-        fenBeforeByPly={plies.map((p) => p.fenBefore)}
+        positions={positionsFromPlies(plies)}
+        learnerColor={playerColor}
       />
     );
   }
