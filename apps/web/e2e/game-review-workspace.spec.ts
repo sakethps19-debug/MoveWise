@@ -167,3 +167,66 @@ test("Copy PGN copies the actual game played, reconstructed from the review's ow
   const clipboardText = await page.evaluate(() => navigator.clipboard.readText());
   expect(clipboardText).toContain("1. e4"); // the real move actually played, not fabricated content
 });
+
+/**
+ * P0 "repair analysis trust": end-to-end regression for the exact
+ * reported inconsistency — a move analyzed as "Played: d5, Best: d5,
+ * Eval loss: -3cp, Rating: Excellent". That specific combination is
+ * internally contradictory (an identical played/best move can never
+ * have a nonzero loss or a non-Best rating), and lib/moveClassification.ts's
+ * `isEngineBestByIdentity` override already has a dedicated unit
+ * regression for the literal SAN (moveClassification.test.ts). This test
+ * proves the same invariant holds end-to-end, through the real browser,
+ * the real Stockfish Worker, and the real rendered UI — for *every* move
+ * of an actually-played game, not just one hand-picked position, since
+ * which exact move the live engine calls "best" isn't itself something a
+ * test should hardcode.
+ */
+test("no move in a real, engine-analyzed game shows an internally contradictory Played=Best rating with a nonzero eval loss @smoke", async ({
+  page,
+}) => {
+  await page.goto("/play");
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 15_000 });
+
+  // A short, real game — the opening two moves are enough to exercise
+  // several real engine-analyzed plies (including White's own d-pawn
+  // push to d4, and whatever Black plays in reply) without a slow test.
+  await page.locator('[aria-label*="d2,"]').click();
+  await page.locator('[aria-label*="d4,"]').click();
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 20_000 });
+  await page.locator('[aria-label*="c2,"]').click();
+  await page.locator('[aria-label*="c4,"]').click();
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 20_000 });
+
+  await page.getByRole("button", { name: "Resign" }).click();
+  await expect(page.getByText(/You resigned/)).toBeVisible();
+  await page.getByRole("button", { name: "Analyze this game" }).click();
+  await expect(page.getByRole("heading", { name: "2. Review the game" })).toBeVisible({ timeout: 60_000 });
+
+  // "Full game" so Stockfish's own replies are included too — the
+  // original report didn't specify whose move it was.
+  const fullGameToggle = page.getByRole("button", { name: "Full game" });
+  if (await fullGameToggle.isVisible()) await fullGameToggle.click();
+
+  const rowCount = await page.locator(".mw-review-move-row").count();
+  expect(rowCount).toBeGreaterThan(0);
+
+  for (let i = 0; i < rowCount; i++) {
+    await page.locator(".mw-review-move-row").nth(i).click();
+
+    const bestLineCount = await page.locator(".mw-review-detail-best").count();
+    const evalLossText = (await page.locator(".mw-review-detail-eval-loss .mw-game-review-mono").textContent()) ?? "";
+    const ratingText = (await page.locator(".mw-review-detail-head .mw-badge").textContent()) ?? "";
+
+    if (bestLineCount === 0) {
+      // No "Best <move>" line shown at all means playedMove === bestMove
+      // (see GameReviewWorkspace.tsx's own conditional) — the exact
+      // "Played: d5, Best: d5" case. This must never show any nonzero
+      // eval loss, and must never be rated anything but Best/Brilliant
+      // (or Forced, the one case where a single legal move trivially
+      // equals the engine's own "best" search result too).
+      expect(evalLossText.trim()).toBe("—");
+      expect(["Best", "Brilliant", "Forced"]).toContain(ratingText.trim());
+    }
+  }
+});
