@@ -141,22 +141,26 @@ async function migrateGuestProgress(userId: string, formData: FormData): Promise
     // same `recordAttemptsAndUpdateMastery` path a live completion uses,
     // not a separate ad hoc calculation.
     //
-    // Gated on `!existing`: this function runs on *every* signup and login
-    // that carries a non-empty guestProgress field, and nothing ever clears
-    // the browser's localStorage blob afterward (migrateGuestProgress has
-    // no way to reach back into the client to do so, and no caller does it
-    // either) — so an account that logs out and back in on the same browser
-    // resubmits the exact same stale guest data on every login. Without this
-    // guard, that replayed every time: each login would createMany a fresh
-    // batch of synthesized ExerciseAttempt rows for a lesson this account
-    // had already migrated, inflating the concept's attempt history (and,
-    // via computeReviewSchedule reading each batch's brand-new `createdAt`,
-    // pushing nextRevisionDueAt further out on every login even though no
-    // real practice happened) — exactly the "double-counting" a repeated,
-    // non-idempotent migration would cause. A LessonCompletion row already
-    // existing for this (user, lesson) means the one-time synthesis already
-    // ran (or a real signed-in completion already supplied better evidence
-    // directly) — either way there's nothing left to migrate.
+    // Gated on `!existing`: this function itself has no way to reach back
+    // into the client to clear the localStorage blob it just read, and the
+    // one thing that does clear it (lib/useEffectiveCompletions.ts, once a
+    // signed-in page renders real server completions) is an async client
+    // effect racing this very redirect — it usually wins, but "usually" is
+    // not "always" (a crash/close before that effect fires, a second tab
+    // still holding the stale value, an interrupted first render). Whenever
+    // it doesn't, this function runs again with the exact same stale data
+    // on a later login. Without this guard, that replay wasn't a no-op:
+    // each run would createMany a fresh batch of synthesized ExerciseAttempt
+    // rows for a lesson this account had already migrated, inflating the
+    // concept's attempt history (and, via computeReviewSchedule reading each
+    // batch's brand-new `createdAt`, pushing nextRevisionDueAt further out
+    // on every replay even though no real practice happened) — exactly the
+    // "double-counting" a non-idempotent migration would cause. A
+    // LessonCompletion row already existing for this (user, lesson) means
+    // the one-time synthesis already ran (or a real signed-in completion
+    // already supplied better evidence directly) — either way there's
+    // nothing left to migrate, so a replay is now a clean no-op regardless
+    // of whether the client-side clear won its race.
     const migratedLesson = !existing ? loadLesson(lessonId) : null;
     if (migratedLesson) {
       const attempts: AttemptRecord[] = [

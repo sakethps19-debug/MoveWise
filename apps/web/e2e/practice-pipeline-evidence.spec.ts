@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
-import { gotoGuestLesson } from "./testHelpers";
+import { gotoGuestLesson, seedGuestProgress } from "./testHelpers";
 
 /**
  * P1 "connect the practice pipeline end to end": lib/practiceScheduler.ts's
@@ -238,15 +238,19 @@ test("guest/account sync doesn't duplicate review work: a stale, uncleared local
   page,
 }) => {
   test.setTimeout(90_000); // a full guest lesson + signup + logout + login, same reasoning as the lesson-mistake test above
-  // Real, confirmed gap this locks in: migrateGuestProgress
-  // (app/actions.ts) runs on every signup *and* login that carries a
-  // non-empty guestProgress field, and nothing ever clears the browser's
-  // localStorage afterward — login/LoginForm.tsx and signup/page.tsx both
-  // read it fresh from localStorage on every page load. Before this fix,
-  // each subsequent login on the same browser re-synthesized and
-  // re-inserted the same batch of ExerciseAttempt rows, inflating the
-  // concept's attempt history and pushing nextRevisionDueAt out further
-  // on every login even though no real practice happened.
+  // Real, confirmed gap this locks in: migrateGuestProgress (app/actions.ts)
+  // runs on every signup *and* login that carries a non-empty guestProgress
+  // field. The one thing that clears it (lib/useEffectiveCompletions.ts,
+  // once a signed-in page renders real completions) is an async client
+  // effect that usually wins the race against a later logout+login on the
+  // same browser — so this test doesn't rely on that race going the
+  // fragile way; it explicitly re-seeds the exact stale blob this browser
+  // already migrated once (seedGuestProgress, below) right before the
+  // second login, the scenario migrateGuestProgress's own `!existing`
+  // guard exists for. Before that guard existed, this replay wasn't a
+  // no-op: it re-inserted the same batch of ExerciseAttempt rows, inflating
+  // the concept's attempt history and pushing nextRevisionDueAt out further
+  // even though no real practice happened.
   await gotoGuestLesson(page, "meet-the-pieces.01-welcome");
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
@@ -277,11 +281,13 @@ test("guest/account sync doesn't duplicate review work: a stale, uncleared local
   const afterSignup = JSON.parse(dbHelper("count-progress", { userId }));
   expect(afterSignup.attempts).toBeGreaterThan(0); // the guest's real mistake+completion migrated in for real
 
-  // Log out, then back in on the *same* browser context — localStorage
-  // (and its stale guestProgress blob) is never cleared by migration, so
-  // the login form resends the exact same data again.
+  // Log out, then re-seed the exact stale blob this browser already
+  // migrated once (see the doc comment above for why this doesn't rely on
+  // useEffectiveCompletions's own clearing effect having lost its race),
+  // then log back in with it still present.
   await page.getByRole("button", { name: "Sign out" }).click();
   await page.waitForURL("/");
+  await seedGuestProgress(page, ["meet-the-pieces.01-welcome"]);
   await page.goto("/login");
   await page.fill("input[name=email]", email);
   await page.fill("input[name=password]", password);

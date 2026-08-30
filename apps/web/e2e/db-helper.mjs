@@ -173,6 +173,15 @@ async function main() {
       process.stdout.write(String(count));
       break;
     }
+    case "list-exercise-attempts-for-concept": {
+      const attempts = await prisma.exerciseAttempt.findMany({
+        where: { userId: args.userId, conceptIds: { has: args.conceptId } },
+        orderBy: { createdAt: "asc" },
+        select: { correct: true, hintLevelUsed: true, lessonId: true, puzzleId: true, gameId: true, createdAt: true },
+      });
+      process.stdout.write(JSON.stringify(attempts));
+      break;
+    }
     case "count-progress": {
       const [completions, mastery, attempts] = await Promise.all([
         prisma.lessonCompletion.count({ where: { userId: args.userId } }),

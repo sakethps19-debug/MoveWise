@@ -84,6 +84,32 @@ export function GameReviewWorkspace({
     setTryingBetterMove(false);
   }, [selectedPly]);
 
+  // Real, confirmed gap: the Start/Previous/Next buttons were the only way
+  // to step through a review — Board.tsx's own squares are keyboard-
+  // operable (Tab/Enter, see e2e/keyboard-interaction.spec.ts), but this
+  // workspace's own ply navigation had no keyboard equivalent at all.
+  // Left/Right arrow keys mirror ← Previous / Next → exactly (same
+  // goTo clamp, so this can never move outside [0, lastPly]). Ignored
+  // while focus is on an editable element so this never hijacks arrow-key
+  // text-cursor movement — moot today (this component renders no text
+  // inputs) but a safe, standard guard regardless.
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        goTo(selectedPly - 1);
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        goTo(selectedPly + 1);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- goTo itself only ever depends on lastPly (fixed per review), re-declared fresh each render
+  }, [selectedPly, lastPly]);
+
   const playedSquares = currentMove && fenBeforeCurrent ? sanToSquares(fenBeforeCurrent, currentMove.playedMove) : null;
   const bestSquares =
     currentMove && fenBeforeCurrent && currentMove.playedMove !== currentMove.bestMove
