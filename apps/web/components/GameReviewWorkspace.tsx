@@ -5,7 +5,7 @@ import Link from "next/link";
 import { buildPgn, sanToSquares } from "@movewise/chess-rules";
 import type { GameReview, MoveAnalysis, MoveClassification } from "../lib/gameAnalysis";
 import { CLASSIFICATION_LABEL } from "../lib/gameAnalysis";
-import { formatEval } from "../lib/evalFormat";
+import { formatEval, formatEvalLoss } from "../lib/evalFormat";
 import { Board } from "./Board";
 import { Button } from "./ui/Button";
 import { RetryPositionPanel } from "./RetryPositionPanel";
@@ -227,10 +227,29 @@ export function GameReviewWorkspace({
                   After <span className="mw-game-review-mono">{formatEval(currentMove.evalAfter)}</span>
                 </span>
                 {currentMove.playedMove !== currentMove.bestMove && (
-                  <span>
+                  <span className="mw-review-detail-best">
                     Best <code>{currentMove.bestMove}</code>
                   </span>
                 )}
+                {/* Real, previously-fixed production bug this restores visibility
+                    for: a move whose played SAN equals its best SAN (byte-for-byte
+                    the engine's own choice) must never show a nonzero "Eval loss"
+                    here — `evalLoss` is already the exact number the classification
+                    badge above was decided from (lib/moveClassification.ts's
+                    computeEvalLoss), so this can never independently disagree with
+                    it the way the old static table's own re-derived value once did. */}
+                <span className="mw-review-detail-eval-loss">
+                  Eval loss{" "}
+                  <span className="mw-game-review-mono">
+                    {formatEvalLoss(
+                      currentMove.evalBefore,
+                      currentMove.evalAfter,
+                      currentMove.color,
+                      currentMove.playedMove.endsWith("#"),
+                      currentMove.evalLoss,
+                    )}
+                  </span>
+                </span>
               </div>
               <p className="mw-review-detail-explanation">{currentMove.explanation}</p>
 

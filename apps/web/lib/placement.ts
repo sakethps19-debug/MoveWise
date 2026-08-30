@@ -1,3 +1,9 @@
+import {
+  conceptIdsAtOrAbove,
+  BYPASS_EVIDENCE_LEVELS,
+  type ConceptEvidence,
+} from "./placementEvidence";
+
 /**
  * P0 "real placement assessment": a rated or casual player who says so at
  * onboarding gets ~14 adaptive interactions (packages/content/puzzles/placement.json,
@@ -131,8 +137,10 @@ export function nextPlacementItemId(answers: PlacementAnswer[]): string | null {
 export type PlacementLevel = "new" | "beginner" | "intermediate" | "advanced";
 
 export interface PlacementResult {
-  /** Concepts this assessment has real evidence for — safe to write as UserConceptMastery "proficient" rows and to bypass lesson-prerequisite/pool-unlock checks for, without ever calling them "completed". */
+  /** Concepts at directly_demonstrated or inferred_high_confidence evidence level — safe to write as UserConceptMastery "proficient" rows and to bypass lesson-prerequisite/pool-unlock checks for, without ever calling them "completed". Derived from `conceptEvidence`; kept for callers that only need the flat unlock set. */
   demonstratedConceptIds: string[];
+  /** The full per-concept evidence-level breakdown — see lib/placementEvidence.ts's ConceptEvidence for what each level means and why untested foundational-cluster members (king/pawn movement) are never conflated with a concept whose own item was actually answered. */
+  conceptEvidence: ConceptEvidence[];
   level: PlacementLevel;
   /** 0-1 — how many of the items actually answered (not skipped by early exit) were correct. */
   confidence: number;
@@ -144,28 +152,83 @@ export interface PlacementResult {
   itemsCorrect: number;
 }
 
+/** Every concept id any placement item (foundational cluster included) can produce evidence about — the universe `scorePlacement` reports a `ConceptEvidence` row for, so a concept never tested at all is still explicitly "unverified" rather than silently absent. */
+const ALL_EVIDENCE_CONCEPT_IDS: string[] = Array.from(
+  new Set([...FOUNDATIONAL_CLUSTER_CONCEPTS, ...PLACEMENT_ITEMS.flatMap((i) => i.conceptIds)]),
+);
+
 /**
  * Pure scoring function — no I/O, fully unit-testable. Never marks a
- * concept "demonstrated" from a single foundational-tier guess (see
- * FOUNDATIONAL_PASS_COUNT), and every core/advanced item that *was* asked
- * and answered correctly demonstrates its own concept(s) directly, since
- * those are genuine single-concept checks rather than a cluster.
+ * concept `directly_demonstrated` from a single foundational-tier guess
+ * (see FOUNDATIONAL_PASS_COUNT) — the foundational cluster's own
+ * concepts are always `inferred_high_confidence` at best (a cluster-level
+ * inference), even at a perfect 4/4, since no foundational item tests
+ * any *individual* concept on its own; every core/advanced item that
+ * *was* asked and answered correctly directly demonstrates its own
+ * concept(s), since those are genuine single-concept checks.
  */
 export function scorePlacement(answers: PlacementAnswer[]): PlacementResult {
-  const demonstrated = new Set<string>();
+  const evidenceByConceptId = new Map<string, ConceptEvidence>(
+    ALL_EVIDENCE_CONCEPT_IDS.map((conceptId) => [conceptId, { conceptId, level: "unverified", source: "not-asked" }]),
+  );
+
+  // Direct, per-item evidence first — including foundational-tier items:
+  // rook/bishop/queen/knight movement each have their own dedicated item,
+  // so a correct answer directly demonstrates THAT concept specifically,
+  // exactly like a core/advanced item does. Only concepts with no
+  // dedicated item at all (king-movement, pawn-movement, board-
+  // orientation, square-identification, captures, blocked-paths) are left
+  // for the cluster-level inference below to fill in — this is the exact
+  // distinction the earlier "2 of 4 grants the whole cluster" model
+  // erased by treating every cluster concept identically regardless of
+  // whether it was actually asked about.
+  const answeredDirectlyConceptIds = new Set<string>();
+  for (const answer of answers) {
+    const item = ITEMS_BY_ID.get(answer.itemId);
+    if (!item) continue;
+    for (const conceptId of item.conceptIds) {
+      answeredDirectlyConceptIds.add(conceptId);
+      evidenceByConceptId.set(conceptId, {
+        conceptId,
+        level: answer.correct ? "directly_demonstrated" : "unverified",
+        source: answer.itemId,
+      });
+    }
+  }
 
   const foundationalAnswers = answers.filter((a) => FOUNDATIONAL_IDS.includes(a.itemId));
   const foundationalCorrect = foundationalAnswers.filter((a) => a.correct).length;
+  // Only fill in concepts with no dedicated item at all — one that WAS
+  // directly asked about (correct or not) keeps its own direct evidence;
+  // a cluster-level inference must never overwrite a concept we have
+  // real, specific evidence is actually wrong.
+  const untestedClusterConcepts = FOUNDATIONAL_CLUSTER_CONCEPTS.filter(
+    (conceptId) => !answeredDirectlyConceptIds.has(conceptId),
+  );
   if (foundationalCorrect >= FOUNDATIONAL_PASS_COUNT) {
-    for (const conceptId of FOUNDATIONAL_CLUSTER_CONCEPTS) demonstrated.add(conceptId);
+    for (const conceptId of untestedClusterConcepts) {
+      evidenceByConceptId.set(conceptId, {
+        conceptId,
+        level: "inferred_high_confidence",
+        source: `foundational-cluster (${foundationalCorrect}/${FOUNDATIONAL_IDS.length} correct)`,
+      });
+    }
+  } else if (foundationalCorrect === 1 && foundationalAnswers.length === FOUNDATIONAL_IDS.length) {
+    // One correct out of four — too close to the inference threshold to
+    // call "unverified" outright, but not enough to trust either. Only
+    // meaningful once every foundational item has actually been asked
+    // (an early state with fewer answers so far isn't "1 of 4 final").
+    for (const conceptId of untestedClusterConcepts) {
+      evidenceByConceptId.set(conceptId, {
+        conceptId,
+        level: "needs_confirmation",
+        source: `foundational-cluster (1/${FOUNDATIONAL_IDS.length} correct)`,
+      });
+    }
   }
 
-  for (const answer of answers) {
-    if (!answer.correct) continue;
-    const item = ITEMS_BY_ID.get(answer.itemId);
-    if (!item || item.tier === "foundational") continue;
-    for (const conceptId of item.conceptIds) demonstrated.add(conceptId);
-  }
+  const conceptEvidence = Array.from(evidenceByConceptId.values());
+  const demonstrated = conceptIdsAtOrAbove(conceptEvidence, BYPASS_EVIDENCE_LEVELS);
 
   const coreAnswers = answers.filter((a) => CORE_IDS.includes(a.itemId));
   const advancedAnswers = answers.filter((a) => ADVANCED_IDS.includes(a.itemId));
@@ -194,6 +257,7 @@ export function scorePlacement(answers: PlacementAnswer[]): PlacementResult {
 
   return {
     demonstratedConceptIds: Array.from(demonstrated),
+    conceptEvidence,
     level,
     confidence,
     // Reviewing fundamentals voluntarily is always offered, regardless of
@@ -211,3 +275,18 @@ export function placementItemMeta(itemId: string): PlacementItemMeta | undefined
 }
 
 export const PLACEMENT_ITEM_COUNT = PLACEMENT_ITEMS.length;
+
+/** Bumped whenever the item bank or scoring rules change meaningfully — persisted alongside every PlacementAttempt/guest result so a future content change can tell an old attempt's evidence apart from a new one, per P1's "versioned" requirement. */
+export const PLACEMENT_ASSESSMENT_VERSION = 1;
+
+/** A human-readable reason the assessment ended before every item was asked — null when it ran to completion. */
+export function earlyExitReason(answers: PlacementAnswer[]): string | null {
+  if (answers.length >= PLACEMENT_ITEM_COUNT) return null;
+  if (nextPlacementItemId(answers) !== null) return null; // shouldn't happen — still has items left, wasn't actually an early exit
+  const coreAnswers = answers.filter((a) => CORE_IDS.includes(a.itemId));
+  const lastThree = coreAnswers.slice(-CORE_EARLY_EXIT_STREAK);
+  if (lastThree.length === CORE_EARLY_EXIT_STREAK && lastThree.every((a) => !a.correct)) {
+    return `ended early — ${CORE_EARLY_EXIT_STREAK} consecutive incorrect core-tier answers`;
+  }
+  return "ended early — core-tier performance did not clear the threshold to continue into the advanced tier";
+}

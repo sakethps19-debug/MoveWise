@@ -5,7 +5,7 @@ import { loadUnitPrinciples, findPreviousPrinciple } from "../../../lib/principl
 import { PROFICIENT_STATUSES, type MasteryStatus } from "../../../lib/masteryModel";
 import { LessonResumeGate } from "../../../components/LessonResumeGate";
 import { LessonGate } from "../../../components/LessonGate";
-import { completeLessonAction, saveLessonCheckpointAction, clearLessonCheckpointAction } from "../../actions";
+import { completeLessonAction } from "../../actions";
 import { getSession } from "../../../lib/auth";
 import type { LessonCheckpointState } from "../../../components/LessonRunner";
 
@@ -111,10 +111,6 @@ export default async function LessonPage({
       isGuest={!user}
       initialCheckpoint={initialCheckpoint}
       onComplete={completeLessonAction.bind(null, lesson.id)}
-      onCheckpoint={
-        user ? saveLessonCheckpointAction.bind(null, lesson.id, lesson.version) : undefined
-      }
-      onClearCheckpoint={user ? clearLessonCheckpointAction.bind(null, lesson.id) : undefined}
     />
   );
 

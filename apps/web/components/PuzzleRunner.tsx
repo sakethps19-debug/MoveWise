@@ -136,7 +136,7 @@ export function PuzzleRunner({
     // be silent — see the syncError notice below.
     if (!result || !moveMatches(result.move, puzzle.correctMoves)) {
       if (onAttempt) Promise.resolve(onAttempt(puzzle.id, false)).catch(() => setSyncError(true));
-      else recordGuestPracticeAttempt(false);
+      else recordGuestPracticeAttempt(false, puzzle.conceptIds);
       setStatus("incorrect");
       setFeedback(puzzle.feedback.default ?? "Not quite — try again.");
       return;

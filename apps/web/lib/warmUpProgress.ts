@@ -32,3 +32,36 @@ export function saveWarmUpDifficultyOverride(difficulty: WarmUpDifficultyPrefere
     // ignore
   }
 }
+
+const RECENT_WARMUP_PUZZLES_KEY = "movewise_warmup_recent_puzzles";
+/** How many of the most recently shown puzzle ids are remembered — enough to avoid an immediate repeat without permanently excluding a puzzle from a thin pool. */
+const RECENT_WARMUP_PUZZLES_LIMIT = 10;
+
+/**
+ * P1 "repetition avoidance": which puzzle ids the Daily Warm-up served
+ * recently, per device — feeds lib/practiceScheduler.ts's
+ * `buildPracticeQueue` so today's queue prefers a puzzle the learner
+ * hasn't just seen over one they have, same "session-local, per-device"
+ * pattern as the difficulty override above.
+ */
+export function readRecentWarmUpPuzzleIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage.getItem(RECENT_WARMUP_PUZZLES_KEY);
+    const ids: unknown = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : []);
+  } catch {
+    return new Set();
+  }
+}
+
+export function recordWarmUpPuzzlesShown(puzzleIds: string[]): void {
+  if (typeof window === "undefined" || puzzleIds.length === 0) return;
+  try {
+    const previous = [...readRecentWarmUpPuzzleIds()];
+    const merged = [...previous.filter((id) => !puzzleIds.includes(id)), ...puzzleIds].slice(-RECENT_WARMUP_PUZZLES_LIMIT);
+    window.localStorage.setItem(RECENT_WARMUP_PUZZLES_KEY, JSON.stringify(merged));
+  } catch {
+    // ignore
+  }
+}

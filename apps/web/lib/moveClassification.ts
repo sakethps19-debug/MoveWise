@@ -1,4 +1,5 @@
 import { legalMoves, type Move, type PieceSymbol } from "@movewise/chess-rules";
+import { decodeMateDistance } from "@movewise/engine";
 import type { MoveClassification } from "./gameAnalysis";
 
 const PIECE_VALUE: Record<PieceSymbol, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
@@ -50,10 +51,93 @@ export function computeEvalLoss(
   color: "w" | "b",
   playedUci?: string,
   bestUci?: string,
+  isCheckmateNow = false,
 ): number {
   if (isEngineBestByIdentity(playedUci, bestUci)) return 0;
+  // Invariant: mate values never enter centipawn subtraction. A mate
+  // sentinel (packages/engine's ±(100000 - 1000×mateDistance) encoding)
+  // is not a real centipawn count — subtracting two of them (or a
+  // sentinel and an ordinary score) produces a number with no chess
+  // meaning. Real bug this guards against: mate-in-3 (97000) minus
+  // mate-in-5 (95000) — still winning by force, just one move slower —
+  // used to read as a 2000cp "loss" and classify as a blunder. Route
+  // any mate-involving transition through the qualitative classifier
+  // instead (mateAwareClassification), and report a band-representative
+  // magnitude here that stays consistent with it, never raw subtraction.
+  if (isMateInvolved(evalBefore, evalAfter)) {
+    return MATE_TRANSITION_LOSS[mateAwareClassification(evalBefore, evalAfter, color, isCheckmateNow) ?? "best"];
+  }
   const delta = color === "w" ? evalBefore - evalAfter : evalAfter - evalBefore;
   return Math.max(0, delta);
+}
+
+function isMateInvolved(evalBefore: number, evalAfter: number): boolean {
+  return decodeMateDistance(evalBefore) !== null || decodeMateDistance(evalAfter) !== null;
+}
+
+/** Mate distance from the perspective of whichever side is `color` (the mover), not White — positive means the mover has a forced mate that many moves away, negative means the opponent does. `null` when `score` isn't a mate score at all. */
+function moverRelativeMateDistance(score: number, color: "w" | "b"): number | null {
+  const mate = decodeMateDistance(score);
+  if (mate === null) return null;
+  return color === "w" ? mate : -mate;
+}
+
+/** Representative non-negative "loss" magnitude per classification band, used only when a mate score makes real centipawn subtraction meaningless (see computeEvalLoss) — never displayed directly (lib/evalFormat.ts's formatEvalLoss always shows the mate-transition phrase instead for these cases), only used to keep the numeric field internally consistent with the classification it sits beside. */
+const MATE_TRANSITION_LOSS: Record<MoveClassification, number> = {
+  brilliant: 0,
+  best: 0,
+  excellent: 0,
+  good: 0,
+  inaccuracy: 30,
+  mistake: 150,
+  blunder: 500,
+  forced: 0,
+};
+
+/**
+ * Classifies a move whose evaluation touches a forced mate on either
+ * side, from real chess facts (which side has a forced mate, and how
+ * far away) rather than numeric cp-loss thresholds — see computeEvalLoss's
+ * doc comment for why. Returns `null` when neither `evalBefore` nor
+ * `evalAfter` is a mate score at all, in which case the caller falls
+ * through to the ordinary threshold ladder. Kept in exact agreement with
+ * lib/evalFormat.ts's `describeMateTransition` boundary conditions (both
+ * treat "had a forced mate and didn't deliver it" as the same case) so
+ * the displayed badge and its explanation text never disagree.
+ */
+function mateAwareClassification(
+  evalBefore: number,
+  evalAfter: number,
+  color: "w" | "b",
+  isCheckmateNow: boolean,
+): MoveClassification | null {
+  if (isCheckmateNow) return "best"; // delivering checkmate can never be improved upon
+  const before = moverRelativeMateDistance(evalBefore, color);
+  const after = moverRelativeMateDistance(evalAfter, color);
+  if (before === null && after === null) return null;
+
+  // The mover was facing forced mate before this move and isn't anymore.
+  if (before !== null && before < 0 && (after === null || after >= 0)) return "best";
+
+  // This move handed the opponent a forced mate that wasn't there before.
+  if (after !== null && after < 0 && (before === null || before >= 0)) return "blunder";
+
+  // The mover had a forced mate available and this wasn't the move that
+  // delivered it — a real miss (matches describeMateTransition's "Missed
+  // mate in N" exactly), even though the position typically remains
+  // winning; never scored via raw sentinel subtraction.
+  if (before !== null && before > 0) return "mistake";
+
+  // Both before and after are forced mates against the mover (already
+  // losing, still losing) — a faster incoming mate is a real error, a
+  // slower one is a reasonable defensive try, not a blunder.
+  if (before !== null && after !== null && before < 0 && after < 0) {
+    return Math.abs(after) < Math.abs(before) ? "mistake" : "best";
+  }
+
+  // The mover created a forced mate that didn't exist before this move
+  // (before was an ordinary eval, after is a forced mate for the mover).
+  return "best";
 }
 
 /**
@@ -122,6 +206,8 @@ export interface ClassifyMoveInput {
   playedUci?: string;
   /** UCI form of the engine's own selected best move for the position before this move (packages/engine's raw `bestMove` string). */
   bestUci?: string;
+  /** Whether this move delivered checkmate — read from `move.san`'s own "#" suffix (a rules fact) when omitted, never guessed from eval numbers. */
+  isCheckmateNow?: boolean;
 }
 
 /**
@@ -133,21 +219,30 @@ export interface ClassifyMoveInput {
  * regardless of what two independently-run engine searches happened to
  * report.
  *
- * Mate transitions (item 6, "treat separately"): this ladder deliberately
- * does *not* special-case mate-sentinel scores (packages/engine's
- * ±(100000 - 1000×mateDistance) encoding) — a huge magnitude naturally
- * sorts into `blunder`/`best` the same way an ordinary large centipawn
- * swing would, so no separate branch is needed for a *correct*
- * classification here. What mate scores DO need separate handling for is
- * the human-readable *explanation* ("Missed mate in 1", "Found
- * checkmate", "Allowed mate in 2", "Escaped a mating threat") and the
- * *displayed* eval-loss text (never a raw 5-6 digit sentinel like
- * "-99020cp") — both handled in lib/evalFormat.ts's
- * `describeMateTransition`/`formatEvalLoss`, layered on top of (not
- * replacing) this file's classification.
+ * Mate transitions (item 6, "treat separately"): a mate-sentinel score
+ * (packages/engine's ±(100000 - 1000×mateDistance) encoding) is only
+ * ever safe to *compare* (sign/magnitude against a threshold) here, never
+ * to *subtract* from another score (ordinary or mate) — subtracting two
+ * mate sentinels produces a number with no chess meaning (e.g. mate-in-3
+ * minus mate-in-5 reads as a 2000cp "loss" for a move that's still
+ * winning by force, one move slower). `mateAwareClassification` decides
+ * these transitions from the actual chess facts (which side has a forced
+ * mate, how far away) instead, and `computeEvalLoss` routes through the
+ * exact same decision so the classification and its numeric loss can
+ * never disagree — see both functions' own doc comments.
  */
 export function classifyMove(input: ClassifyMoveInput): MoveClassification {
   if (input.legalMoveCountBefore <= 1) return "forced";
+
+  if (!isEngineBestByIdentity(input.playedUci, input.bestUci) && isMateInvolved(input.evalBefore, input.evalAfter)) {
+    const isCheckmateNow = input.isCheckmateNow ?? input.move.san.endsWith("#");
+    const mateClassification = mateAwareClassification(input.evalBefore, input.evalAfter, input.color, isCheckmateNow);
+    if (mateClassification === "best") {
+      const moverEval = input.color === "w" ? input.evalAfter : -input.evalAfter;
+      if (moverEval >= BRILLIANT_EVAL_THRESHOLD && isSacrifice(input.move, input.fenAfter)) return "brilliant";
+    }
+    if (mateClassification !== null) return mateClassification;
+  }
 
   const loss = computeEvalLoss(input.evalBefore, input.evalAfter, input.color, input.playedUci, input.bestUci);
   if (loss === 0) {

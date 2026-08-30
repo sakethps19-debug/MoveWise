@@ -447,6 +447,12 @@ export interface BuildMoveAnalysisInput {
  * and fill it in server-side afterward.
  */
 export function buildMoveAnalysis(input: BuildMoveAnalysisInput): MoveAnalysis {
+  // A single rules fact (never guessed from eval numbers), fed identically
+  // into classifyMove, computeEvalLoss, and describeMateTransition below —
+  // so the badge, the numeric loss, and the explanation text can never
+  // disagree about whether this move delivered checkmate.
+  const isCheckmateNow = input.move.san.endsWith("#");
+
   const classification = classifyMove({
     move: input.move,
     fenAfter: input.fenAfter,
@@ -456,6 +462,7 @@ export function buildMoveAnalysis(input: BuildMoveAnalysisInput): MoveAnalysis {
     legalMoveCountBefore: input.legalMoveCountBefore,
     playedUci: input.playedUci,
     bestUci: input.bestUci,
+    isCheckmateNow,
   });
   const conceptIds = detectConcepts({
     move: input.move,
@@ -467,15 +474,8 @@ export function buildMoveAnalysis(input: BuildMoveAnalysisInput): MoveAnalysis {
   // A move that touches a forced mate deserves the specific "Missed mate
   // in 1" / "Allowed mate in 2" / "Found checkmate" / "Escaped a mating
   // threat" language over the generic classification-level text — see
-  // lib/evalFormat.ts. `san` already carries chess.js's own "#" suffix,
-  // so checkmate itself is read from the move, not guessed from eval
-  // numbers.
-  const mateExplanation = describeMateTransition(
-    input.evalBefore,
-    input.evalAfter,
-    input.color,
-    input.move.san.endsWith("#"),
-  );
+  // lib/evalFormat.ts.
+  const mateExplanation = describeMateTransition(input.evalBefore, input.evalAfter, input.color, isCheckmateNow);
   return {
     moveNumber: input.moveNumber,
     color: input.color,
@@ -483,7 +483,14 @@ export function buildMoveAnalysis(input: BuildMoveAnalysisInput): MoveAnalysis {
     bestMove: input.bestMoveSan,
     evalBefore: input.evalBefore,
     evalAfter: input.evalAfter,
-    evalLoss: computeEvalLoss(input.evalBefore, input.evalAfter, input.color, input.playedUci, input.bestUci),
+    evalLoss: computeEvalLoss(
+      input.evalBefore,
+      input.evalAfter,
+      input.color,
+      input.playedUci,
+      input.bestUci,
+      isCheckmateNow,
+    ),
     classification,
     explanation: mateExplanation ?? explainMove(input.move, input.fenAfter, classification, conceptIds),
     conceptIds,

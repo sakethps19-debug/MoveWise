@@ -4,23 +4,26 @@ import { loadUnitPrinciples } from "../../../lib/principles";
 import { loadPuzzlesForPrinciple } from "../../../lib/puzzles";
 import { getSession } from "../../../lib/auth";
 import type { MasteryStatus } from "../../../lib/masteryModel";
+import type { ConceptEvidence } from "../../../lib/placementEvidence";
+import { rankConceptsForPractice, type ConceptPracticeSignal, type RankedConcept } from "../../../lib/practiceScheduler";
 import type { WarmUpCandidate } from "../../../lib/warmUp";
 import { WarmUpRunner } from "../../../components/WarmUpRunner";
 
 const UNIT_IDS = ["meet-the-pieces", "check-and-checkmate", "basic-tactics"] as const;
+/** How many of a concept's most recent attempts count toward "recent incorrect attempts" — a short window, not a lifetime total, so an old rough patch doesn't keep a now-solid concept flagged forever. */
+const RECENT_ATTEMPT_WINDOW = 5;
 
 /**
- * P0 "personalize the Daily Warm-up" — previously a fixed, never-gated
- * pool (meet-the-pieces' board-basics puzzles) served identically to
- * every learner regardless of level; a rated player's warm-up was
- * elementary king-movement puzzles, exactly the "brutal user journey"
- * bug this pass exists to fix. Still never gated (no prerequisite check
- * here at all — this route stays reachable with zero lessons completed),
- * but the CONTENT now reflects the learner's real level: their placement
- * result or ordinary proficiency (lib/useDemonstratedConcepts.ts) picks
- * which unit's puzzles to draw from (lib/warmUp.ts's `frontierUnitId`),
- * and a manual difficulty selector plus "Too easy"/"Too hard" feedback
- * are always available on top of that (components/WarmUpRunner.tsx).
+ * P1 "build real personalized practice": this route previously only ever
+ * looked at `frontierUnitId` (lib/warmUp.ts) — "which unit is the
+ * learner's current chapter" — to decide what to serve. It now ranks
+ * every concept the learner has real evidence for (lib/practiceScheduler.ts)
+ * using review due dates, recent mistakes, mastery status, and placement
+ * evidence confidence, and hands that ranking to WarmUpRunner, which
+ * builds the actual puzzle queue from it (still respecting the manual
+ * difficulty selector). A guest performs the equivalent ranking
+ * client-side from their local data (WarmUpRunner.tsx) since there's no
+ * session here to query.
  */
 export default async function WarmUpPracticePage() {
   const user = await getSession();
@@ -36,19 +39,62 @@ export default async function WarmUpPracticePage() {
       loadPuzzlesForPrinciple(principle).map((puzzle) => ({ puzzle, unitId: unit.id, conceptId: principle.conceptId })),
     ),
   );
+  const conceptIds = [...new Set(candidates.map((c) => c.conceptId))];
 
   let conceptMastery: Map<string, MasteryStatus> | null = null;
+  let rankedConcepts: RankedConcept[] | null = null;
+
   if (user) {
-    const masteryRows = await prisma.userConceptMastery.findMany({ where: { userId: user.id } });
+    const [masteryRows, recentAttempts, latestPlacement] = await Promise.all([
+      prisma.userConceptMastery.findMany({ where: { userId: user.id } }),
+      prisma.exerciseAttempt.findMany({
+        where: { userId: user.id, conceptIds: { hasSome: conceptIds } },
+        orderBy: { createdAt: "desc" },
+        select: { conceptIds: true, correct: true },
+        take: 500,
+      }),
+      prisma.placementAttempt.findFirst({ where: { userId: user.id }, orderBy: { completedAt: "desc" } }),
+    ]);
     conceptMastery = new Map(masteryRows.map((m) => [m.conceptId, m.status as MasteryStatus]));
+    const masteryByConceptId = new Map(masteryRows.map((m) => [m.conceptId, m]));
+    const evidenceByConceptId = new Map(
+      ((latestPlacement?.conceptEvidence as unknown as ConceptEvidence[] | null) ?? []).map((e) => [e.conceptId, e.level]),
+    );
+
+    const recentByConceptId = new Map<string, boolean[]>();
+    for (const attempt of recentAttempts) {
+      for (const conceptId of attempt.conceptIds) {
+        const list = recentByConceptId.get(conceptId);
+        if (list) {
+          if (list.length < RECENT_ATTEMPT_WINDOW) list.push(attempt.correct);
+        } else {
+          recentByConceptId.set(conceptId, [attempt.correct]);
+        }
+      }
+    }
+
+    const signals: ConceptPracticeSignal[] = conceptIds.map((conceptId) => {
+      const mastery = masteryByConceptId.get(conceptId);
+      const recent = recentByConceptId.get(conceptId) ?? [];
+      return {
+        conceptId,
+        status: (mastery?.status as MasteryStatus | undefined) ?? null,
+        exerciseConfidence: mastery?.exerciseConfidence ?? 0,
+        lastPracticedAt: mastery?.lastPracticedAt ?? null,
+        nextDueAt: mastery?.nextRevisionDueAt ?? null,
+        placementEvidenceLevel: evidenceByConceptId.get(conceptId) ?? null,
+        recentIncorrectCount: recent.filter((correct) => !correct).length,
+      };
+    });
+    rankedConcepts = rankConceptsForPractice(signals);
   }
 
   return (
     <main>
       <WarmUpRunner
         candidates={candidates}
-        units={units.map((u) => ({ id: u.id, principles: u.principles.map((p) => ({ conceptId: p.conceptId })) }))}
         conceptMastery={conceptMastery}
+        rankedConcepts={rankedConcepts}
         isSignedIn={!!user}
       />
     </main>
