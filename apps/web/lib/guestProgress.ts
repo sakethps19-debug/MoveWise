@@ -225,6 +225,32 @@ export function readGuestContradictingConceptIds(threshold = 2): Set<string> {
   return new Set(Object.entries(counts).filter(([, count]) => count >= threshold).map(([conceptId]) => conceptId));
 }
 
+const GUEST_CONFIRMED_CONCEPTS_KEY = "movewise_guest_confirmed_concepts";
+
+/** P1 "placement confirmation", guest side: a concept a guest passed the short confirmation activity for (components/ConfirmationActivity.tsx) — treated as demonstrated going forward the same as a signed-in learner's real UserConceptMastery "proficient" row (lib/useDemonstratedConcepts.ts), since there's no server-side row for a guest to write one to. */
+export function recordGuestConfirmedConcept(conceptId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = window.localStorage.getItem(GUEST_CONFIRMED_CONCEPTS_KEY);
+    const ids: string[] = raw ? JSON.parse(raw) : [];
+    if (!ids.includes(conceptId)) ids.push(conceptId);
+    window.localStorage.setItem(GUEST_CONFIRMED_CONCEPTS_KEY, JSON.stringify(ids));
+  } catch {
+    // ignore
+  }
+}
+
+export function readGuestConfirmedConceptIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage.getItem(GUEST_CONFIRMED_CONCEPTS_KEY);
+    const ids: unknown = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : []);
+  } catch {
+    return new Set();
+  }
+}
+
 export function readGuestPracticeStats(): GuestPracticeStats {
   if (typeof window === "undefined") return { attempts: 0, correct: 0 };
   try {
