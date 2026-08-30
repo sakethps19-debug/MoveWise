@@ -48,9 +48,9 @@ interface RecordedMove {
   fenAfter: string;
 }
 
-function statusText(fen: string, playerColor: PlayerColor, thinking: boolean, resigned: boolean): string {
+function statusText(fen: string, playerColor: PlayerColor, thinking: boolean, resigned: boolean, sanHistory: string[]): string {
   if (resigned) return "You resigned. Stockfish wins.";
-  const status = gameStatus(fen);
+  const status = gameStatus(fen, sanHistory);
   if (status === "checkmate") {
     return sideToMove(fen) === playerColor ? "Checkmate — Stockfish wins." : "Checkmate — you win!";
   }
@@ -145,7 +145,7 @@ export function PlayRunner({
     retry: retryEngine,
   } = useStockfishEngine(true);
   const engineError = engineLoadError ?? engineFailure;
-  const gameOver = resigned || isGameOver(fen);
+  const gameOver = resigned || isGameOver(fen, moves.map((m) => m.san));
   const {
     analyzing,
     progress: analysisProgress,
@@ -196,7 +196,12 @@ export function PlayRunner({
   function trySaveGame() {
     gameSavedRef.current = true;
     setGameSaveError(false);
-    const { result, endReason, pgnResult } = computeGameResult(fen, playerColor, resigned);
+    const { result, endReason, pgnResult } = computeGameResult(
+      fen,
+      playerColor,
+      resigned,
+      moves.map((m) => m.san),
+    );
     const pgn = buildPgn(
       moves.map((m) => m.san),
       pgnResult,
@@ -403,7 +408,9 @@ export function PlayRunner({
         </div>
       ) : (
         <p role="status" className={`mw-feedback ${gameOver ? "mw-feedback--success" : "mw-feedback--neutral"}`}>
-          {engineReady ? statusText(fen, playerColor, thinking, resigned) : (engineStage ?? "Preparing your opponent…")}
+          {engineReady
+            ? statusText(fen, playerColor, thinking, resigned, moves.map((m) => m.san))
+            : (engineStage ?? "Preparing your opponent…")}
         </p>
       )}
 

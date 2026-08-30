@@ -91,6 +91,50 @@ describe("computeMasteryStatus", () => {
     expect(result.status).toBe("struggling");
   });
 
+  it("a hint-assisted correct run has lower exerciseConfidence than an identical hint-free run, though status is unaffected", () => {
+    // Same accuracy (4/5 -> proficient either way), but every attempt in
+    // the hinted version leaned fully on the hint ladder — real, confirmed
+    // gap this locks in: schema.prisma's own doc comment on
+    // exerciseConfidence promises "accuracy/hint-usage", but until this
+    // fix hintLevelUsed was accepted on the type and never once read.
+    const noHints = computeMasteryStatus(null, [correct, correct, correct, correct, wrong]);
+    const maxHints = computeMasteryStatus(null, [
+      { correct: true, hintLevelUsed: 3 },
+      { correct: true, hintLevelUsed: 3 },
+      { correct: true, hintLevelUsed: 3 },
+      { correct: true, hintLevelUsed: 3 },
+      { correct: false, hintLevelUsed: 3 },
+    ]);
+    expect(maxHints.status).toBe(noHints.status);
+    expect(maxHints.exerciseConfidence).toBeLessThan(noHints.exerciseConfidence);
+    expect(maxHints.exerciseConfidence).toBeCloseTo(0.6); // 0.8 accuracy - the full 0.2 hint penalty
+  });
+
+  it("an attempt with no hintLevelUsed at all (every attempt recorded before this field existed) is identical to hintLevelUsed: 0", () => {
+    const withField = computeMasteryStatus(null, [
+      { correct: true, hintLevelUsed: 0 },
+      { correct: true, hintLevelUsed: 0 },
+      { correct: true, hintLevelUsed: 0 },
+      { correct: true, hintLevelUsed: 0 },
+      { correct: false, hintLevelUsed: 0 },
+    ]);
+    const withoutField = computeMasteryStatus(null, [correct, correct, correct, correct, wrong]);
+    expect(withField).toEqual(withoutField);
+  });
+
+  it("a partial hint (one attempt out of several, one tier of three) only partially discounts confidence", () => {
+    const result = computeMasteryStatus(null, [
+      { correct: true, hintLevelUsed: 1 },
+      correct,
+      correct,
+      correct,
+      wrong,
+    ]);
+    // accuracy 0.8, penalty = (1/3)/5 attempts * 0.2 max = 0.013333...
+    expect(result.exerciseConfidence).toBeLessThan(0.8);
+    expect(result.exerciseConfidence).toBeCloseTo(0.8 - (1 / 3 / 5) * 0.2, 5);
+  });
+
   it("lesson-only attempt histories are completely unaffected by the source field (backward compatible)", () => {
     // Every existing test above passes plain {correct} objects with no
     // `source` at all — this just makes that equivalence explicit.

@@ -88,14 +88,24 @@ model LessonCheckpoint {
   lessonId      String
   lessonVersion Int
   stepIndex     Int
-  /// Client-generated, monotonically increasing per lesson-attempt session
+  /// Which distinct attempt this write belongs to (lib/lessonCheckpointStore.ts's
+  /// state machine) — bumped by the client only when starting a genuinely
+  /// new attempt (never attempted, "Start over", or revisiting a completed
+  /// lesson), never on an ordinary step-advance within one attempt. A write
+  /// whose epoch is behind the stored one is always rejected outright,
+  /// regardless of its revision — this is what makes an old browser tab's
+  /// leftover writes harmless after a restart in another tab, since a
+  /// revision number alone can't otherwise distinguish "the same attempt,
+  /// just late" from "a completely different, already-superseded attempt".
+  epoch         Int      @default(0)
+  /// Client-generated, monotonically increasing *within one epoch*
   /// (lib/checkpointClient.ts, incremented once per save/clear/complete
   /// call in components/LessonResumeGate.tsx) — the server rejects any
-  /// incoming write whose revision isn't strictly greater than the stored
-  /// one (apps/web/lib/lessonCheckpointStore.ts), so out-of-order request
-  /// arrival (retries, a slow keepalive fetch outliving a faster later
-  /// one) can never regress or resurrect a checkpoint, regardless of what
-  /// order the server actually receives them in.
+  /// incoming same-epoch write whose revision isn't strictly greater than
+  /// the stored one (apps/web/lib/lessonCheckpointStore.ts), so out-of-order
+  /// request arrival (retries, a slow keepalive fetch outliving a faster
+  /// later one) can never regress or resurrect a checkpoint within that
+  /// attempt, regardless of what order the server actually receives them in.
   revision      Int      @default(0)
   mistakes      Int      @default(0)
   hintsUsed     Int      @default(0)
@@ -137,6 +147,28 @@ model UserConceptMastery {
   gameApplicationScore Float     @default(0)
   lastPracticedAt      DateTime?
   nextRevisionDueAt    DateTime?
+  /// P1 "make confirmation evidence meaningful": provenance for *how we
+  /// know* about this concept (lib/placementEvidence.ts's
+  /// ConceptEvidenceLevel, extended with confirmation_passed) — a
+  /// separate axis from `status` above, which tracks *ongoing skill*
+  /// from ordinary exercise attempts. A single passed confirmation
+  /// quickly upgrades evidenceLevel to confirmation_passed without ever
+  /// touching `status` directly; `status` still only ever moves through
+  /// computeMasteryStatus's real accuracy-based rules, so "durable
+  /// proficiency" (status = proficient/mastered) and "we've directly
+  /// checked this once" (evidenceLevel = confirmation_passed) can never
+  /// be conflated with each other.
+  evidenceLevel        String?
+  /// 0-1, independent of exerciseConfidence — how sure *this evidence
+  /// source* (placement inference, a confirmation attempt) is, decayed
+  /// on a later contradiction rather than reset to 0 (still worth
+  /// something, just no longer fully trusted).
+  evidenceConfidence   Float?
+  /// Free-text provenance, e.g. "placement:v1" or "confirmation:2026-08-30" —
+  /// which attempt/source last set evidenceLevel, for the "explain the
+  /// result to the learner" and audit requirements.
+  evidenceSource       String?
+  evidenceUpdatedAt    DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -12,6 +12,7 @@ import { loadLesson } from "../lib/lessons";
 import { findPuzzle } from "../lib/puzzles";
 import { computeMasteryStatus, PROFICIENT_STATUSES, type MasteryStatus } from "../lib/masteryModel";
 import { computeReviewSchedule } from "../lib/practiceScheduler";
+import { BYPASS_EVIDENCE_LEVELS, type ConceptEvidenceLevel } from "../lib/placementEvidence";
 import { closeLessonCheckpoint } from "../lib/lessonCheckpointStore";
 import { scorePlacement, earlyExitReason, PLACEMENT_ASSESSMENT_VERSION, type PlacementAnswer, type PlacementResult } from "../lib/placement";
 import { canAnalyze, summarize, type GameReview, type MoveAnalysis } from "../lib/gameAnalysis";
@@ -139,7 +140,24 @@ async function migrateGuestProgress(userId: string, formData: FormData): Promise
     // with that many mistakes would have produced, run through the exact
     // same `recordAttemptsAndUpdateMastery` path a live completion uses,
     // not a separate ad hoc calculation.
-    const migratedLesson = loadLesson(lessonId);
+    //
+    // Gated on `!existing`: this function runs on *every* signup and login
+    // that carries a non-empty guestProgress field, and nothing ever clears
+    // the browser's localStorage blob afterward (migrateGuestProgress has
+    // no way to reach back into the client to do so, and no caller does it
+    // either) — so an account that logs out and back in on the same browser
+    // resubmits the exact same stale guest data on every login. Without this
+    // guard, that replayed every time: each login would createMany a fresh
+    // batch of synthesized ExerciseAttempt rows for a lesson this account
+    // had already migrated, inflating the concept's attempt history (and,
+    // via computeReviewSchedule reading each batch's brand-new `createdAt`,
+    // pushing nextRevisionDueAt further out on every login even though no
+    // real practice happened) — exactly the "double-counting" a repeated,
+    // non-idempotent migration would cause. A LessonCompletion row already
+    // existing for this (user, lesson) means the one-time synthesis already
+    // ran (or a real signed-in completion already supplied better evidence
+    // directly) — either way there's nothing left to migrate.
+    const migratedLesson = !existing ? loadLesson(lessonId) : null;
     if (migratedLesson) {
       const attempts: AttemptRecord[] = [
         ...Array.from({ length: clampedMistakes }, (_, i) => ({
@@ -370,6 +388,7 @@ export async function completeLessonAction(
   mistakes: number,
   hintsUsed: number,
   attempts: AttemptRecord[],
+  checkpointEpoch: number,
   checkpointRevision: number,
 ): Promise<void> {
   const user = await getSession();
@@ -394,7 +413,7 @@ export async function completeLessonAction(
   // uses for the lighter-weight "started" UI marker. Revision-guarded, not
   // a blind delete — see lib/lessonCheckpointStore.ts's own doc comment
   // for why a delete can't defend against a stale save arriving after it.
-  await closeLessonCheckpoint(user.id, lessonId, checkpointRevision);
+  await closeLessonCheckpoint(user.id, lessonId, checkpointEpoch, checkpointRevision);
 
   await recordAttemptsAndUpdateMastery(user.id, lessonId, attempts);
   revalidatePath("/");
@@ -427,7 +446,7 @@ async function recomputeMasteryForConcepts(userId: string, conceptIds: string[])
       prisma.exerciseAttempt.findMany({
         where: { userId, conceptIds: { has: conceptId } },
         orderBy: { createdAt: "asc" },
-        select: { correct: true, puzzleId: true, gameId: true, createdAt: true },
+        select: { correct: true, puzzleId: true, gameId: true, createdAt: true, hintLevelUsed: true },
       }),
     ]);
 
@@ -436,6 +455,7 @@ async function recomputeMasteryForConcepts(userId: string, conceptIds: string[])
       history.map((a) => ({
         correct: a.correct,
         source: a.puzzleId ? ("puzzle" as const) : a.gameId ? ("game" as const) : ("lesson" as const),
+        hintLevelUsed: a.hintLevelUsed,
       })),
     );
     // P1 "real due-date scheduler": a documented Leitner-derived schedule
@@ -444,9 +464,42 @@ async function recomputeMasteryForConcepts(userId: string, conceptIds: string[])
     // "due for review" rather than only ever selecting by current chapter.
     const { nextDueAt } = computeReviewSchedule(history.map((a) => ({ correct: a.correct, at: a.createdAt })));
 
+    // P1 "connect the practice pipeline end to end": placementEvidence.ts's
+    // own ConceptEvidenceLevel doc comment promises later_contradicted can
+    // come from "practice, a lesson, a game, or a failed confirmation
+    // attempt" — but until now only confirmConceptAction's own failure
+    // branch ever wrote it, so an ordinary run of lesson mistakes, pool
+    // puzzle misses, or a detected game weakness could keep a placement
+    // result's directly_demonstrated/inferred_high_confidence (or an
+    // earlier confirmation_passed) trusted forever, no matter how much
+    // real subsequent evidence said otherwise. Reuses computeMasteryStatus's
+    // own already-tested "struggling" bar (accuracy < 50% over >= 3
+    // attempts) as the "genuinely contradicted, not one bad guess"
+    // threshold, rather than inventing a second one — every caller of this
+    // shared function (recordAttemptsAndUpdateMastery, recordPuzzleAttemptAction,
+    // confirmConceptAction, recordGameMistakesAndUpdateMastery) gets this for
+    // free. Never restores a downgraded level on recovery — same one-way
+    // axis confirmConceptAction's own doc comment already establishes.
+    const evidenceLevel = existingMastery?.evidenceLevel as ConceptEvidenceLevel | null | undefined;
+    const evidenceContradicted =
+      status === "struggling" && evidenceLevel && evidenceLevel !== "later_contradicted" && BYPASS_EVIDENCE_LEVELS.has(evidenceLevel);
+
     await prisma.userConceptMastery.upsert({
       where: { userId_conceptId: { userId, conceptId } },
-      update: { status, exerciseConfidence, lastPracticedAt: new Date(), nextRevisionDueAt: nextDueAt },
+      update: {
+        status,
+        exerciseConfidence,
+        lastPracticedAt: new Date(),
+        nextRevisionDueAt: nextDueAt,
+        ...(evidenceContradicted
+          ? {
+              evidenceLevel: "later_contradicted",
+              evidenceConfidence: Math.max(0, (existingMastery?.evidenceConfidence ?? 0.6) - 0.3),
+              evidenceSource: "contradicted-by-practice",
+              evidenceUpdatedAt: new Date(),
+            }
+          : {}),
+      },
       create: { userId, conceptId, status, exerciseConfidence, lastPracticedAt: new Date(), nextRevisionDueAt: nextDueAt },
     });
   }
@@ -472,6 +525,7 @@ async function recordAttemptsAndUpdateMastery(userId: string, lessonId: string, 
       conceptIds,
       correct: a.correct,
       wrongAnswerKey: a.wrongAnswerKey,
+      hintLevelUsed: a.hintLevelUsed ?? 0,
     })),
   });
 
@@ -578,15 +632,69 @@ export async function submitPlacementAction(answers: PlacementAnswer[], startedA
  * recordGuestConfirmedConcept, called directly from the component instead
  * of through this action).
  */
-export async function confirmConceptAction(conceptId: string, allCorrect: boolean): Promise<void> {
+/**
+ * P1 "make confirmation evidence meaningful": a passed confirmation is a
+ * real, direct check, but never conflated with durable skill mastery —
+ * `evidenceLevel` (this function's own write) is a separate axis from
+ * `status` (apps/web/lib/masteryModel.ts's ongoing 9-state model, driven
+ * purely by computeMasteryStatus's real accuracy math over the FULL
+ * ExerciseAttempt history, confirmation attempts included). One passed
+ * confirmation upgrades evidenceLevel to `confirmation_passed` — enough
+ * to stop offering the "confirm this?" prompt and to trust the concept
+ * for unlock purposes — without itself asserting "mastered"; genuine
+ * proficiency still has to come from computeMasteryStatus seeing enough
+ * real accuracy over time, exactly as it would from ordinary puzzle
+ * practice (recordPuzzleAttemptAction above uses the identical pipeline).
+ *
+ * A failed confirmation is never a punishment: `status` is recomputed
+ * from the same honest pipeline (so a real wrong answer legitimately
+ * counts, the same as it would anywhere else — this is what lets a
+ * contradicted concept surface in "Review needed" and get reprioritized
+ * by lib/practiceScheduler.ts), but nothing about the concept becomes
+ * *less* reachable than it already was, and evidenceConfidence is only
+ * reduced, never zeroed — later_contradicted is "we're refining what we
+ * know", not "you failed".
+ */
+export async function confirmConceptAction(
+  conceptId: string,
+  results: { puzzleId: string; correct: boolean }[],
+): Promise<void> {
   const user = await getSession();
   if (!user) return;
-  if (!allCorrect) return;
+  if (results.length === 0) return;
+  const allCorrect = results.every((r) => r.correct);
 
-  await prisma.userConceptMastery.upsert({
+  // "Record the attempt and questions used" — one real ExerciseAttempt
+  // row per puzzle, same shape ordinary puzzle practice writes, so this
+  // evidence is indistinguishable from any other practice attempt to
+  // computeMasteryStatus, the practice scheduler, and the Progress
+  // dashboard's attempt counts.
+  await prisma.exerciseAttempt.createMany({
+    data: results.map((r) => ({
+      userId: user.id,
+      puzzleId: r.puzzleId,
+      stepId: r.puzzleId,
+      conceptIds: [conceptId],
+      correct: r.correct,
+      wrongAnswerKey: null,
+    })),
+  });
+  await recomputeMasteryForConcepts(user.id, [conceptId]);
+
+  const existing = await prisma.userConceptMastery.findUnique({
     where: { userId_conceptId: { userId: user.id, conceptId } },
-    update: { status: "proficient", exerciseConfidence: 1, lastPracticedAt: new Date() },
-    create: { userId: user.id, conceptId, status: "proficient", exerciseConfidence: 1, lastPracticedAt: new Date() },
+  });
+  const priorEvidenceConfidence = existing?.evidenceConfidence ?? 0.6;
+  await prisma.userConceptMastery.update({
+    where: { userId_conceptId: { userId: user.id, conceptId } },
+    data: allCorrect
+      ? { evidenceLevel: "confirmation_passed", evidenceConfidence: 1, evidenceSource: "confirmation", evidenceUpdatedAt: new Date() }
+      : {
+          evidenceLevel: "later_contradicted",
+          evidenceConfidence: Math.max(0, priorEvidenceConfidence - 0.3),
+          evidenceSource: "confirmation-failed",
+          evidenceUpdatedAt: new Date(),
+        },
   });
   revalidatePath("/practice");
 }

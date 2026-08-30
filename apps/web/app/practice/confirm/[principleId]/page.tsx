@@ -32,6 +32,7 @@ export default async function ConfirmPrinciplePage({
         conceptTitle={conceptTitles[principle.conceptId] ?? principle.title}
         poolTitle={principle.title}
         poolHref={`/practice/${principle.id}`}
+        lessonHref={principle.subLessonIds[0] ? `/learn/${principle.subLessonIds[0]}` : null}
         isSignedIn={!!user}
       />
     </main>

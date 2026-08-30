@@ -55,6 +55,15 @@ describe("parseUciLine", () => {
     }
   });
 
+  it("clamps a mate distance beyond MAX_ENCODED_MATE_DISTANCE to the encoding's own floor, staying in sync with decodeMateDistance's inverse", () => {
+    const line = "info depth 8 score mate 40 pv h5f7";
+    const parsed = parseUciLine(line);
+    if (parsed.kind === "info") {
+      expect(parsed.score).toBe(70000); // 100000 - 30*1000, the shared clamp
+      expect(decodeMateDistance(parsed.score!)).toBe(30);
+    }
+  });
+
   it("extracts the best move", () => {
     expect(parseUciLine("bestmove e2e4 ponder e7e5")).toEqual({
       kind: "bestmove",
@@ -83,8 +92,8 @@ describe("decodeMateDistance", () => {
     expect(decodeMateDistance(-98000)).toBe(-2);
   });
 
-  it("decodes the deepest encoded distance, mate-in-99", () => {
-    expect(decodeMateDistance(1000)).toBe(99);
+  it("decodes the deepest encoded distance, mate-in-30", () => {
+    expect(decodeMateDistance(70000)).toBe(30);
   });
 
   it("returns null for an ordinary centipawn score, even a large one", () => {
@@ -94,8 +103,24 @@ describe("decodeMateDistance", () => {
 
   it("returns null for a non-mate score that happens to be a round number below the encoding's own floor", () => {
     // 100 is a plausible real cp score (a pawn up) — nowhere near the
-    // encoding's mate-in-99 floor of 1000, so must never be misread as one.
+    // encoding's floor, so must never be misread as one.
     expect(decodeMateDistance(100)).toBeNull();
+  });
+
+  it("regression: a real, confirmed production bug — an ordinary, exact-multiple-of-1000 centipawn evaluation (e.g. 1000, ten pawns of material up, entirely plausible after a few real blunders) must NEVER be misread as a mate score", () => {
+    // Before this fix, decodeMateDistance(1000) returned 99 ("mate in
+    // 99"), which this app's own audit-seeded analysis data actually hit
+    // live: a real depth-10 evaluation of exactly 1000 produced a
+    // fabricated "Missed mate in 99" explanation for an ordinary move.
+    expect(decodeMateDistance(1000)).toBeNull();
+    expect(decodeMateDistance(-1000)).toBeNull();
+    // The entire range this used to falsely claim as "mate encoded"
+    // (1000 up to the new floor) must now read as ordinary throughout —
+    // not just at the one exact value the live bug happened to hit.
+    for (const ordinary of [1000, 5000, 25000, 50000, 69000]) {
+      expect(decodeMateDistance(ordinary)).toBeNull();
+      expect(decodeMateDistance(-ordinary)).toBeNull();
+    }
   });
 
   it("returns null for zero", () => {
@@ -103,7 +128,7 @@ describe("decodeMateDistance", () => {
   });
 
   it("round-trips every distance normalizeScore's own mate branch can produce", () => {
-    for (let mateIn = 1; mateIn <= 99; mateIn++) {
+    for (let mateIn = 1; mateIn <= 30; mateIn++) {
       const whiteScore = 100000 - mateIn * 1000;
       expect(decodeMateDistance(whiteScore)).toBe(mateIn);
       expect(decodeMateDistance(-whiteScore)).toBe(-mateIn);

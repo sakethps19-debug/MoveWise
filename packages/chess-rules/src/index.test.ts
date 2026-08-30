@@ -106,6 +106,34 @@ describe("gameStatus / isGameOver", () => {
   it("recognizes a back-rank style position as still in progress when king has flight squares", () => {
     expect(gameStatus(BACK_RANK_FEN)).toBe("in-progress");
   });
+
+  // Real, confirmed bug this guards against: chess.js's own
+  // isThreefoldRepetition() can only ever answer from the move history
+  // recorded on the same Chess instance that played those moves — a bare
+  // FEN alone can never prove a position has recurred. Every real caller
+  // (components/PlayRunner.tsx, lib/gameResult.ts) previously called
+  // gameStatus with only the current FEN, so a genuinely repeated
+  // position could never be detected or declared a draw at all — the
+  // game just stayed "in-progress" forever, no matter how many times the
+  // position actually repeated.
+  it("with no sanHistory (the old behavior): a position that has genuinely repeated 3 times is NOT detected — a bare FEN alone can't prove that", () => {
+    const repeatedFen = "r3k3/p7/8/8/8/8/P7/R3K3 w - - 8 5";
+    expect(gameStatus(repeatedFen)).toBe("in-progress");
+  });
+
+  it("with sanHistory supplied: a position reached for the third time via real replayed moves IS detected as threefold repetition", () => {
+    // gameStatus's sanHistory branch always replays from the standard
+    // starting position (the only starting position any real caller —
+    // PlayRunner's live game — ever has), so this shuffles knights back
+    // and forth from there rather than from a custom FEN.
+    const shuffles = ["Nf3", "Nf6", "Ng1", "Ng8", "Nf3", "Nf6", "Ng1", "Ng8"];
+    expect(gameStatus(START_FEN, shuffles)).toBe("threefold-repetition");
+    expect(isGameOver(START_FEN, shuffles)).toBe(true);
+  });
+
+  it("isGameOver still works with no sanHistory, unaffected by the new optional parameter", () => {
+    expect(isGameOver(START_FEN)).toBe(false);
+  });
 });
 
 describe("isCheckmateMove", () => {

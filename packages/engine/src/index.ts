@@ -53,22 +53,49 @@ export function normalizeScore(raw: number, fen: string): number {
 }
 
 /**
- * The deepest mate distance `normalizeScore`'s mate branch encodes
- * (`Math.min(Math.abs(amount), 99)`) — the exact inverse of that
- * formula's own clamp, not an arbitrary guess.
+ * The deepest mate distance the mate-sentinel encoding below supports —
+ * shared by both `parseUciLine`'s encode side and `decodeMateDistance`'s
+ * inverse, so the two can never drift out of sync (a real, if narrow,
+ * risk before this fix: the encode side re-typed the same `99` as its
+ * own separate literal inside `Math.min(Math.abs(amount), 99)`).
+ *
+ * Deliberately much smaller than the "100000, minus up to 99000" range
+ * this replaces (mate-in-99, floor magnitude 1000) — real, confirmed
+ * production bug this fixes: a genuinely ordinary centipawn evaluation
+ * of exactly 1000 (ten pawns of material — entirely plausible after a
+ * few real blunders, which this app's own learner-vs-Stockfish games
+ * produce constantly) was silently misread as "mate in 99," producing a
+ * fabricated "Missed mate in 99" explanation and a wrong classification/
+ * eval-loss for an ordinary move. `decodeMateDistance`'s own doc comment
+ * previously claimed real Stockfish `cp` scores are "essentially never"
+ * an exact multiple of 1000 in this range — disproven by this app's own
+ * seeded audit data (a real depth-10 evaluation of a real position was
+ * exactly 1000).
+ *
+ * 30 keeps this generous for anything a depth-10 client search would
+ * ever realistically report (a forced mate more than 30 full moves out
+ * is not a distance this app's own engine calls are going to discover)
+ * while raising the encoding's floor magnitude to 100000-30000=70000 —
+ * a value no real chess position's centipawn evaluation can ever
+ * naturally reach (the entire material on the board for one side is
+ * worth well under 4000 centipawns), so genuine collisions become
+ * structurally impossible, not just empirically rare.
  */
-const MAX_ENCODED_MATE_DISTANCE = 99;
+const MAX_ENCODED_MATE_DISTANCE = 30;
 
 /**
  * Inverts `normalizeScore`'s mate-sentinel encoding
- * (`sign * (100000 - min(|mateIn|, 99) * 1000)`) back into a real "mate
- * in N" distance — the only correct way to tell a mate score apart from
- * an ordinary centipawn one, since both live in the same `number` field
- * (`EngineAnalysis.score`). A naive magnitude threshold alone can't do
- * this reliably (a genuinely won position can have a large centipawn
- * score too); requiring the value to be an *exact* multiple of 1000
- * below 100000 is what actually pins it down, since real Stockfish `cp`
- * scores are essentially never round thousands.
+ * (`sign * (100000 - min(|mateIn|, MAX_ENCODED_MATE_DISTANCE) * 1000)`)
+ * back into a real "mate in N" distance — the only correct way to tell a
+ * mate score apart from an ordinary centipawn one, since both live in
+ * the same `number` field (`EngineAnalysis.score`). A naive magnitude
+ * threshold alone can't do this reliably (a genuinely won position can
+ * have a large centipawn score too); requiring the value to be an
+ * *exact* multiple of 1000 at or above the encoding's floor is what
+ * actually pins it down — see `MAX_ENCODED_MATE_DISTANCE`'s own doc
+ * comment for why that floor is now set well outside any real chess
+ * evaluation's reachable range, not just a number real scores are
+ * merely unlikely to hit.
  *
  * Returns a White-relative distance: positive means White has a forced
  * mate in that many moves, negative means Black does, `null` means this
@@ -102,7 +129,7 @@ export function parseUciLine(line: string): ParsedUciEvent {
       const amount = Number(scoreMatch[2]);
       event.score =
         scoreMatch[1] === "mate"
-          ? Math.sign(amount || 1) * (100000 - Math.min(Math.abs(amount), 99) * 1000)
+          ? Math.sign(amount || 1) * (100000 - Math.min(Math.abs(amount), MAX_ENCODED_MATE_DISTANCE) * 1000)
           : amount;
     }
     const depthMatch = line.match(/\bdepth (\d+)/);

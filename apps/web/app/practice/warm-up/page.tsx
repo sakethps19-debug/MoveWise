@@ -57,9 +57,28 @@ export default async function WarmUpPracticePage() {
     ]);
     conceptMastery = new Map(masteryRows.map((m) => [m.conceptId, m.status as MasteryStatus]));
     const masteryByConceptId = new Map(masteryRows.map((m) => [m.conceptId, m]));
-    const evidenceByConceptId = new Map(
+    // Placement's own conceptEvidence snapshot is the base signal (it's
+    // the only record of what placement itself established), but it's
+    // frozen at submission time — never touched again afterward. Real,
+    // confirmed gap this closes: both a passed/failed confirmation
+    // (confirmConceptAction) and an ordinary later contradiction from
+    // lesson/puzzle/game practice (recomputeMasteryForConcepts) write only
+    // to UserConceptMastery.evidenceLevel, never back into this snapshot —
+    // so without this override, "your placement result on this needs
+    // confirming"/"recent practice contradicted your placement result on
+    // this" (rankConceptsForPractice's own reason strings) could never
+    // actually reach a signed-in learner's Daily Warm-up, no matter how
+    // much real evidence accumulated after placement. A concept's live
+    // mastery evidenceLevel (set) always wins over the stale snapshot —
+    // same "live evidence overrides the frozen placement record" rule
+    // app/practice/page.tsx's own evidenceLevels map already applies for
+    // the unlock-gating side of this same field.
+    const evidenceByConceptId = new Map<string, ConceptEvidence["level"]>(
       ((latestPlacement?.conceptEvidence as unknown as ConceptEvidence[] | null) ?? []).map((e) => [e.conceptId, e.level]),
     );
+    for (const m of masteryRows) {
+      if (m.evidenceLevel) evidenceByConceptId.set(m.conceptId, m.evidenceLevel as ConceptEvidence["level"]);
+    }
 
     const recentByConceptId = new Map<string, boolean[]>();
     for (const attempt of recentAttempts) {

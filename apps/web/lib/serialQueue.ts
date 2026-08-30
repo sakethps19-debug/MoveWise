@@ -18,15 +18,15 @@
  * order the user actually triggered them — the race is closed at its
  * root (ordering), not patched at one specific symptom.
  */
-export function createSerialQueue(): (task: () => Promise<void>) => Promise<void> {
-  let tail: Promise<void> = Promise.resolve();
-  return (task: () => Promise<void>) => {
+export function createSerialQueue<T = void>(): (task: () => Promise<T>) => Promise<T> {
+  let tail: Promise<T> = Promise.resolve() as Promise<T>;
+  return (task: () => Promise<T>) => {
     const settled = tail.then(task);
     // Never let one failed task poison the queue for tasks enqueued
     // after it — each caller still gets its own rejection if it awaits
     // the returned promise, but the *queue's* internal tail always moves
     // forward.
-    tail = settled.catch(() => {});
+    tail = settled.catch(() => undefined as T);
     return settled;
   };
 }

@@ -31,13 +31,19 @@ export function PracticeHub({
   units,
   completions,
   conceptMastery,
+  evidenceLevels = null,
   unconfirmedConceptIds = new Set(),
+  laterContradictedConceptIds = new Set(),
 }: {
   units: UnitWithLessons[];
   completions: Map<string, CompletionRecord> | null;
   conceptMastery: Map<string, MasteryStatus> | null;
+  /** P1 "make confirmation evidence meaningful": per-concept evidenceLevel (lib/placementEvidence.ts), so a passed confirmation counts toward unlock eligibility without needing `status` alone to already say "proficient". */
+  evidenceLevels?: Map<string, string> | null;
   /** P1 "placement confirmation": pools already unlocked purely from an inferred (never directly checked) placement signal — offered an optional quick check to convert that into confirmed evidence, not a lock (see app/practice/page.tsx). */
   unconfirmedConceptIds?: Set<string>;
+  /** A failed confirmation attempt — surfaced in "Review needed" alongside genuinely struggling concepts, never as a lock (see app/actions.ts's confirmConceptAction). */
+  laterContradictedConceptIds?: Set<string>;
 }) {
   const { completedIds } = useEffectiveCompletions(completions);
   // See lib/lessonStatus.ts's statusOf doc comment: real evidence (a
@@ -47,7 +53,7 @@ export function PracticeHub({
   // — `unlocked` used to require every sub-lesson literally "completed",
   // forcing a rated player through meet-the-pieces before reaching any
   // tactics pool no matter what their placement demonstrated.
-  const demonstratedConceptIds = useDemonstratedConcepts(conceptMastery);
+  const demonstratedConceptIds = useDemonstratedConcepts(conceptMastery, evidenceLevels);
 
   // Guest equivalent of app/practice/page.tsx's server-side computation —
   // no session there for a server component to read, so this reads the
@@ -88,13 +94,20 @@ export function PracticeHub({
 
   // Same "regressed to struggling" signal LearningPath's own "Review
   // needed" section surfaces — repeated here rather than aggregated
-  // globally so this page still reads correctly if reached directly.
+  // globally so this page still reads correctly if reached directly. A
+  // failed confirmation attempt (evidenceLevel === later_contradicted)
+  // surfaces the same way — "we're refining your placement", never a
+  // lock — see app/actions.ts's confirmConceptAction.
   const needsReview =
     conceptMastery === null
       ? []
       : units
           .flatMap((u) => u.principles.map((p) => ({ unit: u, principle: p })))
-          .filter(({ principle }) => conceptMastery.get(principle.conceptId) === "struggling");
+          .filter(
+            ({ principle }) =>
+              conceptMastery.get(principle.conceptId) === "struggling" ||
+              laterContradictedConceptIds.has(principle.conceptId),
+          );
 
   const pools = units.flatMap((unit) =>
     unit.principles

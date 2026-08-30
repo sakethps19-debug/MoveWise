@@ -22,11 +22,13 @@ export function computeGameResult(
   fen: string,
   playerColor: PlayerColor,
   resigned: boolean,
+  /** Every SAN move played so far, from the standard starting position — needed so a real threefold-repetition draw can actually be detected. See chess-rules' `gameStatus` for why a bare `fen` alone can never do this. Optional only so existing/other callers with no history at hand degrade to the previous (repetition-blind) behavior, never a hard requirement. */
+  sanHistory?: string[],
 ): { result: "win" | "loss" | "draw" | "resigned"; endReason: string; pgnResult: "1-0" | "0-1" | "1/2-1/2" } {
   if (resigned) {
     return { result: "resigned", endReason: "resigned", pgnResult: playerColor === "w" ? "0-1" : "1-0" };
   }
-  const status = gameStatus(fen);
+  const status = gameStatus(fen, sanHistory);
   if (status === "checkmate") {
     // The side to move in a checkmated position is the one with no legal
     // moves left, in check — i.e. the one who lost.

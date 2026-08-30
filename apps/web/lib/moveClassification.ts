@@ -122,11 +122,32 @@ function mateAwareClassification(
   // This move handed the opponent a forced mate that wasn't there before.
   if (after !== null && after < 0 && (before === null || before >= 0)) return "blunder";
 
-  // The mover had a forced mate available and this wasn't the move that
-  // delivered it — a real miss (matches describeMateTransition's "Missed
-  // mate in N" exactly), even though the position typically remains
-  // winning; never scored via raw sentinel subtraction.
-  if (before !== null && before > 0) return "mistake";
+  // The mover had a forced mate available. Whether this is a real miss
+  // depends on what happened to it, mirroring lib/evalFormat.ts's
+  // `describeMateTransition` exactly (both must treat "had a forced mate
+  // and didn't deliver it" as the same case — see this function's own
+  // doc comment, which previously claimed but did not actually implement
+  // that agreement):
+  //   - mate-in-1 not delivered this move is *always* a real miss: the
+  //     move played provably wasn't the mating move, and there's no
+  //     "still mate-in-1 next move" case left to distinguish it from.
+  //   - for a longer mate (before > 1), it's only a miss if the mate
+  //     dissolved or reversed (after is null or no longer positive for
+  //     the mover). A mate that's merely still on the board for the
+  //     mover afterward — even at the *same or a slower* distance, since
+  //     which continuation Stockfish's own search happens to prefer at
+  //     each independently-searched ply is not itself evidence of an
+  //     error — is a correct step of a real forced-mate sequence, not a
+  //     mistake. Real bug this fixes: every non-final move of an
+  //     actually-found, correctly-executed multi-move mate (e.g.
+  //     mate-in-3 -> mate-in-2 after the right move) was unconditionally
+  //     downgraded to "mistake" with a fabricated ~150cp loss, directly
+  //     contradicting a "Best" classification the move deserved.
+  if (before !== null && before > 0) {
+    if (before <= 1) return "mistake";
+    if (after === null || after <= 0) return "mistake";
+    return "best";
+  }
 
   // Both before and after are forced mates against the mover (already
   // losing, still losing) — a faster incoming mate is a real error, a
