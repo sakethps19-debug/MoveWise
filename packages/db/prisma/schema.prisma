@@ -88,6 +88,15 @@ model LessonCheckpoint {
   lessonId      String
   lessonVersion Int
   stepIndex     Int
+  /// Client-generated, monotonically increasing per lesson-attempt session
+  /// (lib/checkpointClient.ts, incremented once per save/clear/complete
+  /// call in components/LessonResumeGate.tsx) — the server rejects any
+  /// incoming write whose revision isn't strictly greater than the stored
+  /// one (apps/web/lib/lessonCheckpointStore.ts), so out-of-order request
+  /// arrival (retries, a slow keepalive fetch outliving a faster later
+  /// one) can never regress or resurrect a checkpoint, regardless of what
+  /// order the server actually receives them in.
+  revision      Int      @default(0)
   mistakes      Int      @default(0)
   hintsUsed     Int      @default(0)
   /// Same AttemptRecord[] shape LessonCompletion's attempts are derived
