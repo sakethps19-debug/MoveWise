@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Lesson } from "@movewise/exercise-schema";
 import { LessonRunner, type AttemptRecord, type LessonCheckpointState } from "./LessonRunner";
 import { Button } from "./ui/Button";
 import { readGuestLessonCheckpoint, clearGuestLessonCheckpoint } from "../lib/guestProgress";
+import { createSerialQueue } from "../lib/serialQueue";
+import { saveLessonCheckpointRequest, clearLessonCheckpointRequest } from "../lib/checkpointClient";
 
 interface LessonResumeGateProps {
   lesson: Lesson;
@@ -17,8 +19,6 @@ interface LessonResumeGateProps {
     hintsUsed: number,
     attempts: AttemptRecord[],
   ) => void | Promise<void>;
-  onCheckpoint?: (state: LessonCheckpointState) => void;
-  onClearCheckpoint?: () => void;
 }
 
 /**
@@ -43,17 +43,59 @@ export function LessonResumeGate({
   isGuest,
   initialCheckpoint,
   onComplete,
-  onCheckpoint,
-  onClearCheckpoint,
 }: LessonResumeGateProps) {
   const [guestCheckpoint, setGuestCheckpoint] = useState<LessonCheckpointState | null>(null);
   const [choice, setChoice] = useState<"resume" | "restart" | null>(null);
+
+  // One shared FIFO queue per lesson instance for every network call that
+  // touches this signed-in learner's LessonCheckpoint row — both ordinary
+  // saves (onCheckpoint, fired on every step advance) and the explicit
+  // clear ("Start over" below) go through the SAME queue, not separate
+  // ones, since they all race for the same row and must stay ordered
+  // relative to EACH OTHER, not just among their own kind. See
+  // lib/serialQueue.ts's own doc comment for the exact bug this closes —
+  // a real, reproduced-under-load race where a stale save landed after a
+  // newer save, or even after an explicit clear, silently regressing or
+  // resurrecting the saved step.
+  const checkpointQueueRef = useRef<ReturnType<typeof createSerialQueue> | null>(null);
+  if (!checkpointQueueRef.current) checkpointQueueRef.current = createSerialQueue();
 
   useEffect(() => {
     if (isGuest) {
       setGuestCheckpoint(readGuestLessonCheckpoint(lesson.id, lesson.version));
     }
   }, [isGuest, lesson.id, lesson.version]);
+
+  // Signed-in only (guests persist via guestProgress.ts's localStorage
+  // path instead, unchanged) — a plain keepalive fetch to
+  // app/api/lesson-checkpoint/route.ts, not a Server Action, specifically
+  // so the request survives the learner navigating away mid-save (see
+  // that route's own doc comment for why a Server Action can't do this).
+  // Still routed through the shared queue below for correct ordering
+  // among themselves and relative to onComplete's own checkpoint-clear.
+  const serializedOnCheckpoint = isGuest
+    ? undefined
+    : (state: LessonCheckpointState) => {
+        checkpointQueueRef.current!(() => saveLessonCheckpointRequest(lesson.id, lesson.version, state));
+      };
+  const serializedOnClearCheckpoint = isGuest
+    ? undefined
+    : () => {
+        checkpointQueueRef.current!(() => clearLessonCheckpointRequest(lesson.id));
+      };
+  // completeLessonAction also deletes this same LessonCheckpoint row
+  // server-side (finishing supersedes any in-progress save) — it MUST go
+  // through the identical queue, not run independently of it, or the
+  // very last step's still-in-flight checkpoint save can land after
+  // completion's delete and resurrect a "finished" lesson's checkpoint
+  // with stale data. LessonRunner already awaits this call directly (to
+  // drive its own saving/error UI), so — unlike the two fire-and-forget
+  // wrappers above — this one must return the queued promise, not just
+  // enqueue and forget.
+  const serializedOnComplete = onComplete
+    ? (xpEarned: number, mistakes: number, hintsUsed: number, attempts: AttemptRecord[]) =>
+        checkpointQueueRef.current!(() => Promise.resolve(onComplete(xpEarned, mistakes, hintsUsed, attempts)))
+    : undefined;
 
   const checkpoint = isGuest ? guestCheckpoint : initialCheckpoint;
   const hasResumableProgress = !!checkpoint && checkpoint.stepIndex > 0;
@@ -71,7 +113,7 @@ export function LessonResumeGate({
             variant="ghost"
             onClick={() => {
               if (isGuest) clearGuestLessonCheckpoint(lesson.id);
-              else onClearCheckpoint?.();
+              else serializedOnClearCheckpoint?.();
               setChoice("restart");
             }}
           >
@@ -88,9 +130,9 @@ export function LessonResumeGate({
     <LessonRunner
       lesson={lesson}
       isGuest={isGuest}
-      onComplete={onComplete}
+      onComplete={serializedOnComplete}
       initialCheckpoint={effectiveInitialCheckpoint}
-      onCheckpoint={onCheckpoint}
+      onCheckpoint={serializedOnCheckpoint}
     />
   );
 }
