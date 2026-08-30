@@ -12,6 +12,7 @@ import { loadLesson } from "../lib/lessons";
 import { findPuzzle } from "../lib/puzzles";
 import { computeMasteryStatus, PROFICIENT_STATUSES, type MasteryStatus } from "../lib/masteryModel";
 import { computeReviewSchedule } from "../lib/practiceScheduler";
+import { closeLessonCheckpoint } from "../lib/lessonCheckpointStore";
 import { scorePlacement, earlyExitReason, PLACEMENT_ASSESSMENT_VERSION, type PlacementAnswer, type PlacementResult } from "../lib/placement";
 import { canAnalyze, summarize, type GameReview, type MoveAnalysis } from "../lib/gameAnalysis";
 import { buildStoredGameReview } from "../lib/studyPlan";
@@ -369,6 +370,7 @@ export async function completeLessonAction(
   mistakes: number,
   hintsUsed: number,
   attempts: AttemptRecord[],
+  checkpointRevision: number,
 ): Promise<void> {
   const user = await getSession();
   if (!user) return; // guest: XP is session-local only, nothing to persist
@@ -387,10 +389,12 @@ export async function completeLessonAction(
     create: { userId: user.id, lessonId, xpEarned, mistakes, hintsUsed },
   });
 
-  // Completion supersedes any in-progress checkpoint — finishing clears it,
+  // Completion supersedes any in-progress checkpoint — finishing closes it,
   // the same "completed beats in-progress" rule lessonProgressUI.ts already
-  // uses for the lighter-weight "started" UI marker.
-  await prisma.lessonCheckpoint.deleteMany({ where: { userId: user.id, lessonId } });
+  // uses for the lighter-weight "started" UI marker. Revision-guarded, not
+  // a blind delete — see lib/lessonCheckpointStore.ts's own doc comment
+  // for why a delete can't defend against a stale save arriving after it.
+  await closeLessonCheckpoint(user.id, lessonId, checkpointRevision);
 
   await recordAttemptsAndUpdateMastery(user.id, lessonId, attempts);
   revalidatePath("/");
@@ -556,6 +560,35 @@ export async function submitPlacementAction(answers: PlacementAnswer[], startedA
   revalidatePath("/");
   revalidatePath("/practice");
   return result;
+}
+
+/**
+ * P1 "complete placement confirmation": the short-quiz consumer for a
+ * concept sitting at `inferred_high_confidence` (lib/placementEvidence.ts)
+ * — already unlocking real content purely from the foundational cluster's
+ * 2-of-4 signal, never itself directly checked. On success this writes a
+ * real UserConceptMastery "proficient" row, exactly the evidence a direct
+ * placement item or ordinary practice would have produced — promoting the
+ * concept to genuinely demonstrated, not just inferred. On failure it does
+ * nothing: never demotes anything the learner already had (there's
+ * nothing to lose — this concept had no direct evidence either way before
+ * this attempt), and the content stays reachable exactly as it already
+ * was. A guest has no session for a mastery row to attach to; their
+ * equivalent lives client-side (lib/guestProgress.ts's
+ * recordGuestConfirmedConcept, called directly from the component instead
+ * of through this action).
+ */
+export async function confirmConceptAction(conceptId: string, allCorrect: boolean): Promise<void> {
+  const user = await getSession();
+  if (!user) return;
+  if (!allCorrect) return;
+
+  await prisma.userConceptMastery.upsert({
+    where: { userId_conceptId: { userId: user.id, conceptId } },
+    update: { status: "proficient", exerciseConfidence: 1, lastPracticedAt: new Date() },
+    create: { userId: user.id, conceptId, status: "proficient", exerciseConfidence: 1, lastPracticedAt: new Date() },
+  });
+  revalidatePath("/practice");
 }
 
 export interface SaveCompletedGameInput {

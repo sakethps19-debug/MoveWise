@@ -7,6 +7,7 @@ import { LessonResumeGate } from "../../../components/LessonResumeGate";
 import { LessonGate } from "../../../components/LessonGate";
 import { completeLessonAction } from "../../actions";
 import { getSession } from "../../../lib/auth";
+import { LESSON_CHECKPOINT_CLOSED_STEP } from "../../../lib/lessonCheckpointStore";
 import type { LessonCheckpointState } from "../../../components/LessonRunner";
 
 export default async function LessonPage({
@@ -87,11 +88,26 @@ export default async function LessonPage({
   // discarded rather than resumed into step semantics that may have
   // changed since — deleted outright so it doesn't linger as a dangling row.
   let initialCheckpoint: LessonCheckpointState | null = null;
+  // Seeds this page load's client-side revision counter
+  // (components/LessonResumeGate.tsx) — must be comfortably above the
+  // server's current high-water mark, never unconditionally 0 and never
+  // just +1, or a learner who leaves and reopens a lesson risks every one
+  // of their resumed session's own saves being rejected as stale (or
+  // worse, tying) against a revision their previous session's own
+  // straggling keepalive save hasn't finished writing yet. A real lesson
+  // attempt never generates anywhere close to this many checkpoint writes
+  // (a handful of steps, at most a few saves each), so this reserves
+  // generous, cheap headroom against exactly that race rather than
+  // assuming the previous session's last write has necessarily landed by
+  // the time this page re-reads the row.
+  const REVISION_HEADROOM = 10_000;
+  let initialRevision = 0;
   if (user) {
     const checkpoint = await prisma.lessonCheckpoint.findUnique({
       where: { userId_lessonId: { userId: user.id, lessonId: lesson.id } },
     });
-    if (checkpoint) {
+    initialRevision = (checkpoint?.revision ?? 0) + REVISION_HEADROOM;
+    if (checkpoint && checkpoint.stepIndex !== LESSON_CHECKPOINT_CLOSED_STEP) {
       if (checkpoint.lessonVersion === lesson.version) {
         initialCheckpoint = {
           stepIndex: checkpoint.stepIndex,
@@ -101,6 +117,7 @@ export default async function LessonPage({
         };
       } else {
         await prisma.lessonCheckpoint.deleteMany({ where: { userId: user.id, lessonId: lesson.id } });
+        initialRevision = 0;
       }
     }
   }
@@ -109,6 +126,7 @@ export default async function LessonPage({
     <LessonResumeGate
       lesson={lesson}
       isGuest={!user}
+      initialRevision={initialRevision}
       initialCheckpoint={initialCheckpoint}
       onComplete={completeLessonAction.bind(null, lesson.id)}
     />

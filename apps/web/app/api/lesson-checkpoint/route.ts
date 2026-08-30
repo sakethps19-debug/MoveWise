@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma, Prisma } from "@movewise/db";
 import { getSession } from "../../../lib/auth";
+import { writeLessonCheckpoint, closeLessonCheckpoint } from "../../../lib/lessonCheckpointStore";
 
 /**
  * P0 lesson-resume race fix: a signed-in learner's in-progress lesson
@@ -16,20 +16,26 @@ import { getSession } from "../../../lib/auth";
  * client call `fetch(..., { keepalive: true })` instead, which Chromium
  * (and other modern browsers) keeps alive across page unload for a
  * small payload like this one — a Server Action's internal fetch call
- * isn't something this app can attach that flag to. `stepIndex`/attempt-
- * count staleness guards below are kept as defense in depth against the
- * remaining, much narrower race (two saves genuinely in flight at once
- * arriving out of order), on top of the client-side request queue in
- * components/LessonResumeGate.tsx.
+ * isn't something this app can attach that flag to.
+ *
+ * A single POST handles both an ordinary save and a "close" (Start
+ * over / superseded by completion) — see lib/lessonCheckpointStore.ts's
+ * own doc comment for why closing is a revision-guarded write rather
+ * than a DELETE. There is deliberately no DELETE method here anymore:
+ * a hard delete has no revision to reject a late-arriving stale save
+ * against, which is exactly the residual race a prior version of this
+ * fix still hit under repeated stress testing.
  */
 
 interface CheckpointBody {
   lessonId: string;
-  lessonVersion: number;
-  stepIndex: number;
-  mistakes: number;
-  hintsUsed: number;
-  attempts: unknown[];
+  revision: number;
+  closed?: boolean;
+  lessonVersion?: number;
+  stepIndex?: number;
+  mistakes?: number;
+  hintsUsed?: number;
+  attempts?: unknown[];
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -42,37 +48,33 @@ export async function POST(request: Request): Promise<Response> {
   } catch {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
-  const { lessonId, lessonVersion, stepIndex, mistakes, hintsUsed, attempts } = body;
-  if (typeof lessonId !== "string" || typeof stepIndex !== "number" || !Array.isArray(attempts)) {
+  const { lessonId, revision, closed } = body;
+  if (typeof lessonId !== "string" || typeof revision !== "number") {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
 
-  const attemptsJson = attempts as unknown as Prisma.InputJsonValue;
-  const existing = await prisma.lessonCheckpoint.findUnique({
-    where: { userId_lessonId: { userId: user.id, lessonId } },
-    select: { stepIndex: true, attempts: true },
-  });
-  if (existing) {
-    const existingAttemptCount = Array.isArray(existing.attempts) ? existing.attempts.length : 0;
-    const stale = existing.stepIndex > stepIndex || (existing.stepIndex === stepIndex && existingAttemptCount > attempts.length);
-    if (stale) return NextResponse.json({ ok: true, skipped: "stale" });
+  if (closed) {
+    await closeLessonCheckpoint(user.id, lessonId, revision);
+    return NextResponse.json({ ok: true });
   }
 
-  await prisma.lessonCheckpoint.upsert({
-    where: { userId_lessonId: { userId: user.id, lessonId } },
-    update: { lessonVersion, stepIndex, mistakes, hintsUsed, attempts: attemptsJson },
-    create: { userId: user.id, lessonId, lessonVersion, stepIndex, mistakes, hintsUsed, attempts: attemptsJson },
+  const { lessonVersion, stepIndex, mistakes, hintsUsed, attempts } = body;
+  if (
+    typeof lessonVersion !== "number" ||
+    typeof stepIndex !== "number" ||
+    typeof mistakes !== "number" ||
+    typeof hintsUsed !== "number" ||
+    !Array.isArray(attempts)
+  ) {
+    return NextResponse.json({ error: "invalid body" }, { status: 400 });
+  }
+
+  const result = await writeLessonCheckpoint(user.id, lessonId, revision, {
+    lessonVersion,
+    stepIndex,
+    mistakes,
+    hintsUsed,
+    attempts,
   });
-  return NextResponse.json({ ok: true });
-}
-
-export async function DELETE(request: Request): Promise<Response> {
-  const user = await getSession();
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-
-  const lessonId = new URL(request.url).searchParams.get("lessonId");
-  if (!lessonId) return NextResponse.json({ error: "missing lessonId" }, { status: 400 });
-
-  await prisma.lessonCheckpoint.deleteMany({ where: { userId: user.id, lessonId } });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, skipped: result === "stale" ? "stale" : undefined });
 }

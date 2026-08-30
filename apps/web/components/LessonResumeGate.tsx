@@ -13,11 +13,14 @@ interface LessonResumeGateProps {
   isGuest: boolean;
   /** Signed-in only — read server-side in app/learn/[lessonId]/page.tsx, already version-checked. Always null for guests. */
   initialCheckpoint: LessonCheckpointState | null;
+  /** The server's current stored revision for this (user, lesson) checkpoint row, 0 if none exists — seeds this mount's revision counter below so a learner resuming a previous session doesn't have every one of their own new saves rejected as stale against a high-water mark their last session already left behind. Always 0 for guests (no server-side revision guard on their localStorage-only checkpoint). */
+  initialRevision: number;
   onComplete?: (
     xpEarned: number,
     mistakes: number,
     hintsUsed: number,
     attempts: AttemptRecord[],
+    revision: number,
   ) => void | Promise<void>;
 }
 
@@ -42,6 +45,7 @@ export function LessonResumeGate({
   lesson,
   isGuest,
   initialCheckpoint,
+  initialRevision,
   onComplete,
 }: LessonResumeGateProps) {
   const [guestCheckpoint, setGuestCheckpoint] = useState<LessonCheckpointState | null>(null);
@@ -60,6 +64,16 @@ export function LessonResumeGate({
   const checkpointQueueRef = useRef<ReturnType<typeof createSerialQueue> | null>(null);
   if (!checkpointQueueRef.current) checkpointQueueRef.current = createSerialQueue();
 
+  // Monotonically increasing per this lesson-attempt session — bumped once
+  // per save/clear/complete call, sent with every request, and rejected
+  // server-side unless strictly greater than what's stored
+  // (lib/lessonCheckpointStore.ts). This is the actual ordering guarantee;
+  // the serial queue above only orders when requests are *sent* from this
+  // tab, not when the server receives them, which is not the same thing
+  // once a keepalive request can outlive the page that sent it.
+  const revisionRef = useRef(initialRevision);
+  const nextRevision = () => ++revisionRef.current;
+
   useEffect(() => {
     if (isGuest) {
       setGuestCheckpoint(readGuestLessonCheckpoint(lesson.id, lesson.version));
@@ -76,25 +90,34 @@ export function LessonResumeGate({
   const serializedOnCheckpoint = isGuest
     ? undefined
     : (state: LessonCheckpointState) => {
-        checkpointQueueRef.current!(() => saveLessonCheckpointRequest(lesson.id, lesson.version, state));
+        const revision = nextRevision();
+        checkpointQueueRef.current!(() => saveLessonCheckpointRequest(lesson.id, lesson.version, state, revision));
       };
   const serializedOnClearCheckpoint = isGuest
     ? undefined
     : () => {
-        checkpointQueueRef.current!(() => clearLessonCheckpointRequest(lesson.id));
+        const revision = nextRevision();
+        checkpointQueueRef.current!(() => clearLessonCheckpointRequest(lesson.id, revision));
       };
-  // completeLessonAction also deletes this same LessonCheckpoint row
+  // completeLessonAction also closes this same LessonCheckpoint row
   // server-side (finishing supersedes any in-progress save) — it MUST go
   // through the identical queue, not run independently of it, or the
   // very last step's still-in-flight checkpoint save can land after
-  // completion's delete and resurrect a "finished" lesson's checkpoint
-  // with stale data. LessonRunner already awaits this call directly (to
-  // drive its own saving/error UI), so — unlike the two fire-and-forget
-  // wrappers above — this one must return the queued promise, not just
-  // enqueue and forget.
+  // completion's close and resurrect a "finished" lesson's checkpoint
+  // with stale data. Both requests also carry this session's own revision
+  // counter, so even if the queue's send-order guarantee is defeated by
+  // network-level reordering, the server's revision guard is the one that
+  // actually decides which write wins. LessonRunner already awaits this
+  // call directly (to drive its own saving/error UI), so — unlike the two
+  // fire-and-forget wrappers above — this one must return the queued
+  // promise, not just enqueue and forget.
   const serializedOnComplete = onComplete
-    ? (xpEarned: number, mistakes: number, hintsUsed: number, attempts: AttemptRecord[]) =>
-        checkpointQueueRef.current!(() => Promise.resolve(onComplete(xpEarned, mistakes, hintsUsed, attempts)))
+    ? (xpEarned: number, mistakes: number, hintsUsed: number, attempts: AttemptRecord[]) => {
+        const revision = nextRevision();
+        return checkpointQueueRef.current!(() =>
+          Promise.resolve(onComplete(xpEarned, mistakes, hintsUsed, attempts, revision)),
+        );
+      }
     : undefined;
 
   const checkpoint = isGuest ? guestCheckpoint : initialCheckpoint;
