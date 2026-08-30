@@ -4,7 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { Puzzle } from "@movewise/exercise-schema";
 import { legalTargetsFrom, moveMatches, tryMove, type Square } from "@movewise/chess-rules";
-import { nextPlacementItemId, scorePlacement, type PlacementAnswer, type PlacementResult } from "../lib/placement";
+import {
+  nextPlacementItemId,
+  scorePlacement,
+  earlyExitReason,
+  PLACEMENT_ASSESSMENT_VERSION,
+  type PlacementAnswer,
+  type PlacementResult,
+} from "../lib/placement";
 import { savePlacementResult } from "../lib/placementProgress";
 import { Board } from "./Board";
 import { Button } from "./ui/Button";
@@ -29,8 +36,8 @@ export function PlacementRunner({
   puzzlesById: Record<string, Puzzle>;
   conceptTitles: Record<string, string>;
   isGuest: boolean;
-  /** Bound server action (submitPlacementAction) for a signed-in learner — writes real UserConceptMastery rows. Guests score and store locally instead (lib/placementProgress.ts), same "session-local only" rule as the rest of guest progress. */
-  onSubmit?: (answers: PlacementAnswer[]) => Promise<PlacementResult>;
+  /** Bound server action (submitPlacementAction) for a signed-in learner — writes real UserConceptMastery rows and a PlacementAttempt evidence record. Guests score and store locally instead (lib/placementProgress.ts), same "session-local only" rule as the rest of guest progress. */
+  onSubmit?: (answers: PlacementAnswer[], startedAt?: number) => Promise<PlacementResult>;
 }) {
   const [answers, setAnswers] = useState<PlacementAnswer[]>([]);
   const [status, setStatus] = useState<StepStatus>("active");
@@ -39,6 +46,7 @@ export function PlacementRunner({
   const [pendingAnswer, setPendingAnswer] = useState<PlacementAnswer | null>(null);
   const [result, setResult] = useState<PlacementResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [startedAt] = useState(() => Date.now());
 
   const currentItemId = useMemo(() => nextPlacementItemId(answers), [answers]);
   const puzzle = currentItemId ? puzzlesById[currentItemId] : undefined;
@@ -61,13 +69,18 @@ export function PlacementRunner({
     // persist to this browser only.
     setSubmitting(true);
     (async () => {
-      const finalResult = onSubmit ? await onSubmit(answers) : scorePlacement(answers);
+      const finalResult = onSubmit ? await onSubmit(answers, startedAt) : scorePlacement(answers);
       if (isGuest) {
         savePlacementResult({
           demonstratedConceptIds: finalResult.demonstratedConceptIds,
           level: finalResult.level,
           confidence: finalResult.confidence,
           recommendedStartUnitId: finalResult.recommendedStartUnitId,
+          assessmentVersion: PLACEMENT_ASSESSMENT_VERSION,
+          startedAt,
+          itemResponses: answers,
+          conceptEvidence: finalResult.conceptEvidence,
+          earlyExitReason: earlyExitReason(answers),
         });
       }
       setResult(finalResult);

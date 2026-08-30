@@ -11,10 +11,11 @@ import { parseEnvNumberOverride } from "../lib/envNumber";
 import { loadLesson } from "../lib/lessons";
 import { findPuzzle } from "../lib/puzzles";
 import { computeMasteryStatus, PROFICIENT_STATUSES, type MasteryStatus } from "../lib/masteryModel";
-import { scorePlacement, type PlacementAnswer, type PlacementResult } from "../lib/placement";
+import { computeReviewSchedule } from "../lib/practiceScheduler";
+import { scorePlacement, earlyExitReason, PLACEMENT_ASSESSMENT_VERSION, type PlacementAnswer, type PlacementResult } from "../lib/placement";
 import { canAnalyze, summarize, type GameReview, type MoveAnalysis } from "../lib/gameAnalysis";
 import { buildStoredGameReview } from "../lib/studyPlan";
-import type { AttemptRecord, LessonCheckpointState } from "../components/LessonRunner";
+import type { AttemptRecord } from "../components/LessonRunner";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 8;
@@ -395,39 +396,14 @@ export async function completeLessonAction(
   revalidatePath("/");
 }
 
-/**
- * Saves a signed-in learner's in-progress position in a lesson — the "In
- * progress" fix: reopening a lesson previously always restarted at step 1
- * with full hearts because nothing but the cosmetic
- * lessonProgressUI.ts "started" flag was ever persisted mid-lesson. Called
- * from LessonRunner on every step advance; best-effort (fire-and-forget
- * from the caller) since losing a checkpoint write only costs a resume
- * point, never real progress data (LessonCompletion/ExerciseAttempt are
- * unaffected either way).
- */
-export async function saveLessonCheckpointAction(
-  lessonId: string,
-  lessonVersion: number,
-  state: LessonCheckpointState,
-): Promise<void> {
-  const user = await getSession();
-  if (!user) return; // guest: checkpoint lives in localStorage instead (see guestProgress.ts)
-
-  const { stepIndex, mistakes, hintsUsed, attempts } = state;
-  const attemptsJson = attempts as unknown as Prisma.InputJsonValue;
-  await prisma.lessonCheckpoint.upsert({
-    where: { userId_lessonId: { userId: user.id, lessonId } },
-    update: { lessonVersion, stepIndex, mistakes, hintsUsed, attempts: attemptsJson },
-    create: { userId: user.id, lessonId, lessonVersion, stepIndex, mistakes, hintsUsed, attempts: attemptsJson },
-  });
-}
-
-/** Explicit "Start over" — discards a saved checkpoint rather than resuming it. */
-export async function clearLessonCheckpointAction(lessonId: string): Promise<void> {
-  const user = await getSession();
-  if (!user) return;
-  await prisma.lessonCheckpoint.deleteMany({ where: { userId: user.id, lessonId } });
-}
+// Checkpoint save/clear moved to app/api/lesson-checkpoint/route.ts — a
+// plain Route Handler the client calls via `fetch(..., { keepalive: true
+// })`, not a Server Action. Real bug this fixed: a Server Action's
+// internal fetch can't be given that flag, so it was silently canceled
+// the moment the page navigated away — exactly the moment a lesson's
+// last-step checkpoint save most needed to survive. See that route's own
+// doc comment for the full reproduction and components/LessonResumeGate.tsx
+// for the client-side request-ordering queue layered on top of it.
 
 /**
  * Recomputes UserConceptMastery for each given concept from the
@@ -447,7 +423,7 @@ async function recomputeMasteryForConcepts(userId: string, conceptIds: string[])
       prisma.exerciseAttempt.findMany({
         where: { userId, conceptIds: { has: conceptId } },
         orderBy: { createdAt: "asc" },
-        select: { correct: true, puzzleId: true, gameId: true },
+        select: { correct: true, puzzleId: true, gameId: true, createdAt: true },
       }),
     ]);
 
@@ -458,11 +434,16 @@ async function recomputeMasteryForConcepts(userId: string, conceptIds: string[])
         source: a.puzzleId ? ("puzzle" as const) : a.gameId ? ("game" as const) : ("lesson" as const),
       })),
     );
+    // P1 "real due-date scheduler": a documented Leitner-derived schedule
+    // (lib/practiceScheduler.ts) computed from this same attempt history —
+    // this is what lets the Daily Warm-up genuinely know a concept is
+    // "due for review" rather than only ever selecting by current chapter.
+    const { nextDueAt } = computeReviewSchedule(history.map((a) => ({ correct: a.correct, at: a.createdAt })));
 
     await prisma.userConceptMastery.upsert({
       where: { userId_conceptId: { userId, conceptId } },
-      update: { status, exerciseConfidence, lastPracticedAt: new Date() },
-      create: { userId, conceptId, status, exerciseConfidence, lastPracticedAt: new Date() },
+      update: { status, exerciseConfidence, lastPracticedAt: new Date(), nextRevisionDueAt: nextDueAt },
+      create: { userId, conceptId, status, exerciseConfidence, lastPracticedAt: new Date(), nextRevisionDueAt: nextDueAt },
     });
   }
 }
@@ -542,10 +523,23 @@ export async function recordPuzzleAttemptAction(puzzleId: string, correct: boole
  * caller, same "session-local only" reasoning as every other guest path
  * in this file.
  */
-export async function submitPlacementAction(answers: PlacementAnswer[]): Promise<PlacementResult> {
+export async function submitPlacementAction(answers: PlacementAnswer[], startedAt?: number): Promise<PlacementResult> {
   const result = scorePlacement(answers);
   const user = await getSession();
   if (!user) return result;
+
+  await prisma.placementAttempt.create({
+    data: {
+      userId: user.id,
+      assessmentVersion: PLACEMENT_ASSESSMENT_VERSION,
+      startedAt: startedAt ? new Date(startedAt) : new Date(),
+      itemResponses: answers as unknown as Prisma.InputJsonValue,
+      conceptEvidence: result.conceptEvidence as unknown as Prisma.InputJsonValue,
+      confidence: result.confidence,
+      tierResult: result.level,
+      earlyExitReason: earlyExitReason(answers),
+    },
+  });
 
   for (const conceptId of result.demonstratedConceptIds) {
     const existing = await prisma.userConceptMastery.findUnique({

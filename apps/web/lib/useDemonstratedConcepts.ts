@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { MasteryStatus } from "./masteryModel";
 import { PROFICIENT_STATUSES } from "./masteryModel";
 import { readPlacementResult } from "./placementProgress";
+import { readGuestContradictingConceptIds } from "./guestProgress";
 
 /**
  * The set of concept ids `statusOf`/`unlockReason`/PracticeHub's own
@@ -22,7 +23,14 @@ export function useDemonstratedConcepts(conceptMastery: Map<string, MasteryStatu
 
   useEffect(() => {
     if (conceptMastery === null) {
-      setGuestDemonstrated(new Set(readPlacementResult()?.demonstratedConceptIds ?? []));
+      const placementDemonstrated = readPlacementResult()?.demonstratedConceptIds ?? [];
+      // P1 "allow later evidence to correct an inaccurate placement":
+      // a guest has no server-side mastery recompute to self-correct
+      // through, so a concept with real, repeated wrong practice
+      // attempts on this device overrides an earlier placement result —
+      // see readGuestContradictingConceptIds's own doc comment.
+      const contradicted = readGuestContradictingConceptIds();
+      setGuestDemonstrated(new Set(placementDemonstrated.filter((id) => !contradicted.has(id))));
     }
   }, [conceptMastery]);
 

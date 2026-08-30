@@ -14,12 +14,26 @@
 
 const PLACEMENT_KEY = "movewise_placement";
 
+/**
+ * P1 "for guests, persist a compatible versioned local representation":
+ * a guest's stored record now carries the same evidence-grade fields a
+ * signed-in learner's PlacementAttempt row does (packages/db/prisma/schema.prisma),
+ * not just the flat summary — assessmentVersion, startedAt/completedAt,
+ * itemResponses and conceptEvidence — so a guest's local history is
+ * inspectable/correctable the same way, and a future assessment-version
+ * bump can distinguish old records from new ones.
+ */
 export interface StoredPlacementResult {
   demonstratedConceptIds: string[];
   level: "new" | "beginner" | "intermediate" | "advanced";
   confidence: number;
   recommendedStartUnitId: "meet-the-pieces" | "check-and-checkmate" | "basic-tactics" | null;
   completedAt: number;
+  assessmentVersion: number;
+  startedAt: number;
+  itemResponses: { itemId: string; correct: boolean }[];
+  conceptEvidence: { conceptId: string; level: string; source: string }[];
+  earlyExitReason: string | null;
 }
 
 export function readPlacementResult(): StoredPlacementResult | null {

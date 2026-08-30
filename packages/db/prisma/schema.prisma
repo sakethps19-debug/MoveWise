@@ -20,6 +20,7 @@ model User {
   games               Game[]
   lessonCheckpoints   LessonCheckpoint[]
   passwordResetTokens PasswordResetToken[]
+  placementAttempts   PlacementAttempt[]
 }
 
 /// Opaque database-backed session tokens (not JWTs) — the cookie holds
@@ -264,6 +265,38 @@ model MoveAnalysis {
   gameAnalysis GameAnalysis @relation(fields: [gameAnalysisId], references: [id], onDelete: Cascade)
 
   @@index([gameAnalysisId])
+}
+
+/// P1 "honest placement evidence": one row per completed placement
+/// assessment attempt (lib/placement.ts's scorePlacement), never
+/// overwritten in place — a learner who retakes the assessment gets a
+/// new row, so what was tested and when is never lost. `conceptEvidence`
+/// is the full per-concept evidence-level breakdown
+/// (lib/placementEvidence.ts's ConceptEvidence[]), replacing an earlier,
+/// coarser "2 of 4 foundational items correct grants the whole cluster"
+/// model that collapsed every concept to a single flat "demonstrated or
+/// not" — untested king/pawn-movement knowledge, for example, is now
+/// explicitly labeled `inferred_high_confidence` rather than silently
+/// merged with a concept the learner actually answered a question about
+/// (`directly_demonstrated`).
+model PlacementAttempt {
+  id                String    @id @default(cuid())
+  userId            String
+  assessmentVersion Int
+  startedAt         DateTime
+  completedAt       DateTime  @default(now())
+  /// Each answered item in order — lib/placement.ts's PlacementAnswer[] ({itemId, correct}).
+  itemResponses     Json
+  /// Per-concept evidence-level breakdown at the time of this attempt — lib/placementEvidence.ts's ConceptEvidence[].
+  conceptEvidence   Json
+  confidence        Float
+  tierResult        String
+  /// Non-null only when the assessment ended before every item was asked — lib/placement.ts's early-exit rule.
+  earlyExitReason   String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 /// Backs apps/web/lib/rate-limit.ts's sliding-window limiter. One row per

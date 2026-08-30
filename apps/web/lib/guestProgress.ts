@@ -173,18 +173,56 @@ interface GuestPracticeStats {
   correct: number;
 }
 
-/** A guest's puzzle-practice attempt (Daily warm-up or a unit's puzzle pool) — previously discarded entirely for a guest (recordPuzzleAttemptAction is a no-op without a session); now at least visible on their own device. */
-export function recordGuestPracticeAttempt(correct: boolean): void {
+/** A guest's puzzle-practice attempt (Daily warm-up or a unit's puzzle pool) — previously discarded entirely for a guest (recordPuzzleAttemptAction is a no-op without a session); now at least visible on their own device. `conceptIds` (the puzzle's own tags) let a wrong answer count toward "later evidence contradicts an earlier placement result" — see readGuestContradictingConceptIds. */
+export function recordGuestPracticeAttempt(correct: boolean, conceptIds: string[] = []): void {
   if (typeof window === "undefined") return;
   try {
     const stats = readGuestPracticeStats();
     stats.attempts += 1;
     if (correct) stats.correct += 1;
+    else recordGuestConceptMistakes(conceptIds);
     window.localStorage.setItem(GUEST_PRACTICE_KEY, JSON.stringify(stats));
     recordGuestActivityDay();
   } catch {
     // ignore
   }
+}
+
+const GUEST_CONCEPT_MISTAKES_KEY = "movewise_guest_concept_mistakes";
+
+export function readGuestConceptMistakeCounts(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(GUEST_CONCEPT_MISTAKES_KEY);
+    if (!raw) return {};
+    const parsed: unknown = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function recordGuestConceptMistakes(conceptIds: string[]): void {
+  if (conceptIds.length === 0) return;
+  const counts = readGuestConceptMistakeCounts();
+  for (const conceptId of conceptIds) counts[conceptId] = (counts[conceptId] ?? 0) + 1;
+  window.localStorage.setItem(GUEST_CONCEPT_MISTAKES_KEY, JSON.stringify(counts));
+}
+
+/**
+ * P1 "allow later evidence to correct an inaccurate placement" — a guest
+ * has no server-side UserConceptMastery to self-correct through (unlike a
+ * signed-in learner, whose mastery recompute already demotes a concept
+ * out of the proficient set after real wrong attempts). This is the
+ * guest-only equivalent: a concept with real, repeated wrong practice
+ * attempts on this device is no longer trusted from an earlier placement
+ * result, regardless of what that result said. Two wrong attempts (not
+ * one) — the same "don't flip a whole judgment from a single data point"
+ * principle placement scoring itself already applies.
+ */
+export function readGuestContradictingConceptIds(threshold = 2): Set<string> {
+  const counts = readGuestConceptMistakeCounts();
+  return new Set(Object.entries(counts).filter(([, count]) => count >= threshold).map(([conceptId]) => conceptId));
 }
 
 export function readGuestPracticeStats(): GuestPracticeStats {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nextPlacementItemId, scorePlacement, PLACEMENT_ITEM_COUNT, type PlacementAnswer } from "./placement";
+import { nextPlacementItemId, scorePlacement, earlyExitReason, PLACEMENT_ITEM_COUNT, type PlacementAnswer } from "./placement";
 
 function answer(itemId: string, correct: boolean): PlacementAnswer {
   return { itemId, correct };
@@ -58,14 +58,19 @@ describe("nextPlacementItemId", () => {
 });
 
 describe("scorePlacement", () => {
-  it("never grants the foundational cluster from a single correct answer out of four", () => {
+  it("never extends the cluster-level inference to an untested concept (king-movement) from a single correct answer out of four — a genuinely tested concept (rook-movement, its OWN item) still gets its own deserved direct credit", () => {
     const result = scorePlacement([
       answer("placement.movement-rook", true),
       answer("placement.movement-bishop", false),
       answer("placement.movement-queen", false),
       answer("placement.movement-knight", false),
     ]);
-    expect(result.demonstratedConceptIds).not.toContain("rook-movement");
+    // rook-movement's own item really was answered correctly — real,
+    // narrow, deserved evidence for that one concept specifically, not
+    // the "lucky guess grants everything" case this test guards against.
+    expect(result.demonstratedConceptIds).toContain("rook-movement");
+    // king-movement has no dedicated item at all — it can only ever come
+    // from the cluster-level inference, which requires 2 of 4, not 1.
     expect(result.demonstratedConceptIds).not.toContain("king-movement");
     expect(result.level).toBe("new");
     expect(result.recommendedStartUnitId).toBeNull();
@@ -125,5 +130,102 @@ describe("scorePlacement", () => {
     expect(result.confidence).toBe(0);
     expect(result.level).toBe("new");
     expect(result.demonstratedConceptIds).toHaveLength(0);
+  });
+});
+
+describe("scorePlacement's conceptEvidence (P1 'honest placement evidence')", () => {
+  it("never conflates an untested foundational-cluster concept (king/pawn movement) with a concept whose own item was actually answered", () => {
+    const result = scorePlacement([
+      answer("placement.movement-rook", true),
+      answer("placement.movement-bishop", true),
+      answer("placement.movement-queen", false),
+      answer("placement.movement-knight", false),
+    ]);
+    const rook = result.conceptEvidence.find((e) => e.conceptId === "rook-movement")!;
+    const king = result.conceptEvidence.find((e) => e.conceptId === "king-movement")!;
+    // Both end up in the same bypass-eligible bucket today (2/4 grants the
+    // cluster), but they must never be reported as the SAME evidence level
+    // for the SAME reason — king-movement was never itself asked.
+    expect(king.level).toBe("inferred_high_confidence");
+    expect(king.source).not.toBe(rook.source);
+    expect(king.source).toMatch(/foundational-cluster/);
+  });
+
+  it("marks a core-tier concept directly_demonstrated only when its own item was answered correctly", () => {
+    const result = scorePlacement([answer("placement.recognize-check", true), answer("placement.recognize-checkmate", false)]);
+    const check = result.conceptEvidence.find((e) => e.conceptId === "check")!;
+    const checkmate = result.conceptEvidence.find((e) => e.conceptId === "checkmate")!;
+    expect(check.level).toBe("directly_demonstrated");
+    expect(check.source).toBe("placement.recognize-check");
+    expect(checkmate.level).toBe("unverified");
+  });
+
+  it("marks the untested cluster concepts needs_confirmation (not unverified, not demonstrated) at exactly 1 of 4 correct", () => {
+    const result = scorePlacement([
+      answer("placement.movement-rook", true),
+      answer("placement.movement-bishop", false),
+      answer("placement.movement-queen", false),
+      answer("placement.movement-knight", false),
+    ]);
+    // king-movement has no dedicated item — only the 1-of-4 cluster signal applies to it.
+    const king = result.conceptEvidence.find((e) => e.conceptId === "king-movement")!;
+    expect(king.level).toBe("needs_confirmation");
+    expect(result.demonstratedConceptIds).not.toContain("king-movement");
+    // rook-movement's own item WAS answered correctly — real direct evidence, not a cluster inference at all.
+    const rook = result.conceptEvidence.find((e) => e.conceptId === "rook-movement")!;
+    expect(rook.level).toBe("directly_demonstrated");
+  });
+
+  it("reports every concept in the placement universe explicitly, even ones never asked about at all", () => {
+    const result = scorePlacement([answer("placement.movement-rook", true), answer("placement.movement-bishop", true)]);
+    const neverAsked = result.conceptEvidence.find((e) => e.conceptId === "opposition-key-squares")!;
+    expect(neverAsked).toBeDefined();
+    expect(neverAsked.level).toBe("unverified");
+    expect(neverAsked.source).toBe("not-asked");
+  });
+
+  it("demonstratedConceptIds is exactly the set of directly_demonstrated + inferred_high_confidence concepts in conceptEvidence", () => {
+    const result = scorePlacement([
+      answer("placement.movement-rook", true),
+      answer("placement.movement-bishop", true),
+      answer("placement.movement-queen", true),
+      answer("placement.movement-knight", true),
+      answer("placement.recognize-check", true),
+    ]);
+    const expected = result.conceptEvidence
+      .filter((e) => e.level === "directly_demonstrated" || e.level === "inferred_high_confidence")
+      .map((e) => e.conceptId)
+      .sort();
+    expect([...result.demonstratedConceptIds].sort()).toEqual(expected);
+  });
+});
+
+describe("earlyExitReason", () => {
+  it("is null for a full-length run (14 of 14 answered)", () => {
+    let answers: PlacementAnswer[] = [];
+    for (let i = 0; i < 20; i++) {
+      const next = nextPlacementItemId(answers);
+      if (next === null) break;
+      answers = [...answers, answer(next, true)];
+    }
+    expect(answers).toHaveLength(PLACEMENT_ITEM_COUNT);
+    expect(earlyExitReason(answers)).toBeNull();
+  });
+
+  it("names the 3-consecutive-wrong-core-answers reason for that early exit", () => {
+    let answers: PlacementAnswer[] = [
+      answer("placement.movement-rook", true),
+      answer("placement.movement-bishop", true),
+      answer("placement.movement-queen", true),
+      answer("placement.movement-knight", true),
+    ];
+    for (let i = 0; i < 10; i++) {
+      const next = nextPlacementItemId(answers);
+      if (next === null) break;
+      answers = [...answers, answer(next, false)];
+    }
+    expect(nextPlacementItemId(answers)).toBeNull();
+    expect(answers.length).toBeLessThan(PLACEMENT_ITEM_COUNT);
+    expect(earlyExitReason(answers)).toMatch(/3 consecutive incorrect core-tier answers/);
   });
 });
