@@ -82,7 +82,7 @@ export function TodayPlan({
     <div className="mw-today-card">
       <div className="mw-today-head">
         <div>
-          <h2 className="mw-today-title">Today's plan</h2>
+          <h2 className="mw-today-title">Today&apos;s plan</h2>
           <p className="mw-today-subtitle">
             {plan.allDone ? "All done for today." : `${plan.steps.length} thing${plan.steps.length === 1 ? "" : "s"}, about ${plan.totalEstimatedMinutes} min.`}
           </p>
