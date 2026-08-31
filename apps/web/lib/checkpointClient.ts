@@ -25,20 +25,33 @@ import type { LessonCheckpointState } from "../components/LessonRunner";
  * genuinely dropped connection, or — reproduced directly — a network
  * proxy/browser-level abort) does not reliably reject its Promise the
  * way an ordinary fetch does; it can simply never settle, neither
- * resolving nor rejecting. Since components/LessonResumeGate.tsx runs
- * every one of these calls through one shared serial queue (so ordering
- * against other checkpoint saves and the lesson-completion call itself
- * is guaranteed), a single unsettled call doesn't just leave its own
- * caller stuck — it permanently blocks every later call already queued
- * behind it, including the lesson-completion write, leaving the learner
- * looking at "Saving your progress…" forever with no way to reach the
- * retryable error screen. The race guarantees this function itself
+ * resolving nor rejecting. components/LessonResumeGate.tsx runs ordinary
+ * per-step saves and the explicit "Start over" clear through one shared
+ * serial queue with each other (so they stay ordered relative to one
+ * another), so an unsettled call there would otherwise block every later
+ * same-kind call behind it forever, with no way to ever report the
+ * failure. (Lesson completion itself no longer waits on this queue at
+ * all — see LessonResumeGate.tsx's own doc comment on `serializedOnComplete`
+ * for why that wait was never load-bearing for correctness in the first
+ * place, only added latency.) The race guarantees this function itself
  * always settles, so the queue can never stall on it.
  */
 export type CheckpointRequestResult = "ok" | "stale-epoch" | "stale-revision" | "stale-collision" | "network-error";
 
-/** Generous relative to a real request's normal latency (tens to low-hundreds of ms locally), but bounded well under the completion flow's own error-screen assertion budget (e2e/network-resilience.spec.ts) — an unsettled call sitting ahead of the completion call in the shared queue must clear in time for that call's own round trip to still finish and render within the same window. */
-const TIMEOUT_MS = 2500;
+/**
+ * Generous relative to a real request's normal latency (tens to
+ * low-hundreds of ms locally) — this no longer sits on lesson
+ * completion's own critical path (see above), so there's no reason to
+ * cut it close the way an earlier version of this constant did. Real,
+ * confirmed bug that version caused: a legitimately slow but perfectly
+ * healthy request (ordinary dev-server compile-on-demand latency, a
+ * loaded CI runner, a slow mobile connection) got misreported as
+ * "network-error" — a false "your progress may not be saving" banner for
+ * a save that was, in fact, saving. This value only needs to be well
+ * short of "the learner has given up and left the page", not short of
+ * any other UI's own timing budget.
+ */
+const TIMEOUT_MS = 10000;
 
 function withTimeout<T>(promise: Promise<T>, fallback: T): Promise<T> {
   return new Promise((resolve) => {

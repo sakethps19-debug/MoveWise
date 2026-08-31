@@ -129,25 +129,30 @@ export function LessonResumeGate({
         checkpointQueueRef.current!(async () => reportResult(await clearLessonCheckpointRequest(lesson.id, epoch, revision)));
       };
   // completeLessonAction also closes this same LessonCheckpoint row
-  // server-side (finishing supersedes any in-progress save) — it MUST go
-  // through the identical queue, not run independently of it, or the
-  // very last step's still-in-flight checkpoint save can land after
-  // completion's close and resurrect a "finished" lesson's checkpoint
-  // with stale data. Both requests also carry this attempt's own
-  // epoch/revision, so even if the queue's send-order guarantee is
-  // defeated by network-level reordering, the server's state machine is
-  // the one that actually decides which write wins. LessonRunner already
-  // awaits this call directly (to drive its own saving/error UI), so —
-  // unlike the two fire-and-forget wrappers above — this one must return
-  // the queued promise, not just enqueue and forget.
+  // server-side (finishing supersedes any in-progress save). Deliberately
+  // NOT routed through checkpointQueueRef, unlike the two calls above —
+  // real, confirmed latency bug this fixes: queued behind it, completion
+  // had to wait for every still-in-flight per-step checkpoint save from
+  // this same run to fully round-trip first, compounding to several
+  // seconds under any real load and, worse, hanging indefinitely if one
+  // of those earlier saves ever failed to settle at all (see
+  // lib/checkpointClient.ts's own doc comment on the keepalive-abort case
+  // that can cause exactly that). None of that waiting was ever load-
+  // bearing for correctness: `revision` below is fixed synchronously, in
+  // true call order, the instant this function runs — before any network
+  // request for it is even sent — and lib/lessonCheckpointStore.ts's own
+  // CAS rule (epoch first, then revision) already resolves any write
+  // arriving out of send-order correctly, close included, purely from the
+  // values each request carries. A still-in-flight earlier save that
+  // happens to land after this one's close is exactly the ordinary
+  // "stale-revision" case that rule already rejects — nothing here can
+  // resurrect a closed checkpoint. LessonRunner still awaits this call
+  // directly to drive its own saving/error UI.
   const serializedOnComplete = onComplete
     ? async (xpEarned: number, mistakes: number, hintsUsed: number, attempts: AttemptRecord[]): Promise<void> => {
         const revision = nextRevision();
         const epoch = epochRef.current;
-        await checkpointQueueRef.current!(async () => {
-          await onComplete(xpEarned, mistakes, hintsUsed, attempts, epoch, revision);
-          return "ok" as const;
-        });
+        await onComplete(xpEarned, mistakes, hintsUsed, attempts, epoch, revision);
       }
     : undefined;
 
