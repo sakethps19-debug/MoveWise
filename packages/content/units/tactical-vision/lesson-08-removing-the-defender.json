@@ -1,0 +1,109 @@
+{
+  "id": "tactical-vision.08-removing-the-defender",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Removing the defender",
+  "objectives": [
+    "Identify the one piece actually holding a position together before deciding a piece is safe",
+    "Capture an undefended defender to win the piece it was guarding a move later",
+    "Deflect a defender away with a check instead of capturing it directly"
+  ],
+  "prerequisites": ["tactical-vision.07-discovered-attacks"],
+  "xpReward": 25,
+  "masteryTags": ["removing-the-defender"],
+  "difficulty": 2,
+  "estimatedDurationSec": 300,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "Sometimes a piece looks safe only because of a single defender — find that defender, remove it (by capturing it or forcing it away), and the piece it was guarding falls next. This is 'removing the defender': instead of attacking the valuable piece directly, you attack the much less glamorous piece that's actually holding everything together.",
+      "boardFen": "k2r4/5n2/6B1/8/8/8/8/3R2K1 w - - 0 1",
+      "highlights": ["f7", "d8"]
+    },
+    {
+      "id": "step-2",
+      "type": "true-false",
+      "prompt": "Removing the defender only works if capturing the defender itself wins material outright.",
+      "correct": false,
+      "feedback": {
+        "default": "It's even stronger when capturing the defender wins material on its own — but it also works as an even or slightly costly trade, as long as what you win afterward (by capturing the now-undefended piece) makes the whole sequence worth it."
+      },
+      "successExplanation": "Right — the defender doesn't have to be a free capture on its own; the whole point is what the sequence wins overall."
+    },
+    {
+      "id": "step-3",
+      "type": "capture",
+      "prompt": "The rook on d8 is defended only by the knight on f7. Capture the knight first — it's undefended and clears the way.",
+      "fen": "k2r4/5n2/6B1/8/8/8/8/3R2K1 w - - 0 1",
+      "expectedMoves": ["g6f7"],
+      "hints": [
+        { "level": 1, "text": "Before attacking the rook directly, find the one piece that's actually defending it." },
+        { "level": 2, "text": "The knight is the rook's only defender, and it's undefended itself.", "highlightSquares": ["f7"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "g6", "arrowTo": "f7" },
+        { "level": 4, "text": "Bxf7 wins the knight for free — and that knight was the rook's only defender, so the rook falls next move with nothing able to save it." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the defender. Find the piece that's actually guarding the rook on d8, and capture it."
+      },
+      "successExplanation": "Bxf7 wins the knight for free. That knight was the rook's only defender, so the rook is next — removing the defender turned one small win into a much bigger one."
+    },
+    {
+      "id": "step-4",
+      "type": "capture",
+      "prompt": "One trade later, the rook's defender is gone. Capture the rook.",
+      "fen": "k2r4/8/8/8/8/8/8/3R2K1 w - - 0 1",
+      "expectedMoves": ["d1d8"],
+      "hints": [
+        { "level": 1, "text": "Nothing defends the rook anymore — take it." },
+        { "level": 2, "text": "Your rook already lines up with it.", "highlightSquares": ["d8"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "d1", "arrowTo": "d8" },
+        { "level": 4, "text": "Rxd8 wins the rook for free. Once its only defender was removed, it was never actually safe." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the rook. Check whether anything defends d8 now — then capture."
+      },
+      "successExplanation": "Rxd8 wins the rook for free. Once its only defender was removed, the rook itself was never actually safe — this is the payoff of removing the defender."
+    },
+    {
+      "id": "step-5",
+      "type": "move-piece",
+      "prompt": "Give check to force the king away — it's the only thing defending the bishop on f7.",
+      "fen": "4k3/5b2/8/8/7R/8/8/6K1 w - - 0 1",
+      "expectedMoves": ["h4e4"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "You don't have to capture a defender to remove it — forcing it to move works just as well. What defends the bishop right now?" },
+        { "level": 2, "text": "The king is the bishop's only defender — force it to move.", "highlightSquares": ["e8"] },
+        { "level": 3, "text": "Move here.", "arrowFrom": "h4", "arrowTo": "e4" },
+        { "level": 4, "text": "Re4+ forces the king to move. Wherever it goes, it can no longer guard f7 the way it did — the bishop is yours next move." }
+      ],
+      "feedback": {
+        "default": "That doesn't remove the defender. The king is the bishop's only guard — find the move that forces it away from that job."
+      },
+      "successExplanation": "Re4+ forces the king to move. Wherever it goes, it can no longer guard f7 the way it did — the bishop is yours next move. Forcing a defender away works just as well as capturing it, and doesn't require the defender itself to be undefended."
+    },
+    {
+      "id": "step-6",
+      "type": "mcq",
+      "prompt": "Before capturing a piece that looks defended, what should 'removing the defender' lead you to check?",
+      "options": [
+        "Whether the defended piece is worth capturing at all",
+        "What piece is actually doing the defending, and whether it can be captured or forced away first",
+        "Whether it's your move",
+        "Whether the position has any checks available"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "Removing the defender is a two-step plan: identify the specific piece that's defending, then deal with that piece — by capturing it or forcing it to move — before going after the real target."
+      },
+      "successExplanation": "Right — identify the actual defender first, then deal with it, before going after what it's protecting."
+    },
+    {
+      "id": "step-7",
+      "type": "review",
+      "summary": "Removing the defender means identifying the one piece actually holding a position together, then dealing with it — either by capturing it directly (especially if it's undefended itself) or by forcing it away with a check or a bigger threat. Once the defender is gone, the piece it was guarding is yours. Always ask: what is actually defending this, and can I get rid of that instead of attacking the target head-on?"
+    }
+  ],
+  "principleId": "tactical-vision.removing-the-defender"
+}

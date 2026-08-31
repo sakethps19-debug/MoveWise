@@ -1,0 +1,127 @@
+{
+  "id": "tactical-vision.01-checks-captures-and-threats",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Checks, captures, and threats",
+  "objectives": [
+    "Before picking a move, scan candidate moves for whether they give check, capture material, or create a threat",
+    "Find a check hiding in a position that otherwise looks quiet",
+    "Find a capture that isn't the first thing your eye lands on",
+    "Recognize that a move can be strong purely because it threatens something next turn, even with no check or capture right now"
+  ],
+  "prerequisites": ["basic-tactics.04-is-this-trade-worth-it"],
+  "xpReward": 20,
+  "masteryTags": ["cct-scanning"],
+  "difficulty": 1,
+  "estimatedDurationSec": 300,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "Before you play any move, run through three questions, in order: can I give CHECK? Can I CAPTURE something? Do I (or my opponent) have a THREAT? This is the CCT habit, and it's the foundation for every tactic in this unit. Here, Rxd8+ does two of the three at once — it captures the queen and delivers check. Moves like that are easy to miss if you only look at the first idea that catches your eye.",
+      "boardFen": "3qk3/8/8/8/8/8/8/3R2K1 w - - 0 1",
+      "highlights": ["d1", "d8"]
+    },
+    {
+      "id": "step-2",
+      "type": "true-false",
+      "prompt": "The CCT habit means checks matter most, so captures and threats are only worth a quick glance.",
+      "correct": false,
+      "feedback": {
+        "default": "All three deserve a real look, in order — not just checks. A quiet threat that isn't a check or a capture can still be the strongest move on the board, because it forces your opponent to spend their next move dealing with it."
+      },
+      "successExplanation": "Right — check, capture, and threat all deserve a genuine look. A check is just the first thing to rule out, not the only thing that matters."
+    },
+    {
+      "id": "step-3",
+      "type": "mcq",
+      "prompt": "You're comparing three candidate moves: one gives check, one wins a pawn, one creates a strong threat but risks nothing right now. Using the CCT habit, which should you actually evaluate?",
+      "options": [
+        "Only the check — checks are forcing, so they're automatically best",
+        "All three — checks, captures, and threats each deserve a real look before you decide",
+        "Only the move that wins material",
+        "Whichever one looks the flashiest on the board"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "The CCT habit isn't about picking whichever category sounds most important — it's about actually checking all three before you commit to a move, since the strongest move in a position could be any one of them."
+      },
+      "successExplanation": "Right — the habit is to scan all three every time, then decide which candidate is actually strongest in this position."
+    },
+    {
+      "id": "step-4",
+      "type": "move-piece",
+      "prompt": "Nothing looks urgent here — but scan for check anyway. Play the move that gives check.",
+      "fen": "6k1/8/8/8/8/8/8/R5K1 w - - 0 1",
+      "expectedMoves": ["a1a8"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "Run the CCT check: is there a move that gives check, even though nothing is under attack right now?" },
+        { "level": 2, "text": "Look at your rook's file — it lines up with the king's rank if it slides all the way up.", "highlightSquares": ["a1", "g8"] },
+        { "level": 3, "text": "Slide the rook here.", "arrowFrom": "a1", "arrowTo": "a8" },
+        { "level": 4, "text": "Ra8 delivers check along the 8th rank — a move that was there the whole time, just easy to miss if you never asked the question." }
+      ],
+      "feedback": {
+        "default": "That doesn't give check. The CCT habit means actually checking — is there a rook move along a rank or file that lines up with the king?"
+      },
+      "successExplanation": "Ra8+ delivers check. In a position with nothing obviously happening, it's tempting to skip the CCT scan entirely — but the check was there the whole time."
+    },
+    {
+      "id": "step-5",
+      "type": "capture",
+      "prompt": "The bishop on b2 looks far from the action — but scan its diagonal. Is there a capture waiting?",
+      "fen": "6kr/8/8/8/8/8/1B6/6K1 w - - 0 1",
+      "expectedMoves": ["b2h8"],
+      "hints": [
+        { "level": 1, "text": "Follow the bishop's whole diagonal to the far corner of the board — don't stop looking after the first few squares." },
+        { "level": 2, "text": "The rook sits at the far end of the bishop's diagonal.", "highlightSquares": ["h8"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "b2", "arrowTo": "h8" },
+        { "level": 4, "text": "Bxh8 wins the rook — the bishop's diagonal reaches all the way across the board, which is easy to underestimate when the piece looks 'far away.'" }
+      ],
+      "feedback": {
+        "default": "That's not the capture. A bishop's diagonal runs the full length of the board when nothing blocks it — trace it all the way to the far corner."
+      },
+      "successExplanation": "Bxh8 wins the rook for free. A bishop sitting in the corner of the board still commands its entire diagonal — the CCT habit means checking the whole board, not just the squares near the action."
+    },
+    {
+      "id": "step-6",
+      "type": "move-piece",
+      "prompt": "This move doesn't capture anything and doesn't give check — but scan for threats too. Play the move that puts the black queen in immediate danger.",
+      "fen": "q5k1/8/8/8/7R/8/1K6/8 w - - 0 1",
+      "expectedMoves": ["h4a4"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "Neither check nor capture is available this move — but the third question, threat, still applies. What can you attack that has nowhere safe to go?" },
+        { "level": 2, "text": "Your rook and the black queen share a file if the rook slides over.", "highlightSquares": ["h4", "a8"] },
+        { "level": 3, "text": "Slide the rook here.", "arrowFrom": "h4", "arrowTo": "a4" },
+        { "level": 4, "text": "Ra4 attacks the undefended queen along the a-file. It isn't check, and it isn't a capture yet — but it's the strongest move on the board." }
+      ],
+      "feedback": {
+        "default": "That doesn't create a threat against the queen. Line your rook up on the same file as the queen instead."
+      },
+      "successExplanation": "Ra4 threatens the undefended queen along the a-file. No check, no capture this move — just a threat — and it's still the best move on the board, because Black must spend the next move saving the queen."
+    },
+    {
+      "id": "step-7",
+      "type": "mcq",
+      "prompt": "In a real position, you find one candidate move that gives check but achieves nothing else, and a second, quieter move that creates a threat winning a whole piece next turn. What should the CCT habit lead you to do?",
+      "options": [
+        "Always play the check, since checks are forcing",
+        "Compare what each move actually accomplishes, and pick the one that's genuinely stronger — even if that's the quiet threat",
+        "Ignore both and look for a third option",
+        "Play whichever move you saw first"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "CCT isn't a ranking of which category always wins — it's a checklist to make sure you don't miss any of the three. A pointless check that achieves nothing isn't automatically better than a threat that wins material."
+      },
+      "successExplanation": "Right — checking all three categories doesn't mean automatically playing whichever one you find first. Compare what each candidate actually accomplishes, then choose."
+    },
+    {
+      "id": "step-8",
+      "type": "review",
+      "summary": "The CCT habit — checks, captures, threats — is the calculation discipline the rest of this unit builds on. Before playing a candidate move, ask all three questions, even in a position that looks quiet: is there a check I haven't noticed? A capture on a piece that isn't the obvious one? A threat that doesn't win anything this move but forces a response next move? Every tactic in the lessons ahead — forks, pins, skewers, and the rest — is really just a specific, sharper way of answering these same three questions."
+    }
+  ],
+  "principleId": "tactical-vision.checks-captures-and-threats"
+}

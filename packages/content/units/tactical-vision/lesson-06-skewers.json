@@ -1,0 +1,127 @@
+{
+  "id": "tactical-vision.06-skewers",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Skewers",
+  "objectives": [
+    "Define a skewer as the inverse of a pin: the more valuable piece is in front and forced to move, exposing a less valuable piece behind it",
+    "Create a skewer along a file and complete it by capturing the piece it exposes",
+    "Create a skewer along a diagonal",
+    "Distinguish a pin from a skewer by which piece is in front"
+  ],
+  "prerequisites": ["tactical-vision.05-pins"],
+  "xpReward": 25,
+  "masteryTags": ["skewers"],
+  "difficulty": 2,
+  "estimatedDurationSec": 300,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "A skewer is a pin turned inside out. In a pin, the less valuable piece is in front and the more valuable piece is behind it. In a skewer, the more valuable piece is in front — usually the king — and it has to move out of the way, exposing whatever's behind it on the same line. If the rook here were on e1, Re8 would skewer the king and rook: check forces the king to move, and the rook falls next.",
+      "boardFen": "6k1/5ppp/8/8/8/8/8/1K2R3 w - - 0 1",
+      "highlights": ["g8"]
+    },
+    {
+      "id": "step-2",
+      "type": "mcq",
+      "prompt": "What's the key difference between a pin and a skewer?",
+      "options": [
+        "There's no real difference — they're the same tactic under two names",
+        "In a pin, the more valuable piece is behind; in a skewer, the more valuable piece is in front and forced to move first",
+        "A skewer only ever works with a queen",
+        "A pin always wins material; a skewer never does"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "Both tactics involve three things lined up on the same line — the difference is entirely about the order. A pin has the less valuable piece in front; a skewer has the more valuable piece in front."
+      },
+      "successExplanation": "Right — the geometry is identical; what differs is which piece is in front and forced to react first."
+    },
+    {
+      "id": "step-3",
+      "type": "true-false",
+      "prompt": "A skewer always involves check.",
+      "correct": false,
+      "feedback": {
+        "default": "Not always. A skewer can just as easily target a valuable non-king piece — attack it, force it to move (since it's worth more than what's behind it), and win whatever was hiding behind."
+      },
+      "successExplanation": "Right — a skewer is about forcing a valuable piece to move at all, not specifically about check. When the king is the front piece, it happens to be check; it doesn't have to be."
+    },
+    {
+      "id": "step-4",
+      "type": "move-piece",
+      "prompt": "Move the rook onto the file where it skewers the king and wins the rook behind it.",
+      "fen": "r7/8/8/k7/8/8/1K6/7R w - - 0 1",
+      "expectedMoves": ["h1a1"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "The king and the enemy rook already share a file. Get your rook onto that same file." },
+        { "level": 2, "text": "The king and rook are both on this file.", "highlightSquares": ["a5", "a8"] },
+        { "level": 3, "text": "Slide here.", "arrowFrom": "h1", "arrowTo": "a1" },
+        { "level": 4, "text": "Ra1+ skewers the king and the rook behind it — the king must move off the a-file, and the rook falls next." }
+      ],
+      "feedback": {
+        "default": "That doesn't create a skewer. Find the file the king and the enemy rook already share, and get your own rook onto it."
+      },
+      "successExplanation": "Ra1+ skewers the king and the rook on a8. The king has to move out of check, and once it does, the rook behind it has no protection left."
+    },
+    {
+      "id": "step-5",
+      "type": "capture",
+      "prompt": "The king had to step off the file to escape check. Capture the rook it left behind.",
+      "fen": "r7/8/8/1k6/8/8/1K6/R7 w - - 2 2",
+      "expectedMoves": ["a1a8"],
+      "hints": [
+        { "level": 1, "text": "The a-file is completely open now that the king has moved off it." },
+        { "level": 2, "text": "Your rook already lines up with the enemy rook.", "highlightSquares": ["a8"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "a1", "arrowTo": "a8" },
+        { "level": 4, "text": "Rxa8 completes the skewer — the rook is captured for free, exactly as planned when you gave the check." }
+      ],
+      "feedback": {
+        "default": "That doesn't complete the skewer. The rook on a8 is undefended now that the king has moved away — capture it."
+      },
+      "successExplanation": "Rxa8 wins the rook. This is the whole point of a skewer: the check wasn't really about the king at all — it was about clearing the king out of the way of the rook behind it."
+    },
+    {
+      "id": "step-6",
+      "type": "move-piece",
+      "prompt": "Move the bishop onto the diagonal that skewers the king and the queen.",
+      "fen": "6q1/8/8/3k4/B7/8/8/7K w - - 0 1",
+      "expectedMoves": ["a4b3"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "The king and queen already sit on the same long diagonal — but from behind your bishop's current square. Look for the diagonal step that puts your bishop on that same line." },
+        { "level": 2, "text": "The king and queen are both on this diagonal.", "highlightSquares": ["d5", "g8"] },
+        { "level": 3, "text": "Move here.", "arrowFrom": "a4", "arrowTo": "b3" },
+        { "level": 4, "text": "Bb3+ skewers the king and the queen along the long diagonal — check forces the king to move, and the queen behind it has nowhere to hide." }
+      ],
+      "feedback": {
+        "default": "That doesn't set up the skewer. Find the diagonal square that lines your bishop up with both the king and the queen behind it."
+      },
+      "successExplanation": "Bb3+ skewers the king and the queen. A skewer doesn't need a rook or a file — any line-moving piece (bishop, rook, or queen) can deliver one along whatever line it controls."
+    },
+    {
+      "id": "step-7",
+      "type": "mcq",
+      "prompt": "You spot a line with the enemy king in front and a rook directly behind it. What determines whether this is worth playing as a skewer?",
+      "options": [
+        "Nothing — any skewer on the king is automatically worth playing",
+        "Whether the piece behind the king is actually still there and undefended once the king has to move",
+        "Whether the skewering piece is a queen",
+        "Whether it's check"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "Just like with a fork, always confirm the piece behind is actually undefended (or worth more than whatever you might lose) before assuming the skewer wins material outright."
+      },
+      "successExplanation": "Right — check that the piece behind the king is genuinely undefended, the same way you'd check a fork's target."
+    },
+    {
+      "id": "step-8",
+      "type": "review",
+      "summary": "A skewer is a pin in reverse: the more valuable piece is in front and forced to move, exposing whatever's behind it on the same line. It works along ranks, files, and diagonals, with any piece that moves in straight lines. Once you spot the front piece move out of the way, the capture behind it is usually the easy part — the real skill is noticing the line in the first place."
+    }
+  ],
+  "principleId": "tactical-vision.skewers"
+}

@@ -1,0 +1,109 @@
+{
+  "id": "tactical-vision.07-discovered-attacks",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Discovered attacks",
+  "objectives": [
+    "Recognize when one of your pieces is blocking a longer-range attack from another piece behind it",
+    "Play a move that both captures material and uncovers a discovered check at the same time",
+    "Recognize a discovered attack that isn't check, just a threat on a piece",
+    "Play a discovered check delivered by a different piece than the one that moves"
+  ],
+  "prerequisites": ["tactical-vision.06-skewers"],
+  "xpReward": 25,
+  "masteryTags": ["discovered-attacks"],
+  "difficulty": 2,
+  "estimatedDurationSec": 300,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "A discovered attack happens when a piece moves out of the way and unmasks an attack from a completely different piece behind it. Here, the knight on d4 is blocking the bishop's view of the king on h8. The moment the knight moves — to do anything at all — the bishop delivers check. The moving piece is free to capture something, attack something else, or do anything useful, while the piece it uncovers does the real damage.",
+      "boardFen": "7k/8/8/8/3N4/8/8/B5K1 w - - 0 1",
+      "highlights": ["a1", "d4", "h8"]
+    },
+    {
+      "id": "step-2",
+      "type": "true-false",
+      "prompt": "A discovered attack always has to be a discovered check.",
+      "correct": false,
+      "feedback": {
+        "default": "A discovered attack can uncover an attack on anything — a rook, a queen, an undefended pawn — not only the king. It's called a discovered check specifically when the piece behind is the king; that's just the sharpest, most forcing version."
+      },
+      "successExplanation": "Right — discovered check is the most forcing version, but a discovered attack can uncover an attack on any piece, not just the king."
+    },
+    {
+      "id": "step-3",
+      "type": "mcq",
+      "prompt": "What makes a discovered check especially dangerous compared to an ordinary check?",
+      "options": [
+        "It doesn't — all checks are equally dangerous",
+        "The piece that moves is completely free to do anything else useful — capture, attack, even deliver a second check of its own — while the discovered piece still gives check",
+        "It can only be delivered by a queen",
+        "It always ends the game immediately"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "The defining danger of a discovered check is that the moving piece isn't 'spent' giving the check — the check comes from the piece staying behind, so the moving piece gets to do something else entirely, for free."
+      },
+      "successExplanation": "Right — the moving piece is completely free to capture or attack, since the check itself comes from the piece left behind."
+    },
+    {
+      "id": "step-4",
+      "type": "capture",
+      "prompt": "Move the knight to capture the bishop — notice what your rook can suddenly see once the knight is out of the way.",
+      "fen": "3k4/2b5/8/3N4/8/8/8/3R2K1 w - - 0 1",
+      "expectedMoves": ["d5c7"],
+      "hints": [
+        { "level": 1, "text": "Your knight is sitting on the same file as your rook and the enemy king. What happens the moment it moves?" },
+        { "level": 2, "text": "The bishop is undefended and reachable in one jump.", "highlightSquares": ["c7"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "d5", "arrowTo": "c7" },
+        { "level": 4, "text": "Nxc7 wins the bishop, and moving the knight off the d-file uncovers a discovered check from your rook — Black must deal with the king first, and you've already banked the piece." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the bishop. Look for the knight move that captures it — then notice what opens up behind the knight."
+      },
+      "successExplanation": "Nxc7 wins the bishop, and moving the knight off the d-file uncovers a discovered check from your rook — Black must deal with the king first, and you've already banked the piece."
+    },
+    {
+      "id": "step-5",
+      "type": "capture",
+      "prompt": "Capture the pawn with your knight — see what your rook attacks once the file opens up.",
+      "fen": "3r3k/8/2p5/8/3N4/8/8/3R2K1 w - - 0 1",
+      "expectedMoves": ["d4c6"],
+      "hints": [
+        { "level": 1, "text": "The knight is blocking your rook's view down the d-file — what's sitting on that file, behind the knight?" },
+        { "level": 2, "text": "The pawn is undefended and reachable in one jump.", "highlightSquares": ["c6"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "d4", "arrowTo": "c6" },
+        { "level": 4, "text": "Nxc6 wins the pawn, and moving the knight off the d-file uncovers your rook's attack on the enemy rook on d8 — not check this time, but a genuine threat Black has to answer." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the pawn. Find the knight's capture, and pay attention to what it uncovers behind it."
+      },
+      "successExplanation": "Nxc6 wins the pawn for free. Moving the knight off the d-file uncovers your rook's attack on the rook on d8 — a discovered attack that isn't check, just a serious threat on top of the material you already won."
+    },
+    {
+      "id": "step-6",
+      "type": "capture",
+      "prompt": "Capture the pawn with your knight and watch what happens along the long diagonal.",
+      "fen": "7k/8/8/1p6/3N4/8/8/Q5K1 w - - 0 1",
+      "expectedMoves": ["d4b5"],
+      "hints": [
+        { "level": 1, "text": "Your knight sits on the long diagonal between your queen and the enemy king. What happens once it moves anywhere?" },
+        { "level": 2, "text": "The pawn is undefended and reachable in one jump.", "highlightSquares": ["b5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "d4", "arrowTo": "b5" },
+        { "level": 4, "text": "Nxb5 wins the pawn, and clearing the long diagonal uncovers a discovered check from your queen — a different piece than the knight delivering it, exactly the point of a discovered attack." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the pawn. Find the knight's capture, then notice what your queen sees once the diagonal is clear."
+      },
+      "successExplanation": "Nxb5 wins the pawn, and clearing the diagonal uncovers a discovered check from your queen on the far side of the board — the knight did the capturing, but a completely different piece delivers the check."
+    },
+    {
+      "id": "step-7",
+      "type": "review",
+      "summary": "A discovered attack happens when moving one piece unmasks an attack from a piece behind it — and the moving piece is completely free to do something else useful in the process: capture material, create a second threat, even give a check of its own. When the uncovered attack lands on the enemy king, it's a discovered check — the sharpest version, since the opponent must respond to it immediately no matter what the moving piece just did. Before moving any piece, check whether it's blocking a longer-range attack from something behind it."
+    }
+  ],
+  "principleId": "tactical-vision.discovered-attacks"
+}

@@ -1,0 +1,112 @@
+{
+  "id": "tactical-vision.04-forking-patterns",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Other forks: pawn, bishop, rook, and queen",
+  "objectives": [
+    "Recognize that a fork is defined by 'one piece attacking two targets at once' — not by which piece delivers it",
+    "Find a pawn fork and a bishop fork",
+    "Find a rook fork that attacks along a rank and a file at the same time",
+    "Explain how a queen fork combines a rook fork and a bishop fork in one move"
+  ],
+  "prerequisites": ["tactical-vision.03-knight-fork-tactics"],
+  "xpReward": 25,
+  "masteryTags": ["forking-patterns"],
+  "difficulty": 2,
+  "estimatedDurationSec": 300,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "A fork is just one piece attacking two enemy targets at once — the knight isn't the only piece that can do it. Here, the pawn on d5 attacks both the knight on c6 and the bishop on e6 at the same time, simply because pawns capture diagonally. Even the lowest-value piece on the board can win material this way.",
+      "boardFen": "6k1/8/2n1b3/3P4/8/8/8/6K1 w - - 0 1",
+      "highlights": ["d5", "c6", "e6"]
+    },
+    {
+      "id": "step-2",
+      "type": "true-false",
+      "prompt": "A fork can only happen between two pieces of the same type — like two knights, or two bishops.",
+      "correct": false,
+      "feedback": {
+        "default": "A fork is about one piece attacking two targets at once — the two targets can be any mix of pieces at all, including the king. What matters is that one attacker hits two things simultaneously."
+      },
+      "successExplanation": "Right — a fork can hit any combination of pieces. What defines it is one attacker, two targets, at the same time."
+    },
+    {
+      "id": "step-3",
+      "type": "move-piece",
+      "prompt": "Push the pawn forward to fork the knight and the bishop.",
+      "fen": "6k1/8/3n1b2/8/4P3/8/8/6K1 w - - 0 1",
+      "expectedMoves": ["e4e5"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "A pawn attacks diagonally, one square ahead. What square is diagonally ahead of both black pieces?" },
+        { "level": 2, "text": "These are the two pieces the pawn needs to attack.", "highlightSquares": ["d6", "f6"] },
+        { "level": 3, "text": "Push here.", "arrowFrom": "e4", "arrowTo": "e5" },
+        { "level": 4, "text": "e5 forks the knight on d6 and the bishop on f6 — a lowly pawn attacking two pieces at once. Neither can be saved." }
+      ],
+      "feedback": {
+        "default": "That doesn't fork both pieces. Remember a pawn only attacks the two squares diagonally in front of it — find the push that lines those squares up with both targets."
+      },
+      "successExplanation": "e5 forks the knight and the bishop. A pawn fork is easy to overlook because pawns look purely defensive, but they attack diagonally just like any other capturing move."
+    },
+    {
+      "id": "step-4",
+      "type": "move-piece",
+      "prompt": "Move the bishop to a square where it forks both rooks.",
+      "fen": "1r4kr/8/8/8/8/2B5/8/6K1 w - - 0 1",
+      "expectedMoves": ["c3e5"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "Both rooks sit on the same rank — but a bishop attacks diagonally. Is there a square whose two diagonals each reach one of them?" },
+        { "level": 2, "text": "One square's diagonals reach both of these rooks.", "highlightSquares": ["b8", "h8"] },
+        { "level": 3, "text": "Move here.", "arrowFrom": "c3", "arrowTo": "e5" },
+        { "level": 4, "text": "Be5 forks both rooks — its diagonal toward b8 hits one, and its diagonal toward h8 hits the other. Neither can escape both at once." }
+      ],
+      "feedback": {
+        "default": "That doesn't fork both rooks. Look for a square with two clear diagonals, one reaching each rook."
+      },
+      "successExplanation": "Be5 forks both rooks along its two diagonals — one piece, two lines of attack, two targets."
+    },
+    {
+      "id": "step-5",
+      "type": "move-piece",
+      "prompt": "Move the rook onto the square where it attacks both the king and the bishop at once.",
+      "fen": "3k4/8/8/R6b/8/8/8/6K1 w - - 0 1",
+      "expectedMoves": ["a5d5"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "A rook forks by combining a rank attack and a file attack from the same square — one target on its new rank, one on its new file." },
+        { "level": 2, "text": "The king is on the d-file; the bishop is on the same rank your rook is already on.", "highlightSquares": ["d8", "h5"] },
+        { "level": 3, "text": "Slide here.", "arrowFrom": "a5", "arrowTo": "d5" },
+        { "level": 4, "text": "Rd5+ forks the king along the d-file (check!) and the bishop along the 5th rank — a rook fork combining a file attack and a rank attack from one square." }
+      ],
+      "feedback": {
+        "default": "That doesn't fork both pieces. Find the square on the same rank as the bishop that's also on the same file as the king."
+      },
+      "successExplanation": "Rd5+ forks the king and the bishop — a rank attack and a file attack from the same square, the rook's version of a fork."
+    },
+    {
+      "id": "step-6",
+      "type": "mcq",
+      "prompt": "A queen on an empty part of the board attacks a rook along a file and a bishop along a diagonal, both at once. What kind of fork is this closest to?",
+      "options": [
+        "A knight fork, since it's an L-shape",
+        "A combination of a rook fork and a bishop fork — the queen moves like both pieces at once",
+        "Not a real fork, since the queen already attacked two squares to begin with",
+        "A pawn fork"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "The queen moves exactly like a rook and a bishop combined — so a queen fork is really just a rook-style fork and a bishop-style fork happening from the same square."
+      },
+      "successExplanation": "Right — the queen combines a rook's straight-line power and a bishop's diagonal power, so it can deliver either style of fork (or both at once) from a single square."
+    },
+    {
+      "id": "step-7",
+      "type": "review",
+      "summary": "A fork is one piece, two targets, at the same time — it isn't specific to the knight. A pawn forks diagonally, a bishop forks along two diagonals, a rook forks along a rank and a file from the same square, and a queen can do either (or both) since it moves like a rook and a bishop combined. Whenever you spot a piece that can reach two enemy targets in one move, you've found a fork — check what it's actually worth before cashing it in."
+    }
+  ],
+  "principleId": "tactical-vision.forking-patterns"
+}

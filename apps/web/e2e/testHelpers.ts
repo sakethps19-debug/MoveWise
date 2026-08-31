@@ -31,6 +31,18 @@ const LESSON_PREREQUISITE: Record<string, string> = {
   "basic-tactics.02-hanging-pieces": "basic-tactics.01-the-knight-fork",
   "basic-tactics.03-opening-development": "basic-tactics.02-hanging-pieces",
   "basic-tactics.04-is-this-trade-worth-it": "basic-tactics.03-opening-development",
+  "tactical-vision.01-checks-captures-and-threats": "basic-tactics.04-is-this-trade-worth-it",
+  "tactical-vision.02-hanging-pieces-in-combination": "tactical-vision.01-checks-captures-and-threats",
+  "tactical-vision.03-knight-fork-tactics": "tactical-vision.02-hanging-pieces-in-combination",
+  "tactical-vision.04-forking-patterns": "tactical-vision.03-knight-fork-tactics",
+  "tactical-vision.05-pins": "tactical-vision.04-forking-patterns",
+  "tactical-vision.06-skewers": "tactical-vision.05-pins",
+  "tactical-vision.07-discovered-attacks": "tactical-vision.06-skewers",
+  "tactical-vision.08-removing-the-defender": "tactical-vision.07-discovered-attacks",
+  "tactical-vision.09-back-rank-tactics": "tactical-vision.08-removing-the-defender",
+  "tactical-vision.10-zwischenzug": "tactical-vision.09-back-rank-tactics",
+  "tactical-vision.11-mixed-tactical-calculation": "tactical-vision.10-zwischenzug",
+  "tactical-vision.12-unit-mastery-challenge": "tactical-vision.11-mixed-tactical-calculation",
 };
 
 /**

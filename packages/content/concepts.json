@@ -156,5 +156,82 @@
     "name": "Step-type preview",
     "description": "Tags the non-curated demo lesson exercising newly-added exercise-step types — not real curriculum content, see packages/content/units/step-type-preview.",
     "unitId": "step-type-preview"
+  },
+  {
+    "id": "cct-scanning",
+    "name": "Checks, captures, and threats",
+    "description": "The calculation habit of scanning every candidate move for whether it gives check, wins material by capturing, or creates a threat — before playing anything else.",
+    "parentId": "tactics",
+    "unitId": "tactical-vision"
+  },
+  {
+    "id": "hanging-pieces-in-combination",
+    "name": "Hanging pieces in combination",
+    "description": "Spotting an undefended piece that only becomes hanging mid-combination — because a defender was deflected, blocked by its own piece, or geometrically incapable of defending that square — not just a static, already-undefended piece.",
+    "parentId": "hanging-pieces",
+    "unitId": "tactical-vision"
+  },
+  {
+    "id": "knight-fork-tactics",
+    "name": "Knight forks in combination",
+    "description": "Knight forks that require a preparatory forcing move first, or that appear mid-combination after an earlier exchange — beyond a single fresh fork on an untouched position.",
+    "parentId": "knight-fork",
+    "unitId": "tactical-vision"
+  },
+  {
+    "id": "forking-patterns",
+    "name": "Forking patterns",
+    "description": "The one-piece-two-targets fork idea generalized past the knight: pawn forks, bishop forks, rook forks, and queen forks.",
+    "parentId": "fork",
+    "unitId": "tactical-vision"
+  },
+  {
+    "id": "pins",
+    "name": "Pins",
+    "description": "A piece that can't (absolute pin, king behind) or shouldn't (relative pin, a more valuable piece behind) move without exposing something more valuable on the same line.",
+    "parentId": "tactics",
+    "unitId": "tactical-vision"
+  },
+  {
+    "id": "skewers",
+    "name": "Skewers",
+    "description": "The inverse of a pin: attacking a valuable piece that must move, exposing a less valuable piece behind it on the same line.",
+    "parentId": "tactics",
+    "unitId": "tactical-vision"
+  },
+  {
+    "id": "discovered-attacks",
+    "name": "Discovered attacks",
+    "description": "Moving one piece unmasks an attack from another piece behind it — including discovered check, where the moving piece is free to do anything else while check is delivered.",
+    "parentId": "tactics",
+    "unitId": "tactical-vision"
+  },
+  {
+    "id": "removing-the-defender",
+    "name": "Removing the defender",
+    "description": "Identifying the one piece actually holding a position together and capturing or deflecting it — including exploiting a defender that's pinned, blocked, or overloaded.",
+    "parentId": "tactics",
+    "unitId": "tactical-vision"
+  },
+  {
+    "id": "back-rank-tactics",
+    "name": "Back-rank tactics",
+    "description": "Executing a back-rank mate against a king boxed in by its own pieces, and preventing one against your own king by creating luft in time.",
+    "parentId": "tactics",
+    "unitId": "tactical-vision"
+  },
+  {
+    "id": "zwischenzug",
+    "name": "Zwischenzug (in-between moves)",
+    "description": "Inserting a forcing move — a check, a bigger capture, a threat — before completing an expected recapture or sequence, because the expected move can wait but the in-between move can't.",
+    "parentId": "tactics",
+    "unitId": "tactical-vision"
+  },
+  {
+    "id": "mixed-tactical-calculation",
+    "name": "Mixed tactical calculation",
+    "description": "Combining two or more tactical patterns — forks, pins, skewers, discovered attacks, removing the defender, zwischenzug — in a single position, transferring each pattern out of isolation.",
+    "parentId": "tactics",
+    "unitId": "tactical-vision"
   }
 ]

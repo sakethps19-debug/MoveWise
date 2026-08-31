@@ -1,0 +1,103 @@
+{
+  "id": "tactical-vision.03-knight-fork-tactics",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Knight forks in combination",
+  "objectives": [
+    "Recognize when a fork isn't available yet but a preparatory forcing move can set one up",
+    "Play a forcing move that drives a king toward a square your knight can fork",
+    "Find a knight fork that only becomes available after an earlier capture in the position",
+    "Distinguish a real fork that wins material from a square that forks two pieces where one is defended"
+  ],
+  "prerequisites": ["tactical-vision.02-hanging-pieces-in-combination"],
+  "xpReward": 25,
+  "masteryTags": ["knight-fork-tactics"],
+  "difficulty": 2,
+  "estimatedDurationSec": 330,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "Not every fork is sitting on the board waiting for you — sometimes you have to create one. In this position, no single knight move forks the king and the rook yet. But a forcing move first (a check that the king has to answer) can drive the king onto a square your knight can then fork. Preparing a fork is just as much a real skill as spotting one.",
+      "boardFen": "k7/8/3r4/8/3N4/1B6/8/1R4K1 w - - 0 1",
+      "highlights": ["a8", "d6", "b3"]
+    },
+    {
+      "id": "step-2",
+      "type": "true-false",
+      "prompt": "If a knight fork isn't available on the board right now, there's nothing you can do to create one.",
+      "correct": false,
+      "feedback": {
+        "default": "A forcing move — a check, a capture, a threat the opponent must answer — can drive a piece (often the king) onto a square your knight then forks. Forks aren't only found; they're often built."
+      },
+      "successExplanation": "Right — a well-timed forcing move can drive the king or another piece onto exactly the square your knight needs."
+    },
+    {
+      "id": "step-3",
+      "type": "guided-sequence",
+      "prompt": "Play the bishop move that gives check, then — after Black's king moves — find the knight move that forks the king and the rook.",
+      "fen": "k7/8/3r4/8/3N4/1B6/8/1R4K1 w - - 0 1",
+      "forcedReplies": ["a8a7"],
+      "playerMoves": ["b3d5", "d4b5"],
+      "successExplanation": "Bd5+ forces the king toward a7 — the only reasonable answer to the check. From there, Nb5+ forks the king on a7 and the rook on d6 at the same time, winning the exchange. Neither move alone was a fork; together, they created one."
+    },
+    {
+      "id": "step-4",
+      "type": "move-piece",
+      "prompt": "This position followed a trade a move ago — Black's queen just recaptured on b5. Find the knight move that forks the king and the queen.",
+      "fen": "4k3/8/N7/1q6/8/8/8/6K1 w - - 0 1",
+      "expectedMoves": ["a6c7"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "The queen just landed on b5 to recapture — it hasn't had time to notice a knight fork is now available." },
+        { "level": 2, "text": "One square attacks both the king and the queen at once.", "highlightSquares": ["e8", "b5"] },
+        { "level": 3, "text": "Jump here.", "arrowFrom": "a6", "arrowTo": "c7" },
+        { "level": 4, "text": "Nc7+ forks the king on e8 and the queen on b5 — a fork that only existed because the queen had just recaptured onto a forkable square." }
+      ],
+      "feedback": {
+        "default": "That doesn't fork both pieces. Find the single square your knight can jump to that attacks the king and the queen at the same time."
+      },
+      "successExplanation": "Nc7+ forks the king and the queen. This fork didn't exist before the recapture on b5 — recognizing a fork that appears mid-combination, not just on a fresh position, is exactly the skill this lesson is building."
+    },
+    {
+      "id": "step-5",
+      "type": "move-piece",
+      "prompt": "Two knight moves both give check and both attack a rook — but only one of them actually wins material. Find it.",
+      "fen": "2r1r1k1/3b4/8/3N4/8/8/8/6K1 w - - 0 1",
+      "expectedMoves": ["d5e7"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "Both Ne7+ and Nf6+ fork the king and a rook — but check whether each rook is actually undefended before deciding." },
+        { "level": 2, "text": "One of these two rooks has a defender; the other doesn't.", "highlightSquares": ["e8", "c8", "d7"] },
+        { "level": 3, "text": "Play the fork that wins material for real.", "arrowFrom": "d5", "arrowTo": "e7" },
+        { "level": 4, "text": "Ne7+ forks the king and the undefended rook on c8. Nf6+ also forks the king and a rook, but the rook on e8 is defended by the bishop on d7 — that fork only trades pieces evenly." }
+      ],
+      "feedback": {
+        "default": "That's a legal knight move, but check carefully whether the rook it forks is actually undefended — a fork that only wins a defended piece isn't a real win."
+      },
+      "successExplanation": "Ne7+ forks the king on g8 and the undefended rook on c8 — real material won. Nf6+ looks identical at first glance, but the rook it forks on e8 is defended by the bishop on d7, so that version only trades evenly. A fork isn't automatically winning; check what the forked piece is actually worth losing."
+    },
+    {
+      "id": "step-6",
+      "type": "mcq",
+      "prompt": "You find a knight move that forks the enemy king and a rook. What should you check before assuming you've won material?",
+      "options": [
+        "Nothing — any fork on the king always wins material",
+        "Whether the rook (or whatever else is forked) is actually undefended, since a fork on a defended piece only trades",
+        "Whether the knight itself is defended",
+        "Whether it's check"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "A fork guarantees the opponent can't save both pieces at once — but if the non-king target is defended, 'losing' it just means an even trade, not free material."
+      },
+      "successExplanation": "Right — always check whether the forked piece is actually undefended. Forking two pieces isn't automatically winning if one of them can simply be recaptured."
+    },
+    {
+      "id": "step-7",
+      "type": "review",
+      "summary": "A knight fork doesn't have to already be sitting on the board — a forcing move can drive a piece onto a square you can then fork, and a fork can appear mid-combination, right after an earlier capture changed the position. Once you find a forking square, always double-check that what you're forking is actually undefended — a fork on a defended piece only trades material, it doesn't win it."
+    }
+  ],
+  "principleId": "tactical-vision.knight-fork-tactics"
+}

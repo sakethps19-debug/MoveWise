@@ -9,7 +9,7 @@ import { rankConceptsForPractice, type ConceptPracticeSignal, type RankedConcept
 import type { WarmUpCandidate } from "../../../lib/warmUp";
 import { WarmUpRunner } from "../../../components/WarmUpRunner";
 
-const UNIT_IDS = ["meet-the-pieces", "check-and-checkmate", "basic-tactics"] as const;
+const UNIT_IDS = ["meet-the-pieces", "check-and-checkmate", "basic-tactics", "tactical-vision"] as const;
 /** How many of a concept's most recent attempts count toward "recent incorrect attempts" — a short window, not a lifetime total, so an old rough patch doesn't keep a now-solid concept flagged forever. */
 const RECENT_ATTEMPT_WINDOW = 5;
 

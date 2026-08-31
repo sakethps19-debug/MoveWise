@@ -1,0 +1,143 @@
+{
+  "id": "tactical-vision.09-back-rank-tactics",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Back-rank tactics",
+  "objectives": [
+    "Recognize the back-rank mate pattern: a king boxed in by its own pieces with no escape square",
+    "Deliver checkmate along the back rank with a rook and with a queen",
+    "Prevent a back-rank mate by creating luft before it's forced on you",
+    "Win material by capturing a piece that's undefended even though it's tied to guarding the back rank"
+  ],
+  "prerequisites": ["tactical-vision.08-removing-the-defender"],
+  "xpReward": 25,
+  "masteryTags": ["back-rank-tactics"],
+  "difficulty": 2,
+  "estimatedDurationSec": 330,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "A king castled behind its own pawns is safer from most attacks — but those same pawns can trap it. If a rook or queen reaches the back rank with no escape square available, it's checkmate, even though the king was never directly threatened by anything else. Here, Re8 would be checkmate: the king can't step to f8 (attacked) or h8 (attacked once it vacates g8), and its own pawns block every other square.",
+      "boardFen": "6k1/5ppp/8/8/8/8/8/1K2R3 w - - 0 1",
+      "highlights": ["e1", "g8", "f7", "g7", "h7"]
+    },
+    {
+      "id": "step-2",
+      "type": "true-false",
+      "prompt": "If your king has three pawns in front of it and no escape square, it can never actually be in danger — pawns fully protect a king.",
+      "correct": false,
+      "feedback": {
+        "default": "Pawns block the squares a piece would need to attack from directly in front — but they also block the king's own escape. Protection from a direct attack isn't the same as having somewhere to run, and that gap is exactly what makes back-rank mate possible."
+      },
+      "successExplanation": "Right — pawns in front of the king can trap it just as easily as they can shield it. Having no escape square is dangerous no matter how solid the pawns look."
+    },
+    {
+      "id": "step-3",
+      "type": "mcq",
+      "prompt": "What's the single most reliable way to prevent a back-rank mate before it's forced on you?",
+      "options": [
+        "Trade off all your remaining pieces",
+        "Push a pawn to give your king an escape square — commonly called 'luft'",
+        "Move your king to the center of the board",
+        "Castle a second time"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "The fix is simple and cheap: push one pawn one square to open an escape route for the king. Everything else either doesn't address the actual problem or isn't legal (you can't castle twice)."
+      },
+      "successExplanation": "Right — a single pawn push to create luft is the standard, reliable fix, and it's worth doing before it's forced on you, not after."
+    },
+    {
+      "id": "step-4",
+      "type": "find-checkmate",
+      "prompt": "Click the square where your rook delivers checkmate along the back rank.",
+      "fen": "6k1/5ppp/8/8/4R3/8/8/1K6 w - - 0 1",
+      "correctSquares": ["e8"],
+      "hints": [
+        { "level": 1, "text": "The king has no escape squares at all — its own pawns block every one of them except the two adjacent to your rook's rank." },
+        { "level": 2, "text": "Get your rook onto the back rank itself.", "highlightSquares": ["e4", "g8"] },
+        { "level": 3, "text": "This is the square.", "arrowFrom": "e4", "arrowTo": "e8" },
+        { "level": 4, "text": "Re8 is checkmate. The king can't reach f8 (attacked directly) or h8 (attacked the instant g8 is vacated), and its own pawns block g7, f7, and h7." }
+      ],
+      "feedback": {
+        "default": "That doesn't deliver checkmate. Find the square on the back rank where the king has no escape at all."
+      },
+      "successExplanation": "Re8 is checkmate — the classic back-rank pattern. The king's own pawns, which usually protect it, are exactly what leaves it with nowhere to go."
+    },
+    {
+      "id": "step-5",
+      "type": "move-piece",
+      "prompt": "Nothing is attacking yet, but the rooks are eyeing the same open file. Give your king an escape square before you're forced to.",
+      "fen": "3r2k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1",
+      "expectedMoves": ["h2h3"],
+      "altValid": ["g2g3", "f2f3"],
+      "hints": [
+        { "level": 1, "text": "There's no immediate threat — this is a prophylactic move, made before it's forced on you." },
+        { "level": 2, "text": "Any one of these three pawns pushing one square creates an escape square.", "highlightSquares": ["f2", "g2", "h2"] },
+        { "level": 3, "text": "Push here.", "arrowFrom": "h2", "arrowTo": "h3" },
+        { "level": 4, "text": "h3 gives the king an escape square on h2. It costs nothing and completely removes the back-rank danger — the best time to create luft is before you need it." }
+      ],
+      "feedback": {
+        "default": "That doesn't create an escape square for your king. Push one of the pawns in front of it forward, one square."
+      },
+      "successExplanation": "h3 creates luft — an escape square on h2 for the king. It costs essentially nothing, and it permanently removes the back-rank danger from this position."
+    },
+    {
+      "id": "step-6",
+      "type": "capture",
+      "prompt": "Capture the undefended rook.",
+      "fen": "3r2k1/5ppp/8/B7/8/8/1K6/8 w - - 0 1",
+      "expectedMoves": ["a5d8"],
+      "hints": [
+        { "level": 1, "text": "The rook on d8 is tied to guarding the back rank — but tied down doesn't mean defended. Check whether anything actually protects it." },
+        { "level": 2, "text": "Nothing defends the rook — the king is too far away.", "highlightSquares": ["d8"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "a5", "arrowTo": "d8" },
+        { "level": 4, "text": "Bxd8 wins the rook for free. It looked important because it was guarding the back rank, but 'important' and 'defended' aren't the same thing." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the rook. Check exactly what, if anything, actually defends d8 before deciding it's protected."
+      },
+      "successExplanation": "Bxd8 wins the rook for free. A piece tied down to an important defensive job can still be completely undefended — always check, don't assume."
+    },
+    {
+      "id": "step-7",
+      "type": "find-checkmate",
+      "prompt": "Click the square where your queen delivers checkmate along the back rank.",
+      "fen": "k7/pp6/8/8/2Q5/8/8/6K1 w - - 0 1",
+      "correctSquares": ["c8", "g8"],
+      "hints": [
+        { "level": 1, "text": "The king in the corner has only one possible escape square, and its own pawns block the rest." },
+        { "level": 2, "text": "Get your queen onto the back rank itself, on either side of the king.", "highlightSquares": ["c4", "a8"] },
+        { "level": 3, "text": "This is one square that works.", "arrowFrom": "c4", "arrowTo": "c8" },
+        { "level": 4, "text": "Qc8 (or Qg8, from the other side) is checkmate. Either way, the queen reaches the back rank and covers b8, the king's only possible escape, at the same time as giving check." }
+      ],
+      "feedback": {
+        "default": "That doesn't deliver checkmate. The king's own pawns block a7 and b7 — find the queen move to the back rank that also covers its one remaining escape square."
+      },
+      "successExplanation": "Checkmate on the back rank — the queen combines a rook's straight-line reach with covering the king's one escape square, from either side of the board."
+    },
+    {
+      "id": "step-8",
+      "type": "mcq",
+      "prompt": "You have a rook ready to swing to the back rank against a king boxed in by pawns. What should you check before playing it?",
+      "options": [
+        "Whether the rook can physically reach the back rank at all",
+        "Whether the king would actually have zero escape squares once your rook lands — not just whether it's check",
+        "Whether it's currently your move",
+        "Nothing — any back-rank rook move against a boxed-in king always wins"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "A back-rank rook move is often just check, not mate — the king may have an escape square your rook doesn't cover. Confirm there's truly nowhere for the king to go before counting on mate."
+      },
+      "successExplanation": "Right — always confirm the king genuinely has zero legal escape squares, not just that you're giving check."
+    },
+    {
+      "id": "step-9",
+      "type": "review",
+      "summary": "Back-rank tactics run both ways: you can execute a back-rank mate against a king trapped by its own pieces, and you need to prevent one against your own king by creating luft before it's forced on you. A piece tied down to defending the back rank isn't automatically defended itself — check before you assume it's safe. And before counting on a back-rank check as mate, confirm the king truly has no escape square left, not just that it's in check."
+    }
+  ],
+  "principleId": "tactical-vision.back-rank-tactics"
+}

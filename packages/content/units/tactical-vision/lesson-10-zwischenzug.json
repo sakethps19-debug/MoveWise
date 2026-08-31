@@ -1,0 +1,109 @@
+{
+  "id": "tactical-vision.10-zwischenzug",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Zwischenzug (in-between moves)",
+  "objectives": [
+    "Recognize when an 'obvious' recapture can wait because the piece isn't going anywhere",
+    "Insert a forcing check before completing an expected recapture",
+    "Insert a bigger, undefended capture before completing an expected recapture, when nothing forces you to recapture immediately"
+  ],
+  "prerequisites": ["tactical-vision.09-back-rank-tactics"],
+  "xpReward": 25,
+  "masteryTags": ["zwischenzug"],
+  "difficulty": 3,
+  "estimatedDurationSec": 300,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "Zwischenzug — German for 'in-between move' — means inserting a forcing move before playing the recapture or continuation everyone expects, because that expected move isn't going anywhere but the in-between move is more urgent. Here, White has an undefended knight on d5 ready to recapture whenever convenient — but a check first is even stronger, since Black has to answer it before doing anything else, including saving that knight.",
+      "boardFen": "6k1/8/8/3n4/6N1/8/1K6/3R4 w - - 0 1",
+      "highlights": ["d5", "g4"]
+    },
+    {
+      "id": "step-2",
+      "type": "true-false",
+      "prompt": "Zwischenzug means the same thing as a fork — attacking two things at once.",
+      "correct": false,
+      "feedback": {
+        "default": "A zwischenzug is about move order, not about attacking two things simultaneously. It's choosing to play a different, more urgent forcing move before the 'expected' move — the recapture that everyone (including your opponent) assumes comes next."
+      },
+      "successExplanation": "Right — zwischenzug is about timing and move order, not about one move attacking two targets."
+    },
+    {
+      "id": "step-3",
+      "type": "mcq",
+      "prompt": "You could recapture an undefended piece right now, or you could play a forcing check elsewhere that wins even more. What makes the check the better choice, specifically?",
+      "options": [
+        "Checks are always better than captures",
+        "The piece you'd recapture isn't defended and isn't going anywhere on its own — it will still be there after you play the more urgent move",
+        "The recapture is somehow illegal",
+        "It doesn't matter which order you play them in"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "The key test for a zwischenzug is whether the 'expected' move can safely wait. If the piece you'd recapture isn't defended and can't run away or be rescued, there's no cost to doing something more urgent first."
+      },
+      "successExplanation": "Right — the recapture waits because the piece isn't going anywhere. The in-between move gets to happen for free."
+    },
+    {
+      "id": "step-4",
+      "type": "move-piece",
+      "prompt": "Before recapturing the knight on d5, insert this check first — it doesn't run away, but tempo does.",
+      "fen": "6k1/8/8/3n4/6N1/8/1K6/3R4 w - - 0 1",
+      "expectedMoves": ["g4h6"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "Instead of the obvious recapture, look for a completely different move that's forcing right now." },
+        { "level": 2, "text": "This knight jump gives check without risking anything.", "highlightSquares": ["h6", "g8"] },
+        { "level": 3, "text": "Jump here.", "arrowFrom": "g4", "arrowTo": "h6" },
+        { "level": 4, "text": "Nh6+ is the zwischenzug — an 'in-between' move. Black must answer check right now, so the knight on d5 has to wait." }
+      ],
+      "feedback": {
+        "default": "That's a legal move, but it's not the in-between move that matters here. Look for a check somewhere completely unrelated to d5."
+      },
+      "successExplanation": "Nh6+ is the zwischenzug — an 'in-between' move. Black must answer check right now, so the knight on d5 has to wait. You haven't given up anything: the capture on d5 is still there next move, but now you've gained a free check first."
+    },
+    {
+      "id": "step-5",
+      "type": "capture",
+      "prompt": "Black's king had to move to answer your check. Now finish the job — capture the knight that's been waiting on d5.",
+      "fen": "7k/8/7N/3n4/8/8/1K6/3R4 w - - 2 2",
+      "expectedMoves": ["d1d5"],
+      "hints": [
+        { "level": 1, "text": "The knight on d5 hasn't moved this whole time — it was never defended, and it never had a chance to run." },
+        { "level": 2, "text": "Your rook already lines up with it.", "highlightSquares": ["d5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "d1", "arrowTo": "d5" },
+        { "level": 4, "text": "Rxd5 wins the knight, exactly as it would have without the check — except now you've also gained a free tempo from the zwischenzug." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the knight. It's still sitting on d5, undefended — capture it."
+      },
+      "successExplanation": "Rxd5 wins the knight. The recapture happens exactly as expected — the only difference is you inserted a free check first, since the knight was never going anywhere."
+    },
+    {
+      "id": "step-6",
+      "type": "capture",
+      "prompt": "Your knight can recapture on e5 any time — it's not going anywhere. Grab the undefended rook first.",
+      "fen": "4k3/8/8/4n1r1/2N5/8/1K6/2B5 w - - 0 1",
+      "expectedMoves": ["c1g5"],
+      "hints": [
+        { "level": 1, "text": "A zwischenzug doesn't have to be a check — any move that's more urgent or more valuable than the expected recapture works." },
+        { "level": 2, "text": "The rook is undefended and reachable right now.", "highlightSquares": ["g5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "c1", "arrowTo": "g5" },
+        { "level": 4, "text": "Bxg5 wins the rook. The knight on e5 isn't defended and isn't running away either, so there's no rush to recapture it — grabbing the bigger, undefended prize first is the zwischenzug idea." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the rook. The knight on e5 can wait — look for the undefended piece you can win right now instead."
+      },
+      "successExplanation": "Bxg5 wins the rook. The knight on e5 isn't defended and isn't running away either, so there's no rush to recapture it — grabbing the bigger, undefended prize first is the zwischenzug idea: do the more urgent or more valuable thing before finishing the 'expected' move."
+    },
+    {
+      "id": "step-7",
+      "type": "review",
+      "summary": "Zwischenzug means playing a forcing in-between move before completing an 'expected' recapture or continuation — because the expected move isn't going anywhere, but the in-between move (a check, a bigger capture, a serious threat) is too urgent to pass up. Before automatically recapturing, ask: does this really need to happen right now, or is there something better available first?"
+    }
+  ],
+  "principleId": "tactical-vision.zwischenzug"
+}

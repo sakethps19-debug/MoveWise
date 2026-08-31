@@ -1,0 +1,266 @@
+[
+  {
+    "id": "tactical-vision.puzzle-cct-1",
+    "conceptIds": ["cct-scanning"],
+    "fen": "6k1/8/8/8/8/8/8/R5K1 w - - 0 1",
+    "prompt": "Nothing looks urgent here — but scan for check anyway. Play the move that gives check.",
+    "correctMoves": ["a1a8"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That doesn't give check. Is there a rook move along a rank or file that lines up with the king?"
+    },
+    "successExplanation": "Ra8+ delivers check — a move that was there the whole time, just easy to miss if you never asked the question."
+  },
+  {
+    "id": "tactical-vision.puzzle-cct-2",
+    "conceptIds": ["cct-scanning"],
+    "fen": "6kr/8/8/8/8/8/1B6/6K1 w - - 0 1",
+    "prompt": "The bishop on b2 looks far from the action — but scan its diagonal. Is there a capture waiting?",
+    "correctMoves": ["b2h8"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That's not the capture. Trace the bishop's whole diagonal to the far corner of the board."
+    },
+    "successExplanation": "Bxh8 wins the rook for free — a bishop's diagonal runs the full length of the board when nothing blocks it."
+  },
+  {
+    "id": "tactical-vision.puzzle-hanging-combo-1",
+    "conceptIds": ["hanging-pieces-in-combination"],
+    "fen": "1r4k1/8/8/8/Q2n4/8/6B1/6K1 w - - 0 1",
+    "prompt": "Black's rook just had to flee an attack from your queen and abandoned its defense of the knight on its way out. Find the move that wins the knight.",
+    "correctMoves": ["g2d5"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't win the knight. The piece that used to guard d5 is gone from the d-file now."
+    },
+    "successExplanation": "Bxd5 wins the knight for free — a hanging piece created mid-combination, not a static one."
+  },
+  {
+    "id": "tactical-vision.puzzle-hanging-combo-2",
+    "conceptIds": ["hanging-pieces-in-combination"],
+    "fen": "2b3k1/8/8/8/3q4/8/8/3R2K1 w - - 0 1",
+    "prompt": "It might look like the bishop on c8 could defend the queen on d4 — but check the color of each square before you believe it.",
+    "correctMoves": ["d1d4"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't win the queen. Check whether the bishop on c8 could ever actually reach d4, given the colors of the two squares."
+    },
+    "successExplanation": "Rxd4 wins the queen for free — the bishop on c8 is light-squared and can never defend a dark square like d4."
+  },
+  {
+    "id": "tactical-vision.puzzle-knight-fork-tactics-1",
+    "conceptIds": ["knight-fork-tactics", "knight-fork"],
+    "fen": "4k3/8/N7/1q6/8/8/8/6K1 w - - 0 1",
+    "prompt": "This position followed a trade a move ago — Black's queen just recaptured on b5. Find the knight move that forks the king and the queen.",
+    "correctMoves": ["a6c7"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't fork both pieces. Find the single square your knight can jump to that attacks the king and the queen at the same time."
+    },
+    "successExplanation": "Nc7+ forks the king and the queen — a fork that only existed because the queen had just recaptured onto a forkable square."
+  },
+  {
+    "id": "tactical-vision.puzzle-knight-fork-tactics-2",
+    "conceptIds": ["knight-fork-tactics", "knight-fork"],
+    "fen": "2r1r1k1/3b4/8/3N4/8/8/8/6K1 w - - 0 1",
+    "prompt": "Two knight moves both give check and both attack a rook — but only one of them actually wins material. Find it.",
+    "correctMoves": ["d5e7"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That's a legal knight move, but check carefully whether the rook it forks is actually undefended."
+    },
+    "successExplanation": "Ne7+ forks the king and the undefended rook on c8. The other fork, Nf6+, only wins a rook defended by the bishop on d7 — check what's actually undefended before cashing in a fork."
+  },
+  {
+    "id": "tactical-vision.puzzle-forking-patterns-1",
+    "conceptIds": ["forking-patterns", "fork"],
+    "fen": "6k1/8/3n1b2/8/4P3/8/8/6K1 w - - 0 1",
+    "prompt": "Push the pawn forward to fork the knight and the bishop.",
+    "correctMoves": ["e4e5"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That doesn't fork both pieces. A pawn only attacks the two squares diagonally in front of it."
+    },
+    "successExplanation": "e5 forks the knight and the bishop — even the lowest-value piece on the board can win material this way."
+  },
+  {
+    "id": "tactical-vision.puzzle-forking-patterns-2",
+    "conceptIds": ["forking-patterns", "fork"],
+    "fen": "1r4kr/8/8/8/8/2B5/8/6K1 w - - 0 1",
+    "prompt": "Move the bishop to a square where it forks both rooks.",
+    "correctMoves": ["c3e5"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't fork both rooks. Look for a square with two clear diagonals, one reaching each rook."
+    },
+    "successExplanation": "Be5 forks both rooks along its two diagonals — one piece, two lines of attack."
+  },
+  {
+    "id": "tactical-vision.puzzle-pins-1",
+    "conceptIds": ["pins"],
+    "fen": "4k3/3n4/8/8/8/8/6B1/K7 w - - 0 1",
+    "prompt": "Move the bishop onto the diagonal that pins the knight to the king.",
+    "correctMoves": ["g2c6"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't create a pin. Find the diagonal square where the bishop's line runs straight through the knight and then the king."
+    },
+    "successExplanation": "Bc6 pins the knight to the king — the knight now has zero legal moves, since any knight jump would expose the king."
+  },
+  {
+    "id": "tactical-vision.puzzle-pins-2",
+    "conceptIds": ["pins"],
+    "fen": "3k4/8/8/3rp3/8/8/7B/3R2K1 w - - 0 1",
+    "prompt": "The rook on d5 is pinned to the king and can't recapture. Capture the pawn it's supposedly defending.",
+    "correctMoves": ["h2e5"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't win the pawn cleanly. The rook is pinned to its own king along the d-file — check whether it can actually recapture here."
+    },
+    "successExplanation": "Bxe5 wins the pawn for free — an absolutely pinned piece can't defend anything off its own line."
+  },
+  {
+    "id": "tactical-vision.puzzle-skewers-1",
+    "conceptIds": ["skewers"],
+    "fen": "r7/8/8/k7/8/8/1K6/7R w - - 0 1",
+    "prompt": "Move the rook onto the file where it skewers the king and wins the rook behind it.",
+    "correctMoves": ["h1a1"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't create a skewer. Find the file the king and the enemy rook already share."
+    },
+    "successExplanation": "Ra1+ skewers the king and the rook behind it — the king must move, and the rook falls next."
+  },
+  {
+    "id": "tactical-vision.puzzle-skewers-2",
+    "conceptIds": ["skewers"],
+    "fen": "6q1/8/8/3k4/B7/8/8/7K w - - 0 1",
+    "prompt": "Move the bishop onto the diagonal that skewers the king and the queen.",
+    "correctMoves": ["a4b3"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't set up the skewer. Find the diagonal square that lines your bishop up with both the king and the queen behind it."
+    },
+    "successExplanation": "Bb3+ skewers the king and the queen — check forces the king to move, and the queen behind it has nowhere to hide."
+  },
+  {
+    "id": "tactical-vision.puzzle-discovered-1",
+    "conceptIds": ["discovered-attacks"],
+    "fen": "3k4/2b5/8/3N4/8/8/8/3R2K1 w - - 0 1",
+    "prompt": "Move the knight to capture the bishop — notice what your rook can suddenly see once the knight is out of the way.",
+    "correctMoves": ["d5c7"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't win the bishop. Look for the knight move that captures it — then notice what opens up behind the knight."
+    },
+    "successExplanation": "Nxc7 wins the bishop, and moving the knight uncovers a discovered check from your rook."
+  },
+  {
+    "id": "tactical-vision.puzzle-discovered-2",
+    "conceptIds": ["discovered-attacks"],
+    "fen": "7k/8/8/1p6/3N4/8/8/Q5K1 w - - 0 1",
+    "prompt": "Capture the pawn with your knight and watch what happens along the long diagonal.",
+    "correctMoves": ["d4b5"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't win the pawn. Find the knight's capture, then notice what your queen sees once the diagonal is clear."
+    },
+    "successExplanation": "Nxb5 wins the pawn, and clearing the diagonal uncovers a discovered check from your queen — a different piece than the one that moved."
+  },
+  {
+    "id": "tactical-vision.puzzle-removing-defender-1",
+    "conceptIds": ["removing-the-defender"],
+    "fen": "k2r4/5n2/6B1/8/8/8/8/3R2K1 w - - 0 1",
+    "prompt": "The rook on d8 is defended only by the knight on f7. Capture the knight first — it's undefended and clears the way.",
+    "correctMoves": ["g6f7"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't win the defender. Find the piece that's actually guarding the rook on d8."
+    },
+    "successExplanation": "Bxf7 wins the knight for free — and that knight was the rook's only defender, so the rook falls next."
+  },
+  {
+    "id": "tactical-vision.puzzle-removing-defender-2",
+    "conceptIds": ["removing-the-defender"],
+    "fen": "4k3/5b2/8/8/7R/8/8/6K1 w - - 0 1",
+    "prompt": "Give check to force the king away — it's the only thing defending the bishop on f7.",
+    "correctMoves": ["h4e4"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't remove the defender. The king is the bishop's only guard — find the move that forces it away."
+    },
+    "successExplanation": "Re4+ forces the king to move — wherever it goes, it can no longer guard f7, and the bishop is yours next move."
+  },
+  {
+    "id": "tactical-vision.puzzle-back-rank-1",
+    "conceptIds": ["back-rank-tactics"],
+    "fen": "6k1/5ppp/8/8/4R3/8/8/1K6 w - - 0 1",
+    "prompt": "Deliver checkmate along the back rank.",
+    "correctMoves": ["e4e8"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't deliver checkmate. Find the square on the back rank where the king has no escape at all."
+    },
+    "successExplanation": "Re8 is checkmate — the king's own pawns block every escape square."
+  },
+  {
+    "id": "tactical-vision.puzzle-back-rank-2",
+    "conceptIds": ["back-rank-tactics"],
+    "fen": "3r2k1/5ppp/8/8/8/8/5PPP/3R2K1 w - - 0 1",
+    "prompt": "Nothing is attacking yet, but the rooks are eyeing the same open file. Give your king an escape square before you're forced to.",
+    "correctMoves": ["h2h3", "g2g3", "f2f3"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "That doesn't create an escape square for your king. Push one of the pawns in front of it forward, one square."
+    },
+    "successExplanation": "Pushing any one of these pawns creates luft — an escape square for the king, before it's ever needed."
+  },
+  {
+    "id": "tactical-vision.puzzle-zwischenzug-1",
+    "conceptIds": ["zwischenzug"],
+    "fen": "6k1/8/8/3n4/6N1/8/1K6/3R4 w - - 0 1",
+    "prompt": "Before recapturing the knight on d5, insert this check first — it doesn't run away, but tempo does.",
+    "correctMoves": ["g4h6"],
+    "difficulty": 3,
+    "feedback": {
+      "default": "That's a legal move, but it's not the in-between move that matters here. Look for a check unrelated to d5."
+    },
+    "successExplanation": "Nh6+ is the zwischenzug — Black must answer check right now, so the knight on d5 has to wait, and the capture is still there next move."
+  },
+  {
+    "id": "tactical-vision.puzzle-zwischenzug-2",
+    "conceptIds": ["zwischenzug"],
+    "fen": "4k3/8/8/4n1r1/2N5/8/1K6/2B5 w - - 0 1",
+    "prompt": "Your knight can recapture on e5 any time — it's not going anywhere. Grab the undefended rook first.",
+    "correctMoves": ["c1g5"],
+    "difficulty": 3,
+    "feedback": {
+      "default": "That doesn't win the rook. The knight on e5 can wait — look for the undefended piece you can win right now instead."
+    },
+    "successExplanation": "Bxg5 wins the rook — grabbing the bigger, undefended prize first, before finishing the 'expected' recapture."
+  },
+  {
+    "id": "tactical-vision.puzzle-mixed-1",
+    "conceptIds": ["mixed-tactical-calculation"],
+    "fen": "3k4/b1r5/8/8/3N4/8/1K6/3R4 w - - 0 1",
+    "prompt": "This move does three things at once — find it. What does moving the knight reveal, and what does it attack?",
+    "correctMoves": ["d4b5"],
+    "difficulty": 3,
+    "feedback": {
+      "default": "That doesn't combine all three. Look for the single knight square that clears the d-file for your rook while also attacking two black pieces."
+    },
+    "successExplanation": "Nb5 is a discovered check that also forks the rook on c7 and the bishop on a7 — three effects from one move."
+  },
+  {
+    "id": "tactical-vision.puzzle-mixed-2",
+    "conceptIds": ["mixed-tactical-calculation"],
+    "fen": "2k5/8/8/2rp4/8/1B6/8/K1R5 w - - 0 1",
+    "prompt": "The rook on c5 is pinned and can't recapture without exposing the king. Capture the pawn it's 'defending.'",
+    "correctMoves": ["b3d5"],
+    "difficulty": 3,
+    "feedback": {
+      "default": "That doesn't win the pawn cleanly. Remember the rook is pinned to its own king — check whether it can actually recapture here."
+    },
+    "successExplanation": "Bxd5 wins the pawn for free — a pinned piece can't defend anything off its own line."
+  }
+]

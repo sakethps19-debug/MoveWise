@@ -1,0 +1,168 @@
+{
+  "id": "tactical-vision.12-unit-mastery-challenge",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Unit mastery challenge",
+  "objectives": [
+    "Apply the CCT habit, hanging-piece checks, forks, pins, skewers, discovered attacks, and back-rank awareness across a mixed set of fresh positions"
+  ],
+  "prerequisites": ["tactical-vision.11-mixed-tactical-calculation"],
+  "xpReward": 40,
+  "masteryTags": [
+    "cct-scanning",
+    "hanging-pieces-in-combination",
+    "knight-fork-tactics",
+    "pins",
+    "skewers",
+    "discovered-attacks",
+    "back-rank-tactics",
+    "zwischenzug"
+  ],
+  "difficulty": 3,
+  "estimatedDurationSec": 420,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "Let's put the whole unit together. This challenge draws on every pattern from Tactical Vision — checks, captures, threats, hanging pieces, forks, pins, skewers, discovered attacks, back-rank tactics, and zwischenzug — on fresh positions you haven't seen before. Take your time on each one."
+    },
+    {
+      "id": "step-2",
+      "type": "move-piece",
+      "prompt": "Nothing looks urgent — scan for check anyway, and play it.",
+      "fen": "7k/8/8/8/8/8/1K6/R7 w - - 0 1",
+      "expectedMoves": ["a1a8"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "Run the CCT check: is there a check available even though nothing is under attack?" },
+        { "level": 2, "text": "Your rook's file lines up with the king's rank if it slides all the way up.", "highlightSquares": ["a1", "h8"] },
+        { "level": 3, "text": "Slide the rook here.", "arrowFrom": "a1", "arrowTo": "a8" },
+        { "level": 4, "text": "Ra8 delivers check — always run the CCT scan, even in a quiet-looking position." }
+      ],
+      "feedback": {
+        "default": "That doesn't give check. Look for a rook move along a rank or file that lines up with the king."
+      },
+      "successExplanation": "Ra8+ delivers check — the CCT habit in action, even with nothing else happening on the board."
+    },
+    {
+      "id": "step-3",
+      "type": "capture",
+      "prompt": "Capture the undefended knight.",
+      "fen": "6k1/8/8/3n4/8/8/Q7/1K6 w - - 0 1",
+      "expectedMoves": ["a2d5"],
+      "hints": [
+        { "level": 1, "text": "Check the whole diagonal, not just the nearby squares — is the knight actually defended by anything?" },
+        { "level": 2, "text": "Nothing defends the knight.", "highlightSquares": ["d5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "a2", "arrowTo": "d5" },
+        { "level": 4, "text": "Qxd5 wins the knight for free — always check the exact geometry before assuming a piece is safe." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the knight. Check whether anything actually defends d5 before deciding it's safe."
+      },
+      "successExplanation": "Qxd5 wins the knight for free — nothing defended it."
+    },
+    {
+      "id": "step-4",
+      "type": "move-piece",
+      "prompt": "Move the knight to fork the king and the rook.",
+      "fen": "8/8/8/2r3k1/8/2N5/8/K7 w - - 0 1",
+      "expectedMoves": ["c3e4"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "Look for a square where your knight would attack both the king and the rook at once." },
+        { "level": 2, "text": "These are the two pieces to fork.", "highlightSquares": ["g5", "c5"] },
+        { "level": 3, "text": "Jump here.", "arrowFrom": "c3", "arrowTo": "e4" },
+        { "level": 4, "text": "Ne4+ forks the king and the rook — the rook falls next move." }
+      ],
+      "feedback": {
+        "default": "That's a legal knight move, but it doesn't attack both the king and the rook. Look for the square where the knight's L-shape lines up with both pieces at once."
+      },
+      "successExplanation": "Ne4+ forks the king on g5 (check!) and the rook on c5 at the same time — the rook falls next move."
+    },
+    {
+      "id": "step-5",
+      "type": "capture",
+      "prompt": "The rook on c5 is pinned and can't recapture without exposing the king. Capture the pawn it's 'defending.'",
+      "fen": "2k5/8/8/2rp4/8/1B6/8/K1R5 w - - 0 1",
+      "expectedMoves": ["b3d5"],
+      "hints": [
+        { "level": 1, "text": "The rook can't move off the c-file without exposing its own king — so does it really defend the pawn next to it?" },
+        { "level": 2, "text": "Your bishop's diagonal reaches the pawn directly.", "highlightSquares": ["d5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "b3", "arrowTo": "d5" },
+        { "level": 4, "text": "Bxd5 wins the pawn for free. The rook on c5 is pinned to its own king along the c-file and can't legally recapture." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the pawn cleanly. Check whether the pinned rook can actually recapture here."
+      },
+      "successExplanation": "Bxd5 wins the pawn. A rook absolutely pinned to its king can't defend anything off its own file."
+    },
+    {
+      "id": "step-6",
+      "type": "move-piece",
+      "prompt": "Move the rook onto the file where it skewers the king and wins the rook behind it.",
+      "fen": "1r6/8/8/8/1k6/8/8/K6R w - - 0 1",
+      "expectedMoves": ["h1b1"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "The king and the enemy rook already share a file. Get your rook onto that same file." },
+        { "level": 2, "text": "The king and rook are both on this file.", "highlightSquares": ["b4", "b8"] },
+        { "level": 3, "text": "Slide here.", "arrowFrom": "h1", "arrowTo": "b1" },
+        { "level": 4, "text": "Rb1+ skewers the king and the rook behind it — the king must move, and the rook falls." }
+      ],
+      "feedback": {
+        "default": "That doesn't create a skewer. Find the file the king and the enemy rook already share."
+      },
+      "successExplanation": "Rb1+ skewers the king and the rook on b8. Once the king moves off the file, the rook is yours."
+    },
+    {
+      "id": "step-7",
+      "type": "capture",
+      "prompt": "Move the knight to capture the bishop — notice what your rook can suddenly see once the knight is out of the way.",
+      "fen": "3r3k/8/2b5/8/3N4/8/8/1K1R4 w - - 0 1",
+      "expectedMoves": ["d4c6"],
+      "hints": [
+        { "level": 1, "text": "Your knight is blocking your rook's view down the d-file. What's on that file, behind the knight?" },
+        { "level": 2, "text": "The bishop is undefended and reachable in one jump.", "highlightSquares": ["c6"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "d4", "arrowTo": "c6" },
+        { "level": 4, "text": "Nxc6 wins the bishop, and moving the knight uncovers a discovered attack on the rook on d8 from your own rook." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the bishop. Find the knight's capture, then notice what opens up behind it."
+      },
+      "successExplanation": "Nxc6 wins the bishop, and clears the d-file for a discovered attack on the rook on d8 — two gains from one move."
+    },
+    {
+      "id": "step-8",
+      "type": "true-false",
+      "prompt": "A king castled behind three unmoved pawns is always completely safe from back-rank tactics.",
+      "correct": false,
+      "feedback": {
+        "default": "It can still be mated along the back rank if it has no escape square while a rook or queen infiltrates — the very pawns that shield it also block its own escape. That's exactly why creating luft matters."
+      },
+      "successExplanation": "Right — pawns in front of the king don't guarantee safety; they can trap it just as easily as protect it."
+    },
+    {
+      "id": "step-9",
+      "type": "capture",
+      "prompt": "Your knight can recapture on e5 any time — it's not going anywhere. Grab the undefended rook first.",
+      "fen": "4k3/8/8/4n1r1/2N5/8/1K6/2B5 w - - 0 1",
+      "expectedMoves": ["c1g5"],
+      "hints": [
+        { "level": 1, "text": "The knight on e5 isn't defended and isn't running away — no need to recapture it this instant." },
+        { "level": 2, "text": "The rook is undefended and reachable right now.", "highlightSquares": ["g5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "c1", "arrowTo": "g5" },
+        { "level": 4, "text": "Bxg5 wins the rook — the zwischenzug idea: grab the more valuable, undefended piece before finishing the 'expected' recapture." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the rook. The knight on e5 can wait — look for the undefended piece you can win right now."
+      },
+      "successExplanation": "Bxg5 wins the rook. The recapture on e5 was never going anywhere, so there was no rush to play it first."
+    },
+    {
+      "id": "step-10",
+      "type": "review",
+      "summary": "You've now applied every pattern from Tactical Vision on fresh positions: scanning for checks, captures, and threats before anything else; spotting hanging pieces mid-combination; forks from every piece; pins and the false defense they create; skewers; discovered attacks; back-rank danger in both directions; and zwischenzug's in-between moves. These patterns don't retire once you've learned them — real games combine them constantly, and recognizing them quickly is what turns calculation from slow and effortful into fast and automatic."
+    }
+  ],
+  "kind": "mastery-challenge"
+}
