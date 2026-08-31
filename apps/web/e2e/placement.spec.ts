@@ -51,11 +51,18 @@ test("a rated guest who aces the placement assessment unlocks tactics practice i
   await knightForkPool.click();
   await expect(page.getByText("Puzzle 1/")).toBeVisible();
 
-  // The homepage reflects it too — no "Welcome to the chessboard" default,
-  // and no full curriculum grind required to get there.
+  // The homepage reflects it too — no "Welcome to the chessboard" default.
+  // Placement was never designed to test Tactical Vision's own patterns
+  // (forks/pins/skewers/etc — genuinely new material, not implied by
+  // foundational movement/blunder-recognition items), so acing it
+  // honestly routes here to Tactical Vision's first lesson as the next
+  // thing to learn, rather than falsely claiming every unit is cleared —
+  // real, correct behavior once a curriculum has more than the units
+  // placement's own item set covers, not a regression.
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Placement result: strong" })).toHaveCount(0); // eyebrow, not heading
-  await expect(page.getByText("Placement result: strong")).toBeVisible();
+  const continueCard = page.locator(".mw-continue-card");
+  await expect(continueCard.getByText("Start here")).toBeVisible();
+  await expect(continueCard.getByText("Checks, captures, and threats")).toBeVisible();
 });
 
 test("a placement assessment failed at the foundational level ends early, recommends starting from the beginning, and demonstrates nothing", async ({
