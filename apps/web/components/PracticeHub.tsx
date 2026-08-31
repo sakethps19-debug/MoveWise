@@ -11,6 +11,7 @@ import { readPlacementResult } from "../lib/placementProgress";
 import { readGuestContradictingConceptIds, readGuestConfirmedConceptIds } from "../lib/guestProgress";
 import { NEEDS_CONFIRMATION_LEVELS, type ConceptEvidenceLevel } from "../lib/placementEvidence";
 import { MasteryBadge } from "./ui/MasteryBadge";
+import { ReflectIcon, StruggleIcon } from "./icons/StepIcons";
 import type { UnitWithLessons } from "./LearningPath";
 
 /**
@@ -98,16 +99,32 @@ export function PracticeHub({
   // failed confirmation attempt (evidenceLevel === later_contradicted)
   // surfaces the same way — "we're refining your placement", never a
   // lock — see app/actions.ts's confirmConceptAction.
+  //
+  // The two reasons are real, evidenced differently, and honestly
+  // different in weight: `struggling` is genuine accuracy evidence over
+  // several attempts, `later_contradicted` is one placement inference
+  // that didn't hold up under a direct check — ConfirmationActivity's own
+  // completion screen goes out of its way to say so ("not marking
+  // anything as failed"). Tagging each item with which one it is here
+  // (rather than folding both under one "went wrong" sentence, the real
+  // gap this fixes) keeps that same honesty visible wherever this list
+  // is read, not just in the moment right after it happened.
   const needsReview =
     conceptMastery === null
       ? []
       : units
           .flatMap((u) => u.principles.map((p) => ({ unit: u, principle: p })))
-          .filter(
-            ({ principle }) =>
-              conceptMastery.get(principle.conceptId) === "struggling" ||
-              laterContradictedConceptIds.has(principle.conceptId),
-          );
+          .map(({ unit, principle }) => ({
+            unit,
+            principle,
+            reason:
+              conceptMastery.get(principle.conceptId) === "struggling"
+                ? ("struggling" as const)
+                : laterContradictedConceptIds.has(principle.conceptId)
+                  ? ("later_contradicted" as const)
+                  : null,
+          }))
+          .filter((entry): entry is typeof entry & { reason: "struggling" | "later_contradicted" } => entry.reason !== null);
 
   const pools = units.flatMap((unit) =>
     unit.principles
@@ -144,11 +161,22 @@ export function PracticeHub({
         <div className="mw-review-needed">
           <h2 className="mw-review-needed-title">Review needed</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-2)" }}>
-            {needsReview.map(({ principle }) => (
-              <Link key={principle.id} href={`/review/${principle.id}`} className="mw-review-needed-item">
-                <span className="mw-review-needed-item-title">{principle.title}</span>
-                <span className="mw-review-needed-item-detail">
-                  A few recent attempts went wrong — a quick refresher and some easier practice will help this stick.
+            {needsReview.map(({ principle, reason }) => (
+              <Link
+                key={principle.id}
+                href={`/review/${principle.id}`}
+                className={`mw-review-needed-item mw-review-needed-item--${reason === "struggling" ? "struggling" : "confirm"}`}
+              >
+                <span className="mw-review-needed-item-icon" aria-hidden="true">
+                  {reason === "struggling" ? <StruggleIcon /> : <ReflectIcon />}
+                </span>
+                <span className="mw-review-needed-item-body">
+                  <span className="mw-review-needed-item-title">{principle.title}</span>
+                  <span className="mw-review-needed-item-detail">
+                    {reason === "struggling"
+                      ? "A few recent attempts went wrong — a quick refresher and some easier practice will help this stick."
+                      : "A placement result here didn't hold up under a direct check — never a failure, just worth confirming for real."}
+                  </span>
                 </span>
               </Link>
             ))}
@@ -164,6 +192,27 @@ export function PracticeHub({
           <p className="mw-page-subtitle">No puzzle pools yet — check back once more units are curated.</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-2)" }}>
+            {unlockedPools.length === 0 && (
+              // Real gap this fixes: a learner with nothing unlocked yet
+              // (everyone's very first visit here) previously landed
+              // straight on a wall of ~17 identical locked rows with no
+              // framing — technically actionable (each row's own CTA
+              // still works) but reads as "nothing here for you", not as
+              // a clear first step. Points at the very first pool's own
+              // nextNeededLesson, so the CTA below is never a duplicate
+              // of the identical one already on that first locked row.
+              <div className="mw-practice-empty-hint">
+                <p>
+                  No puzzle pools are unlocked yet — they open up once you finish the lessons behind them. Start with
+                  your first lesson and you&apos;ll have a pool to practise within a few minutes.
+                </p>
+                {lockedPools[0]?.nextNeededLesson && (
+                  <Link href={`/learn/${lockedPools[0].nextNeededLesson.id}`} className="mw-btn mw-btn--primary">
+                    Start &ldquo;{lockedPools[0].nextNeededLesson.title}&rdquo; →
+                  </Link>
+                )}
+              </div>
+            )}
             {unlockedPools.map(({ unit, principle }) => {
               const status = conceptMastery?.get(principle.conceptId);
               const needsConfirmation = effectiveUnconfirmed.has(principle.conceptId);

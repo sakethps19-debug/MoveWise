@@ -5,6 +5,8 @@ import Link from "next/link";
 import { buildTodayPlan, type TodayPlanInput, type TodayStep } from "../lib/todayPlan";
 import { readOnboardingAnswers } from "../lib/onboarding";
 import type { DailyMinutes } from "../lib/onboarding";
+import { LearnIcon, PlayIcon, PracticeIcon } from "./icons/NavIcons";
+import { ReflectIcon, ReviewIcon, StepDoneIcon, WarmUpIcon } from "./icons/StepIcons";
 
 const BUDGETS: DailyMinutes[] = [5, 10, 20];
 const BUDGET_KEY = "movewise_today_budget";
@@ -29,13 +31,13 @@ function saveBudget(minutes: DailyMinutes): void {
   }
 }
 
-const STEP_ICON: Record<TodayStep["id"], string> = {
-  "warm-up": "☀️",
-  review: "🔁",
-  learn: "📘",
-  practice: "🧩",
-  play: "♟️",
-  reflect: "🔍",
+const STEP_ICON: Record<TodayStep["id"], () => React.JSX.Element> = {
+  "warm-up": WarmUpIcon,
+  review: ReviewIcon,
+  learn: LearnIcon,
+  practice: PracticeIcon,
+  play: PlayIcon,
+  reflect: ReflectIcon,
 };
 
 /**
@@ -107,7 +109,10 @@ export function TodayPlan({
 
       {plan.allDone ? (
         <div className="mw-today-empty">
-          <p className="mw-today-empty-title">Nice work today 🎉</p>
+          <span className="mw-today-empty-icon" aria-hidden="true">
+            <StepDoneIcon />
+          </span>
+          <p className="mw-today-empty-title">Nice work today</p>
           {plan.nextUpPreview && <p className="mw-today-empty-next">{plan.nextUpPreview}</p>}
         </div>
       ) : (
@@ -115,6 +120,7 @@ export function TodayPlan({
           {plan.steps.map((step) => {
             const showAlternate = step.id === "learn" && step.alternate && !swapped;
             const active = swapped && step.id === "learn" && step.alternate ? step.alternate : step;
+            const Icon = STEP_ICON[step.id];
             return (
               <div key={step.id}>
                 <Link
@@ -122,7 +128,7 @@ export function TodayPlan({
                   className={`mw-today-step${step.done ? " mw-today-step--done" : ""}`}
                 >
                   <span className="mw-today-step-check" aria-hidden="true">
-                    {step.done ? "✓" : STEP_ICON[step.id]}
+                    {step.done ? <StepDoneIcon /> : <Icon />}
                   </span>
                   <span className="mw-today-step-body">
                     <span className="mw-today-step-title">{active.title}</span>

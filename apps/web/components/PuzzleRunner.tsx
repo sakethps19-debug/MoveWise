@@ -28,6 +28,7 @@ export function PuzzleRunner({
   completionMessage,
   completionHref = "/",
   completionLinkText = "Back to learning path",
+  completionIcon,
   isWarmUp = false,
 }: {
   puzzles: Puzzle[];
@@ -41,6 +42,8 @@ export function PuzzleRunner({
   completionMessage?: string;
   completionHref?: string;
   completionLinkText?: string;
+  /** Optional icon-in-circle shown above the completion title — only ConfirmationActivity passes this (a success or info tone, since its two outcomes need to read as visually distinct at a glance, never a shared generic look), so every other caller's completion screen renders exactly as before. */
+  completionIcon?: React.ReactNode;
   /** Only the Daily warm-up route sets this — drives the guest "Warm-ups completed" Progress stat, distinct from an ordinary puzzle-pool completion. */
   isWarmUp?: boolean;
 }) {
@@ -81,6 +84,7 @@ export function PuzzleRunner({
   if (finished) {
     return (
       <div className="mw-completion" style={{ maxWidth: 440, margin: "var(--mw-space-7) auto" }}>
+        {completionIcon}
         <h1 className="mw-completion-title">{completionTitle}</h1>
         {completionMessage && <p className="mw-completion-explanation">{completionMessage}</p>}
         <p className="mw-completion-explanation">

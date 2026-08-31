@@ -6,6 +6,7 @@ import type { Puzzle } from "@movewise/exercise-schema";
 import { PuzzleRunner } from "./PuzzleRunner";
 import { confirmConceptAction } from "../app/actions";
 import { recordGuestConfirmedConcept, recordGuestContradictedConcept } from "../lib/guestProgress";
+import { ReflectIcon, StepDoneIcon } from "./icons/StepIcons";
 
 /**
  * P1 "make confirmation evidence meaningful": the short, concept-specific
@@ -75,6 +76,21 @@ export function ConfirmationActivity({
     passed === false
       ? `We're refining what we know about your placement here, not marking anything as failed. ${poolTitle} is still just as reachable — a bit more practice on ${conceptTitle.toLowerCase()} will help it stick.`
       : `${conceptTitle} is now a directly confirmed strength, not just an inferred one.`;
+  // Two deliberately different tones for two honestly different outcomes —
+  // success (green, a checkmark) vs. info (blue, a magnifying glass —
+  // reusing the exact glyph TodayPlan's own "reflect" step uses, since
+  // "needs a closer look" is the same idea) — never error/red, since a
+  // failed confirmation is explicitly never framed as a failure.
+  const completionIcon =
+    passed === false ? (
+      <span className="mw-completion-icon mw-completion-icon--info">
+        <ReflectIcon />
+      </span>
+    ) : (
+      <span className="mw-completion-icon mw-completion-icon--success">
+        <StepDoneIcon />
+      </span>
+    );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-4)", maxWidth: 600, margin: "0 auto" }}>
@@ -99,6 +115,7 @@ export function ConfirmationActivity({
         completionMessage={completionMessage}
         completionHref={poolHref}
         completionLinkText={`Back to ${poolTitle}`}
+        completionIcon={completionIcon}
       />
       {passed === false && lessonHref && (
         <p className="mw-page-subtitle" style={{ textAlign: "center" }}>

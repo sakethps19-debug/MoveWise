@@ -397,8 +397,8 @@
 }
 .mw-review-needed-item {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: flex-start;
+  gap: var(--mw-space-2);
   padding: var(--mw-space-3);
   border-radius: var(--mw-radius-sm);
   background: var(--mw-surface);
@@ -407,7 +407,41 @@
   color: inherit;
   min-height: 44px;
   box-sizing: border-box;
+}
+/* Two real, differently-evidenced reasons land in this one list
+   (PracticeHub.tsx's own comment on `needsReview` explains why) — a
+   struggling concept (several wrong attempts) reads with the panel's own
+   warning tone; a placement result that didn't hold up under direct
+   confirmation reads with the cooler, non-alarming info tone
+   ConfirmationActivity's own "needs a closer look" outcome already uses,
+   so the same honest distinction stays visible here, not just in the
+   moment right after it happened. */
+.mw-review-needed-item-icon {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
   justify-content: center;
+  border-radius: 999px;
+  margin-top: 1px;
+}
+/* Error-toned, matching MasteryBadge's own "struggling" → error mapping
+   (components/ui/MasteryBadge.tsx) — the same status reads the same way
+   wherever it's shown. */
+.mw-review-needed-item--struggling .mw-review-needed-item-icon {
+  background: var(--mw-error-bg);
+  color: var(--mw-error-ink);
+}
+.mw-review-needed-item--confirm .mw-review-needed-item-icon {
+  background: var(--mw-info-bg);
+  color: var(--mw-info-ink);
+}
+.mw-review-needed-item-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 .mw-review-needed-item-title {
   font-size: 14px;
@@ -416,6 +450,29 @@
 .mw-review-needed-item-detail {
   font-size: 12px;
   color: var(--mw-text-dim);
+}
+
+/* PracticeHub's "nothing unlocked yet" hint — the same honest, non-
+   alarming info tone as ConfirmationActivity's "needs a closer look" and
+   the matching Review-needed item above; this isn't a problem, just
+   guidance, so it deliberately isn't the warning tone `.mw-review-needed`
+   uses. */
+.mw-practice-empty-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--mw-space-3);
+  padding: var(--mw-space-4);
+  margin-bottom: var(--mw-space-3);
+  border-radius: var(--mw-radius-lg);
+  border: 1px solid var(--mw-info);
+  background: var(--mw-info-bg);
+  color: var(--mw-info-ink);
+}
+.mw-practice-empty-hint p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
 }
 
 /* ---------- Onboarding quiz (P1-A) ---------- */
@@ -1057,6 +1114,28 @@
 }
 .mw-completion-title {
   font-size: 26px;
+}
+/* Optional icon-in-circle above the title (PuzzleRunner's `completionIcon`
+   prop) — currently only ConfirmationActivity's two outcomes use this, so
+   its "confirmed" (success) and "needs a closer look" (info — an honest
+   refinement, never a red/error "you failed") read as visually distinct
+   completion moments at a glance, not just from the headline text. */
+.mw-completion-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  animation: mw-star-pop var(--mw-duration-slow) var(--mw-ease) backwards;
+}
+.mw-completion-icon--success {
+  background: var(--mw-success-bg);
+  color: var(--mw-success-ink);
+}
+.mw-completion-icon--info {
+  background: var(--mw-info-bg);
+  color: var(--mw-info-ink);
 }
 .mw-completion-stars .mw-stars {
   font-size: 40px;
@@ -1856,35 +1935,55 @@
   transform: translateY(-1px);
   border-color: var(--mw-border-strong);
 }
+/* Deliberately no blanket `opacity` here — the exact anti-pattern
+   `.mw-lesson-node--locked-cta`'s own comment above already documents as
+   a real WCAG 1.4.3 failure (opacity on top of an already-toned text
+   color drops below the 4.5:1 minimum). A done step instead dims each
+   piece of text individually to a color already verified elsewhere
+   (--mw-text-dim), and marks completion with a filled, success-toned
+   check rather than a faded copy of the same icon. */
 .mw-today-step--done {
-  opacity: 0.6;
+  background: var(--mw-surface-2);
+  border-color: var(--mw-border);
 }
 .mw-today-step-check {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
   background: var(--mw-surface-2);
-  font-size: 15px;
+  color: var(--mw-moss);
+}
+.mw-today-step--done .mw-today-step-check {
+  background: var(--mw-success-bg);
+  color: var(--mw-success-ink);
 }
 .mw-today-step-body {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 1px;
 }
 .mw-today-step-title {
+  display: block;
   font-weight: 600;
   font-size: 14.5px;
 }
 .mw-today-step--done .mw-today-step-title {
+  color: var(--mw-text-dim);
   text-decoration: line-through;
+  text-decoration-color: var(--mw-border-strong);
+  font-weight: 500;
 }
 .mw-today-step-reason {
+  display: block;
   color: var(--mw-text-dim);
   font-size: 12.5px;
-  margin-top: 2px;
 }
 .mw-today-step-time {
   flex-shrink: 0;
@@ -1907,16 +2006,36 @@
   font-family: inherit;
 }
 .mw-today-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
-  padding: var(--mw-space-5) var(--mw-space-3);
+  padding: var(--mw-space-4) var(--mw-space-3) var(--mw-space-3);
+}
+.mw-today-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: var(--mw-space-3);
+  border-radius: 999px;
+  background: var(--mw-success-bg);
+  color: var(--mw-success-ink);
+  /* Same pop-in as .mw-completion-stars — one shared "you finished
+     something" motion instead of a second bespoke animation, and already
+     covered by the global prefers-reduced-motion override below (which
+     collapses every animation-duration to ~0). */
+  animation: mw-star-pop var(--mw-duration-slow) var(--mw-ease) backwards;
 }
 .mw-today-empty-title {
   font-family: var(--mw-font-display);
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 600;
-  margin: 0 0 var(--mw-space-2);
+  margin: 0 0 4px;
 }
 .mw-today-empty-next {
   color: var(--mw-text-dim);
   font-size: 13.5px;
+  margin: 0;
 }
