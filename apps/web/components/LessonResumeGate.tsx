@@ -6,23 +6,36 @@ import { LessonRunner, type AttemptRecord, type LessonCheckpointState } from "./
 import { Button } from "./ui/Button";
 import { readGuestLessonCheckpoint, clearGuestLessonCheckpoint } from "../lib/guestProgress";
 import { createSerialQueue } from "../lib/serialQueue";
-import { saveLessonCheckpointRequest, clearLessonCheckpointRequest } from "../lib/checkpointClient";
+import {
+  saveLessonCheckpointRequest,
+  clearLessonCheckpointRequest,
+  type CheckpointRequestResult,
+} from "../lib/checkpointClient";
 
 interface LessonResumeGateProps {
   lesson: Lesson;
   isGuest: boolean;
   /** Signed-in only — read server-side in app/learn/[lessonId]/page.tsx, already version-checked. Always null for guests. */
   initialCheckpoint: LessonCheckpointState | null;
-  /** The server's current stored revision for this (user, lesson) checkpoint row, 0 if none exists — seeds this mount's revision counter below so a learner resuming a previous session doesn't have every one of their own new saves rejected as stale against a high-water mark their last session already left behind. Always 0 for guests (no server-side revision guard on their localStorage-only checkpoint). */
+  /** The server's current stored epoch/revision for this (user, lesson) checkpoint row, 0 if none exists — see lib/lessonCheckpointStore.ts's state machine. Always 0 for guests. */
+  initialEpoch: number;
   initialRevision: number;
   onComplete?: (
     xpEarned: number,
     mistakes: number,
     hintsUsed: number,
     attempts: AttemptRecord[],
+    epoch: number,
     revision: number,
   ) => void | Promise<void>;
 }
+
+const SYNC_ISSUE_MESSAGE: Partial<Record<CheckpointRequestResult, string>> = {
+  "stale-epoch": "This lesson was restarted in another tab — your progress here wasn't saved.",
+  "stale-revision": "Another tab already saved more recent progress on this lesson — this update wasn't saved.",
+  "stale-collision": "Another tab saved at the same moment — this update may not have been the one that was saved.",
+  "network-error": "Your progress may not be saving — check your connection.",
+};
 
 /**
  * The "reopening a lesson restarted at step 1" fix's other half: even once
@@ -45,11 +58,13 @@ export function LessonResumeGate({
   lesson,
   isGuest,
   initialCheckpoint,
+  initialEpoch,
   initialRevision,
   onComplete,
 }: LessonResumeGateProps) {
   const [guestCheckpoint, setGuestCheckpoint] = useState<LessonCheckpointState | null>(null);
   const [choice, setChoice] = useState<"resume" | "restart" | null>(null);
+  const [syncIssue, setSyncIssue] = useState<string | null>(null);
 
   // One shared FIFO queue per lesson instance for every network call that
   // touches this signed-in learner's LessonCheckpoint row — both ordinary
@@ -61,18 +76,28 @@ export function LessonResumeGate({
   // a real, reproduced-under-load race where a stale save landed after a
   // newer save, or even after an explicit clear, silently regressing or
   // resurrecting the saved step.
-  const checkpointQueueRef = useRef<ReturnType<typeof createSerialQueue> | null>(null);
-  if (!checkpointQueueRef.current) checkpointQueueRef.current = createSerialQueue();
+  const checkpointQueueRef = useRef<ReturnType<typeof createSerialQueue<CheckpointRequestResult>> | null>(null);
+  if (!checkpointQueueRef.current) checkpointQueueRef.current = createSerialQueue<CheckpointRequestResult>();
 
-  // Monotonically increasing per this lesson-attempt session — bumped once
-  // per save/clear/complete call, sent with every request, and rejected
-  // server-side unless strictly greater than what's stored
-  // (lib/lessonCheckpointStore.ts). This is the actual ordering guarantee;
-  // the serial queue above only orders when requests are *sent* from this
-  // tab, not when the server receives them, which is not the same thing
-  // once a keepalive request can outlive the page that sent it.
-  const revisionRef = useRef(initialRevision);
+  const checkpoint = isGuest ? guestCheckpoint : initialCheckpoint;
+
+  // Which attempt this mount belongs to (lib/lessonCheckpointStore.ts's
+  // state machine): a checkpoint that reads as null here — never
+  // attempted, or a previously *closed* row (completed, or restarted and
+  // then abandoned) already filtered out server-side — means this render
+  // is starting a genuinely new attempt, one epoch ahead of whatever the
+  // server has stored. An explicit "Start over" click bumps epochRef the
+  // same way, below. Every ordinary step-advance in between keeps the
+  // same epoch and only bumps revision.
+  const isFreshStart = checkpoint === null;
+  const epochRef = useRef(isFreshStart ? initialEpoch + 1 : initialEpoch);
+  const revisionRef = useRef(isFreshStart ? 0 : initialRevision);
   const nextRevision = () => ++revisionRef.current;
+
+  function reportResult(result: CheckpointRequestResult): CheckpointRequestResult {
+    setSyncIssue(result === "ok" ? null : (SYNC_ISSUE_MESSAGE[result] ?? null));
+    return result;
+  }
 
   useEffect(() => {
     if (isGuest) {
@@ -91,36 +116,46 @@ export function LessonResumeGate({
     ? undefined
     : (state: LessonCheckpointState) => {
         const revision = nextRevision();
-        checkpointQueueRef.current!(() => saveLessonCheckpointRequest(lesson.id, lesson.version, state, revision));
+        const epoch = epochRef.current;
+        checkpointQueueRef.current!(async () =>
+          reportResult(await saveLessonCheckpointRequest(lesson.id, lesson.version, state, epoch, revision)),
+        );
       };
   const serializedOnClearCheckpoint = isGuest
     ? undefined
     : () => {
         const revision = nextRevision();
-        checkpointQueueRef.current!(() => clearLessonCheckpointRequest(lesson.id, revision));
+        const epoch = epochRef.current;
+        checkpointQueueRef.current!(async () => reportResult(await clearLessonCheckpointRequest(lesson.id, epoch, revision)));
       };
   // completeLessonAction also closes this same LessonCheckpoint row
-  // server-side (finishing supersedes any in-progress save) — it MUST go
-  // through the identical queue, not run independently of it, or the
-  // very last step's still-in-flight checkpoint save can land after
-  // completion's close and resurrect a "finished" lesson's checkpoint
-  // with stale data. Both requests also carry this session's own revision
-  // counter, so even if the queue's send-order guarantee is defeated by
-  // network-level reordering, the server's revision guard is the one that
-  // actually decides which write wins. LessonRunner already awaits this
-  // call directly (to drive its own saving/error UI), so — unlike the two
-  // fire-and-forget wrappers above — this one must return the queued
-  // promise, not just enqueue and forget.
+  // server-side (finishing supersedes any in-progress save). Deliberately
+  // NOT routed through checkpointQueueRef, unlike the two calls above —
+  // real, confirmed latency bug this fixes: queued behind it, completion
+  // had to wait for every still-in-flight per-step checkpoint save from
+  // this same run to fully round-trip first, compounding to several
+  // seconds under any real load and, worse, hanging indefinitely if one
+  // of those earlier saves ever failed to settle at all (see
+  // lib/checkpointClient.ts's own doc comment on the keepalive-abort case
+  // that can cause exactly that). None of that waiting was ever load-
+  // bearing for correctness: `revision` below is fixed synchronously, in
+  // true call order, the instant this function runs — before any network
+  // request for it is even sent — and lib/lessonCheckpointStore.ts's own
+  // CAS rule (epoch first, then revision) already resolves any write
+  // arriving out of send-order correctly, close included, purely from the
+  // values each request carries. A still-in-flight earlier save that
+  // happens to land after this one's close is exactly the ordinary
+  // "stale-revision" case that rule already rejects — nothing here can
+  // resurrect a closed checkpoint. LessonRunner still awaits this call
+  // directly to drive its own saving/error UI.
   const serializedOnComplete = onComplete
-    ? (xpEarned: number, mistakes: number, hintsUsed: number, attempts: AttemptRecord[]) => {
+    ? async (xpEarned: number, mistakes: number, hintsUsed: number, attempts: AttemptRecord[]): Promise<void> => {
         const revision = nextRevision();
-        return checkpointQueueRef.current!(() =>
-          Promise.resolve(onComplete(xpEarned, mistakes, hintsUsed, attempts, revision)),
-        );
+        const epoch = epochRef.current;
+        await onComplete(xpEarned, mistakes, hintsUsed, attempts, epoch, revision);
       }
     : undefined;
 
-  const checkpoint = isGuest ? guestCheckpoint : initialCheckpoint;
   const hasResumableProgress = !!checkpoint && checkpoint.stepIndex > 0;
 
   if (hasResumableProgress && choice === null) {
@@ -136,7 +171,16 @@ export function LessonResumeGate({
             variant="ghost"
             onClick={() => {
               if (isGuest) clearGuestLessonCheckpoint(lesson.id);
-              else serializedOnClearCheckpoint?.();
+              else {
+                // A genuinely new attempt begins now — one epoch ahead of
+                // whatever this mount had been using, so any of the
+                // outgoing attempt's writes still in flight (or a second
+                // tab still open on the old attempt) can never land after
+                // this and resurrect it.
+                epochRef.current += 1;
+                revisionRef.current = 0;
+                serializedOnClearCheckpoint?.();
+              }
               setChoice("restart");
             }}
           >
@@ -150,12 +194,19 @@ export function LessonResumeGate({
   const effectiveInitialCheckpoint = choice === "restart" ? null : checkpoint;
 
   return (
-    <LessonRunner
-      lesson={lesson}
-      isGuest={isGuest}
-      onComplete={serializedOnComplete}
-      initialCheckpoint={effectiveInitialCheckpoint}
-      onCheckpoint={serializedOnCheckpoint}
-    />
+    <div>
+      {syncIssue && (
+        <p role="alert" className="mw-feedback mw-feedback--error" style={{ marginBottom: "var(--mw-space-3)" }}>
+          {syncIssue}
+        </p>
+      )}
+      <LessonRunner
+        lesson={lesson}
+        isGuest={isGuest}
+        onComplete={serializedOnComplete}
+        initialCheckpoint={effectiveInitialCheckpoint}
+        onCheckpoint={serializedOnCheckpoint}
+      />
+    </div>
   );
 }

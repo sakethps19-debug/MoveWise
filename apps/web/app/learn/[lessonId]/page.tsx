@@ -102,10 +102,19 @@ export default async function LessonPage({
   // the time this page re-reads the row.
   const REVISION_HEADROOM = 10_000;
   let initialRevision = 0;
+  let initialEpoch = 0;
   if (user) {
     const checkpoint = await prisma.lessonCheckpoint.findUnique({
       where: { userId_lessonId: { userId: user.id, lessonId: lesson.id } },
     });
+    // Epoch itself needs no headroom — a fresh attempt always requests
+    // exactly initialEpoch + 1 (components/LessonResumeGate.tsx), which
+    // unconditionally beats anything at initialEpoch regardless of
+    // revision. The headroom below only matters for *continuing the same
+    // epoch* across a reload, where a write still in flight at the exact
+    // moment of this read could carry a revision higher than what's
+    // committed yet.
+    initialEpoch = checkpoint?.epoch ?? 0;
     initialRevision = (checkpoint?.revision ?? 0) + REVISION_HEADROOM;
     if (checkpoint && checkpoint.stepIndex !== LESSON_CHECKPOINT_CLOSED_STEP) {
       if (checkpoint.lessonVersion === lesson.version) {
@@ -118,6 +127,7 @@ export default async function LessonPage({
       } else {
         await prisma.lessonCheckpoint.deleteMany({ where: { userId: user.id, lessonId: lesson.id } });
         initialRevision = 0;
+        initialEpoch = 0;
       }
     }
   }
@@ -126,6 +136,7 @@ export default async function LessonPage({
     <LessonResumeGate
       lesson={lesson}
       isGuest={!user}
+      initialEpoch={initialEpoch}
       initialRevision={initialRevision}
       initialCheckpoint={initialCheckpoint}
       onComplete={completeLessonAction.bind(null, lesson.id)}

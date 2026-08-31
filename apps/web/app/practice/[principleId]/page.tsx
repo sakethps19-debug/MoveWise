@@ -4,6 +4,7 @@ import { findPrincipleById } from "../../../lib/principles";
 import { loadPuzzlesForPrinciple } from "../../../lib/puzzles";
 import { getSession } from "../../../lib/auth";
 import { PROFICIENT_STATUSES, type MasteryStatus } from "../../../lib/masteryModel";
+import { BYPASS_EVIDENCE_LEVELS, type ConceptEvidenceLevel } from "../../../lib/placementEvidence";
 import { PuzzleRunner } from "../../../components/PuzzleRunner";
 import { recordPuzzleAttemptAction } from "../../actions";
 
@@ -45,8 +46,21 @@ export default async function PracticePage({
     // "completed", just recognizes real evidence the pool's own gate would
     // otherwise ignore. This is the exact PracticeHub.tsx "brutal user
     // journey" bug, fixed at the server route too.
+    //
+    // Two independent axes both count: `status` (ordinary accuracy-driven
+    // mastery, lib/masteryModel.ts) AND `evidenceLevel` (placement or a
+    // passed confirmation, lib/placementEvidence.ts). Checking `status`
+    // alone reproduced the exact bug this comment describes one level up —
+    // PracticeHub.tsx's own unlock check (useDemonstratedConcepts) already
+    // trusts BYPASS_EVIDENCE_LEVELS, so it would show this pool as
+    // unlocked and link straight to this route; without this check, a
+    // learner unlocked purely by placement (no `status` row yet) would
+    // click that link and land right back on the locked redirect below.
     const demonstratedStatus = mastery?.status as MasteryStatus | undefined;
-    const demonstrated = !!demonstratedStatus && PROFICIENT_STATUSES.has(demonstratedStatus);
+    const demonstratedByStatus = !!demonstratedStatus && PROFICIENT_STATUSES.has(demonstratedStatus);
+    const demonstratedByEvidence =
+      !!mastery?.evidenceLevel && BYPASS_EVIDENCE_LEVELS.has(mastery.evidenceLevel as ConceptEvidenceLevel);
+    const demonstrated = demonstratedByStatus || demonstratedByEvidence;
     if (missing && !demonstrated) {
       redirect(`/?locked=${encodeURIComponent(`${principle.title} practice`)}&needs=${encodeURIComponent(principle.title)}`);
     }

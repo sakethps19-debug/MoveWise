@@ -144,6 +144,39 @@ describe("Invariant 5: mate values never enter centipawn subtraction (classifica
     const loss = computeEvalLoss(mateSentinel(3, "w"), mateSentinel(5, "w"), "w");
     expect(loss).toBeLessThan(1000); // nowhere near the raw 2000cp sentinel delta
   });
+
+  it("regression: correctly continuing a longer forced mate (still mate for the mover afterward, no identity match) is Best with zero loss, never Mistake — every non-final move of a real found mate must not be downgraded", () => {
+    // Real production bug: mate-in-3 -> mate-in-2 (a textbook correct
+    // step of an actually-found, multi-move forced mate) was
+    // unconditionally classified "mistake" with a fabricated ~150cp
+    // loss, purely because `before > 0`, regardless of what `after` was.
+    const { move, fenAfter } = quietMove();
+    const evalBefore = mateSentinel(3, "w");
+    const evalAfter = mateSentinel(2, "w"); // still forced mate for the mover, one move closer
+    const classification = classifyMove({ move, fenAfter, color: "w", evalBefore, evalAfter, legalMoveCountBefore: 20 });
+    expect(classification).toBe("best");
+    expect(computeEvalLoss(evalBefore, evalAfter, "w")).toBe(0);
+    // A mate that got slower but is still there afterward is likewise not
+    // a "miss" — only a mate that dissolved or reversed is.
+    const slower = classifyMove({
+      move,
+      fenAfter,
+      color: "w",
+      evalBefore: mateSentinel(3, "w"),
+      evalAfter: mateSentinel(4, "w"),
+      legalMoveCountBefore: 20,
+    });
+    expect(slower).toBe("best");
+  });
+
+  it("regression: mate-in-1 not delivered this move is always a real miss, even though there is no slower-mate case to compare it against", () => {
+    const { move, fenAfter } = quietMove();
+    const evalBefore = mateSentinel(1, "w");
+    const evalAfter = mateSentinel(1, "w"); // hypothetically "still mate in 1" — still a genuine miss, since it wasn't delivered
+    expect(
+      classifyMove({ move, fenAfter, color: "w", evalBefore, evalAfter, legalMoveCountBefore: 20 }),
+    ).toBe("mistake");
+  });
 });
 
 describe("Invariant 6: best move, SAN, UCI, arrow and FEN all describe the same position", () => {

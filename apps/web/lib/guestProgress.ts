@@ -251,6 +251,32 @@ export function readGuestConfirmedConceptIds(): Set<string> {
   }
 }
 
+const GUEST_CONTRADICTED_CONCEPTS_KEY = "movewise_guest_contradicted_concepts";
+
+/** P1 "make confirmation evidence meaningful", guest side: a failed confirmation attempt is an explicit, one-shot signal (unlike readGuestContradictingConceptIds's "2 wrong practice attempts" threshold above) — worth its own key so it isn't silently merged into ordinary mistake counting. Never removes the concept from anywhere it was already reachable — see ConfirmationActivity.tsx's own doc comment. */
+export function recordGuestContradictedConcept(conceptId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const raw = window.localStorage.getItem(GUEST_CONTRADICTED_CONCEPTS_KEY);
+    const ids: string[] = raw ? JSON.parse(raw) : [];
+    if (!ids.includes(conceptId)) ids.push(conceptId);
+    window.localStorage.setItem(GUEST_CONTRADICTED_CONCEPTS_KEY, JSON.stringify(ids));
+  } catch {
+    // ignore
+  }
+}
+
+export function readGuestConfirmationContradictedConceptIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage.getItem(GUEST_CONTRADICTED_CONCEPTS_KEY);
+    const ids: unknown = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(ids) ? ids.filter((id): id is string => typeof id === "string") : []);
+  } catch {
+    return new Set();
+  }
+}
+
 export function readGuestPracticeStats(): GuestPracticeStats {
   if (typeof window === "undefined") return { attempts: 0, correct: 0 };
   try {

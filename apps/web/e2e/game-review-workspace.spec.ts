@@ -70,6 +70,57 @@ test("selecting each ply shows the correct board position, and Start/Previous/Ne
   await expect(page.getByRole("button", { name: "Next →" })).toBeDisabled();
 });
 
+test("Left/Right arrow keys step through the review exactly like Previous/Next, and stay clamped at both ends", async ({
+  page,
+}) => {
+  // Real, confirmed gap this locks in: GameReviewWorkspace.tsx's ply
+  // navigation had no keyboard equivalent at all — Board.tsx's own squares
+  // are keyboard-operable (Tab/Enter, see keyboard-interaction.spec.ts),
+  // but stepping through a *review* (as opposed to playing a move) only
+  // ever worked via mouse clicks on Start/Previous/Next.
+  await page.goto("/play");
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 15_000 });
+
+  await page.locator('[aria-label*="e2,"]').click();
+  await page.locator('[aria-label*="e4,"]').click();
+  await expect(page.getByRole("status")).toContainText("Your move", { timeout: 20_000 });
+
+  await page.getByRole("button", { name: "Resign" }).click();
+  await expect(page.getByText(/You resigned/)).toBeVisible();
+  await page.getByRole("button", { name: "Analyze this game" }).click();
+  await expect(page.getByRole("heading", { name: "2. Review the game" })).toBeVisible({ timeout: 60_000 });
+
+  const reviewBoard = page.locator(".mw-review-board-col .mw-chessboard");
+
+  // Starting position by default — ArrowLeft here must be a no-op (clamped
+  // at the low end), not throw or move to a negative ply.
+  await expect(page.getByText("Starting position")).toBeVisible();
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByText("Starting position")).toBeVisible();
+
+  // ArrowRight steps forward exactly one ply — same fenAfter-driven board
+  // update the mouse-click Next button produces.
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByText("Ply 1 of")).toBeVisible();
+  await expect(reviewBoard.locator('[aria-label="e4, white pawn"]')).toBeVisible();
+  await expect(reviewBoard.locator('[aria-label="e2, empty"]')).toBeVisible();
+
+  // ArrowLeft steps back to the starting position.
+  await page.keyboard.press("ArrowLeft");
+  await expect(page.getByText("Starting position")).toBeVisible();
+  await expect(reviewBoard.locator('[aria-label="e2, white pawn"]')).toBeVisible();
+
+  // Clamped at the true end of the game too, same as the mouse Next
+  // button's own disabled state — switch to "Full game" first since the
+  // default "Your moves" filter hides Stockfish's own final reply.
+  await page.getByRole("button", { name: "Full game" }).click();
+  const lastRow = page.locator(".mw-review-move-row").last();
+  await lastRow.click();
+  await expect(page.getByRole("button", { name: "Next →" })).toBeDisabled();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("button", { name: "Next →" })).toBeDisabled();
+});
+
 test("a best-move arrow renders for a move that wasn't the engine's own choice, and 'Try the better move' starts from the position before the move, not after", async ({
   page,
 }) => {

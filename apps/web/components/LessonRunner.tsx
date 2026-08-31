@@ -29,6 +29,16 @@ export interface AttemptRecord {
   stepId: string;
   correct: boolean;
   wrongAnswerKey: string | null;
+  /**
+   * How many hint escalations were used on this step since its previous
+   * attempt (or since the step began) — packages/db's
+   * ExerciseAttempt.hintLevelUsed. Optional so a checkpoint saved before
+   * this field existed (guestProgress.ts's GuestLessonCheckpoint, or an
+   * older signed-in LessonCheckpoint row — both store this array as an
+   * opaque blob with no schema of their own) still deserializes fine;
+   * absent is treated identically to 0, never a crash or a silent miscount.
+   */
+  hintLevelUsed?: number;
 }
 
 /** A saved in-progress position in a lesson — see packages/db's LessonCheckpoint model / guestProgress.ts's guest equivalent. */
@@ -99,6 +109,12 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
   const [mistakes, setMistakes] = useState(initialCheckpoint?.mistakes ?? 0);
   const [hintsUsed, setHintsUsed] = useState(initialCheckpoint?.hintsUsed ?? 0);
   const [attempts, setAttempts] = useState<AttemptRecord[]>(initialCheckpoint?.attempts ?? []);
+  // Hint escalations used on the *current* step since its last attempt —
+  // reset once consumed by an attempt (below) or when a new step starts.
+  // Deliberately not resumed from a checkpoint: it's mid-step transient
+  // state, not saved progress, same "re-derive, don't persist" treatment
+  // `recovering` already gets above.
+  const [hintLevelThisStep, setHintLevelThisStep] = useState(0);
   // Resuming into a checkpoint saved mid-recovery (hearts already spent)
   // must re-enter the recovery screen, not silently show the exercise
   // with 0 hearts and no way back in — `recovering` itself isn't part of
@@ -205,12 +221,14 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
     setStatus("correct");
     setFeedback(null);
     setXpEarned((v) => v + xp);
-    setAttempts((a) => [...a, { stepId: step.id, correct: true, wrongAnswerKey: null }]);
+    setAttempts((a) => [...a, { stepId: step.id, correct: true, wrongAnswerKey: null, hintLevelUsed: hintLevelThisStep }]);
+    setHintLevelThisStep(0);
   }
 
   function handleIncorrect(key: string) {
-    const newAttempts = [...attempts, { stepId: step.id, correct: false, wrongAnswerKey: key }];
+    const newAttempts = [...attempts, { stepId: step.id, correct: false, wrongAnswerKey: key, hintLevelUsed: hintLevelThisStep }];
     setAttempts(newAttempts);
+    setHintLevelThisStep(0);
     const newMistakes = mistakes + 1;
     setMistakes(newMistakes);
     // Keeps hearts-remaining accurate in a saved checkpoint even for a
@@ -242,6 +260,10 @@ export function LessonRunner({ lesson, onComplete, isGuest, initialCheckpoint, o
 
   function handleHintUsed() {
     setHintsUsed((h) => h + 1);
+    // Capped at MAX_HINT_LEVEL-equivalent escalation (lib/masteryModel.ts
+    // normalizes per attempt anyway) — this just avoids an unbounded count
+    // if a learner mashes the hint button past the ladder's real depth.
+    setHintLevelThisStep((h) => Math.min(h + 1, 3));
   }
 
   function handleRecoveryComplete() {

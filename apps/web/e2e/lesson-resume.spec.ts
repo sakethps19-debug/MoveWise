@@ -210,6 +210,7 @@ test("out-of-order checkpoint saves are resolved by revision, not arrival order"
     const body = (revision: number, stepIndex: number) => ({
       lessonId: "meet-the-pieces.01-welcome",
       lessonVersion: 1,
+      epoch: 0,
       revision,
       stepIndex,
       mistakes: 0,

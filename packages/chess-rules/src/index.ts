@@ -186,8 +186,43 @@ export function resolveUciToSan(fen: string, uci: string): string {
   return tryMove(fen, parseUci(uci))?.move.san ?? uci;
 }
 
-export function gameStatus(fen: string): GameStatus {
-  const game = new Chess(fen);
+/**
+ * Real, confirmed bug this `sanHistory` parameter fixes: chess.js's own
+ * `isThreefoldRepetition()` can only ever answer from the move history
+ * recorded on the *same* `Chess` instance that played those moves — it
+ * has no way to reconstruct "how many times has this exact position
+ * occurred" from a bare FEN string alone, since a FEN is just a single
+ * position, not a game. Every caller that only ever passed a bare FEN
+ * here (components/PlayRunner.tsx's live status text and end-of-game
+ * check, lib/gameResult.ts's `computeGameResult`, which decides what
+ * actually gets *persisted* as a completed `Game`'s result) therefore
+ * could never detect or declare a threefold-repetition draw, no matter
+ * how many times a position actually repeated during play — a player
+ * could shuffle the same position back and forth forever and the game
+ * would just stay "in-progress" — even though `"threefold-repetition"`
+ * has always been a real, documented `GameStatus` value, exercised by
+ * this module's own test suite and by every downstream doc comment that
+ * assumed it was reachable.
+ *
+ * `sanHistory`, when supplied, is every SAN move played so far *from the
+ * standard starting position* — replayed here onto one fresh `Chess`
+ * instance (the exact same replay technique `buildPgn` already uses)
+ * before checking status, so the instance's own position history is
+ * real and `isThreefoldRepetition()` can actually answer correctly.
+ * Omitted (every existing caller that only ever has a single position to
+ * check, e.g. a lesson mini-game exercise's own custom starting FEN, or
+ * `isCheckmateMove`'s one-ply-ahead check below) falls back to exactly
+ * the previous bare-FEN behavior — repetition detection simply isn't
+ * possible without history, same as before, never a regression for
+ * those callers.
+ */
+export function gameStatus(fen: string, sanHistory?: string[]): GameStatus {
+  const game = new Chess();
+  if (sanHistory && sanHistory.length > 0) {
+    for (const san of sanHistory) game.move(san);
+  } else {
+    game.load(fen);
+  }
   if (game.isCheckmate()) return "checkmate";
   if (game.isStalemate()) return "stalemate";
   if (game.isThreefoldRepetition()) return "threefold-repetition";
@@ -197,8 +232,8 @@ export function gameStatus(fen: string): GameStatus {
   return "in-progress";
 }
 
-export function isGameOver(fen: string): boolean {
-  return gameStatus(fen) !== "in-progress";
+export function isGameOver(fen: string, sanHistory?: string[]): boolean {
+  return gameStatus(fen, sanHistory) !== "in-progress";
 }
 
 export function inCheck(fen: string): boolean {

@@ -1,0 +1,127 @@
+{
+  "id": "tactical-vision.11-mixed-tactical-calculation",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Mixed tactical calculation",
+  "objectives": [
+    "Recognize a single move that combines two tactical patterns from this unit at once",
+    "Find a move that's simultaneously a discovered check and a knight fork",
+    "Exploit a pin to win a piece it was 'defending', identifying both patterns in the same position",
+    "Find a fork that wins material with the extra force of check, instead of a quieter alternative"
+  ],
+  "prerequisites": ["tactical-vision.05-pins", "tactical-vision.07-discovered-attacks", "tactical-vision.10-zwischenzug"],
+  "xpReward": 30,
+  "masteryTags": ["mixed-tactical-calculation", "tactics"],
+  "difficulty": 3,
+  "estimatedDurationSec": 360,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "Real games rarely hand you one clean, isolated tactic — patterns combine. A single move can be a discovered check and a fork at the same time, or exploit a pin while also removing a defender. Recognizing each pattern on its own, from the earlier lessons in this unit, is what lets you spot the combinations. Nothing new to learn here — just applying everything at once, the way it actually shows up in a real position.",
+      "boardFen": "3k4/b1r5/8/8/3N4/8/1K6/3R4 w - - 0 1",
+      "highlights": ["d4", "b5", "a7", "c7"]
+    },
+    {
+      "id": "step-2",
+      "type": "true-false",
+      "prompt": "In a real game, a strong move is almost always doing exactly one thing — a fork, or a pin, or a discovered attack, but never more than one at a time.",
+      "correct": false,
+      "feedback": {
+        "default": "The strongest moves in real games often combine two or more patterns at once — a fork that's also check, a capture that also uncovers a discovered attack. Looking for just one pattern at a time can cause you to miss the full strength of a move."
+      },
+      "successExplanation": "Right — strong moves often stack multiple patterns together. Once you can recognize each pattern individually, look for more than one happening at once."
+    },
+    {
+      "id": "step-3",
+      "type": "mcq",
+      "prompt": "You find a move that wins a pawn. Before playing it, what should combining this unit's lessons lead you to check?",
+      "options": [
+        "Nothing further — winning a pawn is always worth playing immediately",
+        "Whether the same move also creates a fork, uncovers a discovered attack, or exploits a pin — the position might be worth more than just the pawn",
+        "Whether the move is legal",
+        "Whether your opponent will resign"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "Even after finding a move that wins something, it's worth checking whether it does more — the biggest tactical wins usually come from a move that stacks two or more ideas together, not from playing the first winning move you notice."
+      },
+      "successExplanation": "Right — once you've found one reason a move is good, check whether it's also doing something else. That's how the small wins from single patterns become bigger ones."
+    },
+    {
+      "id": "step-4",
+      "type": "move-piece",
+      "prompt": "This move does three things at once — find it. What does moving the knight reveal, and what does it attack?",
+      "fen": "3k4/b1r5/8/8/3N4/8/1K6/3R4 w - - 0 1",
+      "expectedMoves": ["d4b5"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "The knight is blocking your rook's view of the king. Before moving it anywhere, check what square lets it also attack two black pieces." },
+        { "level": 2, "text": "This square attacks the rook on c7 and the bishop on a7, at the same time as clearing the d-file.", "highlightSquares": ["c7", "a7"] },
+        { "level": 3, "text": "Move here.", "arrowFrom": "d4", "arrowTo": "b5" },
+        { "level": 4, "text": "Nb5 is a discovered check — moving the knight off the d-file uncovers your rook's attack on the king — while the knight itself forks the rook on c7 and the bishop on a7. Black must answer check first, and at least one of those two pieces is gone next move." }
+      ],
+      "feedback": {
+        "default": "That doesn't combine all three. Look for the single knight square that clears the d-file for your rook while also attacking two black pieces at once."
+      },
+      "successExplanation": "Nb5 is a discovered check — moving the knight off the d-file uncovers your rook's attack on the king — while the knight itself forks the rook on c7 and the bishop on a7. Black must answer check first, and at least one of those two pieces is gone next move."
+    },
+    {
+      "id": "step-5",
+      "type": "capture",
+      "prompt": "The rook on c5 is pinned and can't recapture without exposing the king. Capture the pawn it's 'defending.'",
+      "fen": "2k5/8/8/2rp4/8/1B6/8/K1R5 w - - 0 1",
+      "expectedMoves": ["b3d5"],
+      "hints": [
+        { "level": 1, "text": "This combines two ideas: the rook is pinned along the c-file, and it's the only thing standing between your bishop and the pawn." },
+        { "level": 2, "text": "The pawn is only 'defended' by a piece that can't legally recapture off its own file.", "highlightSquares": ["d5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "b3", "arrowTo": "d5" },
+        { "level": 4, "text": "Bxd5 wins the pawn for free. The rook on c5 is absolutely pinned to the king along the c-file — recapturing on d5 would take it off that file, which is illegal while pinned. A pinned piece can't defend anything off its own line." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the pawn cleanly. Remember the rook is pinned to its own king — check whether it can actually recapture here before assuming the pawn is defended."
+      },
+      "successExplanation": "Bxd5 wins the pawn for free. The rook on c5 is absolutely pinned to the king along the c-file — recapturing on d5 would take it off that file, which is illegal while pinned. A pinned piece can't defend anything off its own line."
+    },
+    {
+      "id": "step-6",
+      "type": "move-piece",
+      "prompt": "Find the single move that wins the rook and gives check at the same time.",
+      "fen": "6k1/5p1p/8/3r4/4N3/8/1K6/8 w - - 0 1",
+      "expectedMoves": ["e4f6"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "You could just capture the rook plainly with a different piece — but there's a knight move that wins it with check instead. Find the fork." },
+        { "level": 2, "text": "One knight square attacks both the king and the rook at once.", "highlightSquares": ["g8", "d5"] },
+        { "level": 3, "text": "Jump here.", "arrowFrom": "e4", "arrowTo": "f6" },
+        { "level": 4, "text": "Nf6+ forks the king and the rook on d5 at once — the same undefended rook you could have captured plainly, but this way you win it WITH check, gaining a tempo instead of just grabbing it quietly." }
+      ],
+      "feedback": {
+        "default": "That's not the strongest version. There's a knight move that wins the same rook but also gives check — look for it."
+      },
+      "successExplanation": "Nf6+ forks the king and the rook on d5 at once — the same undefended rook you could have captured plainly, but this way you win it WITH check, gaining a tempo instead of just grabbing it quietly."
+    },
+    {
+      "id": "step-7",
+      "type": "mcq",
+      "prompt": "You've found a move that wins material. A second candidate move wins the exact same material, but also gives check. Assuming both are otherwise safe, which should you prefer, and why?",
+      "options": [
+        "Either — winning the material is all that matters",
+        "The one with check, since it wins the same material while also forcing your opponent to respond, denying them a free move",
+        "The one without check, since check might be a distraction",
+        "Neither — you should look for a third option"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "When two moves win the same material, the one that also forces a response (check, or another serious threat) is strictly better — you get the material and you deny your opponent a free choice."
+      },
+      "successExplanation": "Right — when the material won is equal, the more forcing move is the stronger choice, since it also takes away your opponent's freedom to do anything else."
+    },
+    {
+      "id": "step-8",
+      "type": "review",
+      "summary": "Every pattern in this unit — forks, pins, skewers, discovered attacks, removing the defender, zwischenzug — becomes far more powerful once you can spot two of them happening in the same move. A discovered check can carry a fork with it. A pin can quietly disarm a defender. A fork can come with check attached instead of arriving quietly. The individual patterns are the vocabulary; combining them in a real position is the actual skill."
+    }
+  ],
+  "principleId": "tactical-vision.mixed-tactical-calculation"
+}

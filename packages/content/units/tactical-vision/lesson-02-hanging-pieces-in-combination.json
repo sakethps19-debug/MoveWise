@@ -1,0 +1,110 @@
+{
+  "id": "tactical-vision.02-hanging-pieces-in-combination",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Hanging pieces in combination",
+  "objectives": [
+    "Recognize that a piece can look defended without actually being defended, for three specific reasons",
+    "Spot a piece whose defender fled a bigger threat and left it hanging",
+    "Check the exact color and geometry a piece defends before assuming it's covered",
+    "Notice when a defender's own piece blocks its own line of defense"
+  ],
+  "prerequisites": ["tactical-vision.01-checks-captures-and-threats"],
+  "xpReward": 20,
+  "masteryTags": ["hanging-pieces-in-combination"],
+  "difficulty": 2,
+  "estimatedDurationSec": 300,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "A piece isn't safe just because a friendly piece is somewhere nearby — you have to check exactly what that piece actually defends. Here, it's tempting to assume the pawn on b6 defends the knight on c6 because it's right next door. But a pawn only defends the squares diagonally in front of it — for a black pawn, that means the row below it, not the square beside it. This pawn defends a5 and c5, not c6. The knight is undefended.",
+      "boardFen": "6k1/8/1pn5/8/8/8/8/6K1 w - - 0 1",
+      "highlights": ["b6", "c6"]
+    },
+    {
+      "id": "step-2",
+      "type": "true-false",
+      "prompt": "A piece only counts as 'hanging' if it was already undefended before your opponent's last move.",
+      "correct": false,
+      "feedback": {
+        "default": "A piece can become hanging as a direct result of a move — its defender gets deflected, captured, or simply moves away to deal with a bigger threat. The position right now is all that matters, not how it got that way."
+      },
+      "successExplanation": "Right — what matters is whether a piece is defended in the position in front of you right now. It doesn't matter whether it became undefended one move ago or ten."
+    },
+    {
+      "id": "step-3",
+      "type": "move-piece",
+      "prompt": "Black's rook just had to flee an attack from your queen and abandoned its defense of the knight on its way out. Find the move that wins the knight.",
+      "fen": "1r4k1/8/8/8/Q2n4/8/6B1/6K1 w - - 0 1",
+      "expectedMoves": ["g2d5"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "The knight on d5 looks like it might still be covered by something — check exactly what defends it now that the rook has moved to b8." },
+        { "level": 2, "text": "Your bishop's diagonal reaches the knight directly, with nothing else defending that square anymore.", "highlightSquares": ["g2", "d5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "g2", "arrowTo": "d5" },
+        { "level": 4, "text": "Bxd5 wins the knight. It used to be defended by the rook on d8, but the rook had to run from your queen's attack — abandoning the knight in the process." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the knight. The rook that used to guard d5 is gone from the d-file now — find the piece that can reach the knight directly."
+      },
+      "successExplanation": "Bxd5 wins the knight for free. It used to be defended by the rook, but the rook had to flee your queen's attack, abandoning its post — a hanging piece created mid-combination, not a static one."
+    },
+    {
+      "id": "step-4",
+      "type": "capture",
+      "prompt": "It might look like the bishop on c8 could defend the queen on d4 — but check the color of each square before you believe it.",
+      "fen": "2b3k1/8/8/8/3q4/8/8/3R2K1 w - - 0 1",
+      "expectedMoves": ["d1d4"],
+      "hints": [
+        { "level": 1, "text": "A bishop only ever travels on one square color for its whole life. What color is c8? What color is d4?" },
+        { "level": 2, "text": "c8 is a light square; d4 is a dark square. A light-squared bishop can never reach a dark square.", "highlightSquares": ["c8", "d4"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "d1", "arrowTo": "d4" },
+        { "level": 4, "text": "Rxd4 wins the queen. The bishop on c8 is light-squared and can never defend a dark square like d4, no matter how close it looks on the board." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the queen. Check whether the bishop on c8 could ever actually reach d4, given the colors of the two squares — then look again for the real capture."
+      },
+      "successExplanation": "Rxd4 wins the queen for free. The bishop on c8 is a light-squared bishop, and d4 is a dark square — it was never able to defend that square, no matter how nearby it looked."
+    },
+    {
+      "id": "step-5",
+      "type": "capture",
+      "prompt": "The knight on d5 looks defended by the rook on d8 — but look carefully at what's actually between them.",
+      "fen": "3r2k1/8/3p4/3n4/8/2N5/8/6K1 w - - 0 1",
+      "expectedMoves": ["c3d5"],
+      "hints": [
+        { "level": 1, "text": "The rook and the knight share a file — but does the rook's own pawn get in its own way?" },
+        { "level": 2, "text": "Black's own pawn on d6 sits directly between the rook and the knight.", "highlightSquares": ["d8", "d6", "d5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "c3", "arrowTo": "d5" },
+        { "level": 4, "text": "Nxd5 wins the knight. Black's own pawn on d6 blocks the rook's line of defense along the file — the rook can't recapture a piece it can't see." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the knight. Look at the whole file between the rook and the knight — is there anything in the way?"
+      },
+      "successExplanation": "Nxd5 wins the knight for free. Black's own pawn on d6 blocks the rook's defense along the file — a defender has to have a clear line to actually defend anything."
+    },
+    {
+      "id": "step-6",
+      "type": "mcq",
+      "prompt": "A friendly piece sits two squares away from yours. Before assuming it defends you, what should you actually check?",
+      "options": [
+        "Nothing — any nearby piece counts as a defender",
+        "Whether that piece can actually reach the square by its own movement rules, with a clear, unblocked path",
+        "Only whether it's a queen",
+        "Whether it moved within the last two moves"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "Proximity isn't defense. A piece only defends a square if its own movement rules actually let it reach that square, with nothing blocking the way."
+      },
+      "successExplanation": "Right — check the piece's actual movement rules and the path, not just whether it's somewhere nearby."
+    },
+    {
+      "id": "step-7",
+      "type": "review",
+      "summary": "A piece can look defended and not be, for reasons that are easy to miss: its defender was deflected by a bigger threat, the defending piece's own movement rules don't actually cover that square (a bishop's color, a pawn's diagonal-only captures), or the defender's own line of sight is blocked by one of its own pieces. Whenever material looks 'covered,' check the exact geometry before you decide it's actually safe — for your own pieces and your opponent's."
+    }
+  ],
+  "principleId": "tactical-vision.hanging-pieces-in-combination"
+}

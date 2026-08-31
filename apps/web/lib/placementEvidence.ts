@@ -20,7 +20,9 @@ export type ConceptEvidenceLevel =
   | "unverified"
   /** Close to the inference threshold (exactly 1 of 4 foundational items correct) — worth a quick confirmation before fully trusting it, rather than silently unverified or silently granted. */
   | "needs_confirmation"
-  /** Was previously directly_demonstrated or inferred_high_confidence, but real subsequent practice/lesson/game evidence contradicted it. */
+  /** An inferred concept was directly checked afterward (components/ConfirmationActivity.tsx) and passed — a real, if small, direct check, distinct from a full placement item but still a genuine upgrade over inference alone. Deliberately never conflated with `directly_demonstrated` sourced from placement itself, or with lasting skill mastery (apps/web/lib/masteryModel.ts's `status` field) — see confirmConceptAction's own doc comment. */
+  | "confirmation_passed"
+  /** Was previously directly_demonstrated, inferred_high_confidence, or confirmation_passed, but real subsequent evidence (practice, a lesson, a game, or a failed confirmation attempt) contradicted it. */
   | "later_contradicted";
 
 export interface ConceptEvidence {
@@ -34,6 +36,7 @@ export interface ConceptEvidence {
 export const BYPASS_EVIDENCE_LEVELS: ReadonlySet<ConceptEvidenceLevel> = new Set([
   "directly_demonstrated",
   "inferred_high_confidence",
+  "confirmation_passed",
 ]);
 
 /** Evidence levels whose gated content should show a one-time "confirm this" activity before being treated as fully trusted — inference alone, never a direct check. */

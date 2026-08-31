@@ -1,34 +1,33 @@
 import { NextResponse } from "next/server";
 import { getSession } from "../../../lib/auth";
-import { writeLessonCheckpoint, closeLessonCheckpoint } from "../../../lib/lessonCheckpointStore";
+import { writeLessonCheckpoint, LESSON_CHECKPOINT_CLOSED_STEP } from "../../../lib/lessonCheckpointStore";
 
 /**
  * P0 lesson-resume race fix: a signed-in learner's in-progress lesson
- * position was previously saved via a Next.js Server Action
- * (saveLessonCheckpointAction/clearLessonCheckpointAction) fired
+ * position was previously saved via a Next.js Server Action, fired
  * fire-and-forget on every step advance. Real, reproduced-under-load bug
  * this replaces: a browser drops an in-flight fetch (Server Actions
  * included — they're just a fetch under the hood) the moment the page
  * navigates away, and nothing in the product ever waited for the *last*
- * step's save before letting the learner leave — closing the tab, typing
- * a new URL, or a test's own `page.goto()` right after the final click
- * all cancel that request mid-flight. A plain Route Handler lets the
- * client call `fetch(..., { keepalive: true })` instead, which Chromium
- * (and other modern browsers) keeps alive across page unload for a
- * small payload like this one — a Server Action's internal fetch call
- * isn't something this app can attach that flag to.
+ * step's save before letting the learner leave. A plain Route Handler
+ * lets the client call `fetch(..., { keepalive: true })` instead, which
+ * Chromium (and other modern browsers) keeps alive across page unload for
+ * a small payload like this one.
  *
- * A single POST handles both an ordinary save and a "close" (Start
- * over / superseded by completion) — see lib/lessonCheckpointStore.ts's
- * own doc comment for why closing is a revision-guarded write rather
- * than a DELETE. There is deliberately no DELETE method here anymore:
- * a hard delete has no revision to reject a late-arriving stale save
- * against, which is exactly the residual race a prior version of this
- * fix still hit under repeated stress testing.
+ * A single POST handles both an ordinary save and a "close" (Start over,
+ * or superseded by completion) — see lib/lessonCheckpointStore.ts's own
+ * doc comment for the full epoch/revision state machine this enforces.
+ * There is deliberately no DELETE method here anymore: a hard delete has
+ * nothing to compare a late-arriving stale write against. `skipped` (when
+ * present) tells the client exactly why a write didn't apply
+ * (stale-epoch/stale-revision/stale-collision) so it can decide whether
+ * the learner needs to be told their progress may not have saved here
+ * (checkpointClient.ts).
  */
 
 interface CheckpointBody {
   lessonId: string;
+  epoch: number;
   revision: number;
   closed?: boolean;
   lessonVersion?: number;
@@ -48,14 +47,20 @@ export async function POST(request: Request): Promise<Response> {
   } catch {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
-  const { lessonId, revision, closed } = body;
-  if (typeof lessonId !== "string" || typeof revision !== "number") {
+  const { lessonId, epoch, revision, closed } = body;
+  if (typeof lessonId !== "string" || typeof epoch !== "number" || typeof revision !== "number") {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
 
   if (closed) {
-    await closeLessonCheckpoint(user.id, lessonId, revision);
-    return NextResponse.json({ ok: true });
+    const result = await writeLessonCheckpoint(user.id, lessonId, epoch, revision, {
+      lessonVersion: 0,
+      stepIndex: LESSON_CHECKPOINT_CLOSED_STEP,
+      mistakes: 0,
+      hintsUsed: 0,
+      attempts: [],
+    });
+    return NextResponse.json({ ok: true, skipped: result === "applied" ? undefined : result });
   }
 
   const { lessonVersion, stepIndex, mistakes, hintsUsed, attempts } = body;
@@ -69,12 +74,12 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
 
-  const result = await writeLessonCheckpoint(user.id, lessonId, revision, {
+  const result = await writeLessonCheckpoint(user.id, lessonId, epoch, revision, {
     lessonVersion,
     stepIndex,
     mistakes,
     hintsUsed,
     attempts,
   });
-  return NextResponse.json({ ok: true, skipped: result === "stale" ? "stale" : undefined });
+  return NextResponse.json({ ok: true, skipped: result === "applied" ? undefined : result });
 }

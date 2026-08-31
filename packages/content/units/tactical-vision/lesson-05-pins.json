@@ -1,0 +1,127 @@
+{
+  "id": "tactical-vision.05-pins",
+  "version": 1,
+  "unitId": "tactical-vision",
+  "title": "Pins",
+  "objectives": [
+    "Define a pin: a piece that can't or shouldn't move because doing so exposes a more valuable piece behind it",
+    "Distinguish an absolute pin (illegal to move, king behind) from a relative pin (legal but costly, valuable piece behind)",
+    "Create a pin along a diagonal and along a rank",
+    "Recognize that a pinned piece's 'defense' of a nearby square is often not real"
+  ],
+  "prerequisites": ["tactical-vision.04-forking-patterns"],
+  "xpReward": 25,
+  "masteryTags": ["pins"],
+  "difficulty": 2,
+  "estimatedDurationSec": 300,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "A pin happens when a piece sits between an attacker and something more valuable behind it, on the same line. Here, the bishop on b5 pins the knight on c6 to the king on e8 — the diagonal runs straight through all three. The knight can't legally move at all: doing so would expose its own king to check, and that's illegal. This is an absolute pin.",
+      "boardFen": "4k3/8/2n5/1B6/8/8/8/6K1 w - - 0 1",
+      "highlights": ["b5", "c6", "e8"]
+    },
+    {
+      "id": "step-2",
+      "type": "true-false",
+      "prompt": "A pinned piece can always still move — it's just usually a bad idea.",
+      "correct": false,
+      "feedback": {
+        "default": "That's only true for a relative pin, where a valuable piece (not the king) sits behind. When the king itself is behind the pinned piece, moving it is illegal, not just unwise — the rules of chess don't allow you to expose your own king to check."
+      },
+      "successExplanation": "Right to flag this as false in general — an absolute pin (king behind) makes the move illegal, not just a bad idea. A relative pin (any other piece behind) is legal but usually costly."
+    },
+    {
+      "id": "step-3",
+      "type": "mcq",
+      "prompt": "A bishop pins a knight to the black queen — not the king. The knight is worth about 3 points, the queen about 9. What kind of pin is this, and can the knight legally move?",
+      "options": [
+        "An absolute pin — the knight can't legally move",
+        "A relative pin — the knight can legally move, but moving it loses the queen",
+        "Not a pin at all, since the king isn't involved",
+        "A fork, not a pin"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "Only a pin against the king makes the move illegal. Pinning a piece to any other, more valuable piece is still a real pin — a relative pin — but the pinned piece can legally move; it's just a bad trade to do so."
+      },
+      "successExplanation": "Right — a relative pin doesn't make the move illegal, but moving the pinned piece hands over the more valuable piece behind it."
+    },
+    {
+      "id": "step-4",
+      "type": "move-piece",
+      "prompt": "Move the bishop onto the diagonal that pins the knight to the king.",
+      "fen": "4k3/3n4/8/8/8/8/6B1/K7 w - - 0 1",
+      "expectedMoves": ["g2c6"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "Find the diagonal that passes through both the knight and the king." },
+        { "level": 2, "text": "The knight and king both sit on this diagonal.", "highlightSquares": ["d7", "e8"] },
+        { "level": 3, "text": "Move here.", "arrowFrom": "g2", "arrowTo": "c6" },
+        { "level": 4, "text": "Bc6 pins the knight on d7 to the king on e8 — the knight can no longer legally move at all." }
+      ],
+      "feedback": {
+        "default": "That doesn't create a pin. Find the diagonal square where the bishop's line runs straight through the knight and then the king."
+      },
+      "successExplanation": "Bc6 pins the knight to the king along the c6-d7-e8 diagonal. Once pinned this way, the knight has zero legal moves — any knight move takes it off a diagonal line, which would expose the king."
+    },
+    {
+      "id": "step-5",
+      "type": "capture",
+      "prompt": "The rook on d5 is pinned to the king and can't recapture. Capture the pawn it's supposedly defending.",
+      "fen": "3k4/8/8/3rp3/8/8/7B/3R2K1 w - - 0 1",
+      "expectedMoves": ["h2e5"],
+      "hints": [
+        { "level": 1, "text": "The rook on d5 can't move off the d-file without exposing its own king — so does it really defend the pawn next to it?" },
+        { "level": 2, "text": "Your bishop's diagonal reaches the pawn directly.", "highlightSquares": ["e5"] },
+        { "level": 3, "text": "Capture here.", "arrowFrom": "h2", "arrowTo": "e5" },
+        { "level": 4, "text": "Bxe5 wins the pawn for free. Recapturing on e5 would take the rook off the d-file, exposing the king — an absolutely pinned piece can't defend anything off its own line." }
+      ],
+      "feedback": {
+        "default": "That doesn't win the pawn cleanly. Remember: the rook is pinned to its own king along the d-file, so check whether it can actually recapture here."
+      },
+      "successExplanation": "Bxe5 wins the pawn for free. The rook on d5 is absolutely pinned to the king along the d-file — if it recaptured on e5, it would move off the file and expose the king to your rook. A pinned piece's 'defense' often isn't real."
+    },
+    {
+      "id": "step-6",
+      "type": "move-piece",
+      "prompt": "Move the rook onto the rank where it pins the enemy rook to the king.",
+      "fen": "8/8/8/4r2k/8/R7/8/6K1 w - - 0 1",
+      "expectedMoves": ["a3a5"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "Pins aren't only diagonal — a rook can pin along a rank, too. Find the rank both the enemy rook and king share." },
+        { "level": 2, "text": "The enemy rook and king both sit on this rank.", "highlightSquares": ["e5", "h5"] },
+        { "level": 3, "text": "Move here.", "arrowFrom": "a3", "arrowTo": "a5" },
+        { "level": 4, "text": "Ra5 pins the rook on e5 to the king on h5 along the 5th rank. A rook pinned like this has no legal moves at all — it can't slide off the rank, and it can't move diagonally in the first place." }
+      ],
+      "feedback": {
+        "default": "That doesn't create a pin. Find the rank the enemy king and rook already share, and put your rook on it."
+      },
+      "successExplanation": "Ra5 pins the rook to the king along the 5th rank. A pin doesn't have to be diagonal — a rook, and especially a queen, pin just as effectively along ranks and files."
+    },
+    {
+      "id": "step-7",
+      "type": "mcq",
+      "prompt": "A rook is absolutely pinned along a file to its own king by your rook. Which squares can the pinned rook still legally move to?",
+      "options": [
+        "Any square on the board — pins don't restrict where a piece can go",
+        "Only squares still on that same file — moving off it would be illegal",
+        "It has no legal moves at all",
+        "Only one square, chosen at random"
+      ],
+      "correctIndex": 1,
+      "feedback": {
+        "default": "A rook pinned along a file can still slide up and down that exact file (including capturing the pinning piece, if reachable) — what it can't do is leave the file, since that would expose the king."
+      },
+      "successExplanation": "Right — a rook pinned along a file can still move along that same file. It's only moves that would take it off the pinning line that are illegal."
+    },
+    {
+      "id": "step-8",
+      "type": "review",
+      "summary": "A pin happens when a piece sits between an attacker and something more valuable behind it. If the king is behind, moving the pinned piece is illegal — an absolute pin. If any other, more valuable piece is behind, moving is legal but costly — a relative pin. Either way, a pinned piece's apparent 'defense' of a nearby square often isn't real, since it may not be able to legally recapture at all."
+    }
+  ],
+  "principleId": "tactical-vision.pins"
+}
