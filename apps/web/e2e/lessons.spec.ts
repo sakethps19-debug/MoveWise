@@ -24,8 +24,12 @@ test("explain, select-square, and true-false steps: click through Welcome to the
   await expect(page.getByRole("status").filter({ hasText: "Correct" })).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
 
-  // step-6: review (recap) — this is the lesson's last step.
-  await expect(page.getByText("You can now read the board")).toBeVisible();
+  // step-6: review (recap) — this is the lesson's last step. Per the P1
+  // "beginner copy" fix, the summary now claims only what this lesson
+  // itself taught (orientation, the two sides, king squares, White moves
+  // first) — "read the board" (square identification) is next lesson's
+  // job, not this one's.
+  await expect(page.getByText("You now know the board's orientation")).toBeVisible();
   await page.getByRole("button", { name: "Finish lesson" }).click();
 
   await expect(page.getByRole("heading", { name: "Lesson complete!" })).toBeVisible();
