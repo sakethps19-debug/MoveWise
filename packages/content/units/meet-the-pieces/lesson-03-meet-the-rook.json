@@ -11,8 +11,11 @@
   ],
   "xpReward": 15,
   "masteryTags": [
-    "rook-movement"
+    "rook-movement",
+    "captures"
   ],
+  "introducedConceptIds": ["rook-movement", "captures"],
+  "assessedConceptIds": ["rook-movement", "captures"],
   "difficulty": 1,
   "estimatedDurationSec": 150,
   "steps": [

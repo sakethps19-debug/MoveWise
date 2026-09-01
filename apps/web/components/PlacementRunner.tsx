@@ -123,7 +123,7 @@ export function PlacementRunner({
     }
     const attempt = tryMove(puzzle.fen, { from: selected, to: square });
     setSelected(null);
-    if (!attempt || !moveMatches(attempt.move, puzzle.correctMoves)) {
+    if (!attempt || !moveMatches(attempt.move, puzzle.correctMoves ?? [])) {
       setPendingAnswer({ itemId: puzzle.id, correct: false });
       setStatus("incorrect");
       setFeedback(puzzle.feedback.default ?? "Not quite — try again.");

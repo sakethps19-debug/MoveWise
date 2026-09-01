@@ -10,7 +10,7 @@
   ],
   "prerequisites": ["check-and-checkmate.04-back-rank-safety"],
   "xpReward": 25,
-  "masteryTags": ["tactics", "fork", "knight"],
+  "masteryTags": ["tactics", "fork", "knight", "knight-fork"],
   "difficulty": 2,
   "estimatedDurationSec": 300,
   "steps": [

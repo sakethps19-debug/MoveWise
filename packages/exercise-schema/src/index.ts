@@ -185,6 +185,36 @@ export const LessonSchema = z.object({
   principleId: z.string().min(1).optional(),
   /** "mastery-challenge" marks a lesson as the mastery gate for its principle/unit, per ADR-0008 — absent means "sub-lesson". */
   kind: z.enum(["sub-lesson", "mastery-challenge"]).optional(),
+
+  /**
+   * Explicit concept-teaching metadata, checked by
+   * scripts/validate-content.ts's curriculum-integrity pass (the
+   * "an ordinarily unlocked activity must never assess a concept the
+   * learner hasn't been taught or demonstrated" invariant — see the
+   * real, reproduced Board Basics defect that motivated this). All four
+   * are optional so pre-existing lessons authored before this field
+   * existed keep validating: the validator falls back to `masteryTags`
+   * (which has always meant "concepts this lesson provides evidence
+   * for") as both the introduced and assessed set when these are
+   * omitted, since that was the only signal available before.
+   */
+  /** Concepts this lesson's own explain/teaching steps genuinely introduce for the first time. */
+  introducedConceptIds: z.array(z.string().min(1)).optional(),
+  /** Concepts this lesson's own interactive (graded) steps require the learner to already know to answer correctly — whether taught here or earlier. Concepts assessed-but-not-introduced-here must already be available from earlier content; the validator checks exactly that. */
+  assessedConceptIds: z.array(z.string().min(1)).optional(),
+  /** Concepts this lesson lets the learner reinforce without newly teaching or gradingly assessing them. Informational — not itself validated, since practising an already-known concept is never a curriculum-integrity problem. */
+  practisedConceptIds: z.array(z.string().min(1)).optional(),
+  /** Concept-level prerequisites beyond what's inferable from assessedConceptIds vs. introducedConceptIds — e.g. a cross-unit dependency that isn't "taught earlier in this same unit". Validated the same way as assessedConceptIds. */
+  prerequisiteConceptIds: z.array(z.string().min(1)).optional(),
+  /**
+   * The learner level this lesson is calibrated for. Authored metadata
+   * only as of this round — not yet consumed by any recommender or
+   * placement result; the deeper banded/adaptive placement work that
+   * would actually route learners by level remains open (see the
+   * report's own backlog). Present so that work has real data to build
+   * on rather than starting from nothing.
+   */
+  suitableLevel: z.enum(["new-to-chess", "improving", "advanced"]).optional(),
 });
 
 /**
@@ -202,6 +232,8 @@ export const PrincipleSchema = z.object({
   subLessonIds: z.array(z.string().min(1)).min(1),
   puzzleIds: z.array(z.string().min(1)).default([]),
   masteryChallengeLessonId: z.string().min(1).optional(),
+  /** Concept-level prerequisites this principle's practice pool assumes beyond its own unit's earlier principles — e.g. a cross-unit dependency. Same validation role as Lesson.prerequisiteConceptIds. */
+  prerequisiteConceptIds: z.array(z.string().min(1)).optional(),
 });
 
 /**
@@ -223,19 +255,38 @@ export const ConceptSchema = z.object({
  * type. Distinct from a single-step Lesson because puzzles need to be
  * servable outside a fixed lesson sequence (a principle's puzzle pool,
  * later the shared Practice pool).
+ *
+ * `kind` defaults to `"move"` so every puzzle authored before this field
+ * existed keeps validating unchanged. `"select-square"` is for content
+ * that must never require chess-move knowledge that hasn't been taught
+ * yet — a real, reproduced defect this exists to fix: Board Basics
+ * (orientation/files/ranks/coordinates only, no piece movement taught)
+ * previously used `correctMoves` puzzles that required moving the king,
+ * a rule not introduced for another six principles.
  */
-export const PuzzleSchema = z.object({
-  id: z.string().min(1),
-  conceptIds: z.array(z.string().min(1)).min(1),
-  fen: z.string().min(1),
-  prompt: z.string().min(1),
-  correctMoves: z.array(z.string().min(1)).min(1),
-  difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-  feedback: FeedbackMapSchema,
-  /** Shown on a correct answer — explains WHY it's correct, matching every other exercise type's standardized feedback. */
-  successExplanation: z.string().min(1).optional(),
-  sourceGameId: z.string().min(1).optional(),
-});
+export const PuzzleSchema = z
+  .object({
+    id: z.string().min(1),
+    kind: z.enum(["move", "select-square"]).default("move"),
+    conceptIds: z.array(z.string().min(1)).min(1),
+    fen: z.string().min(1),
+    prompt: z.string().min(1),
+    /** Required when kind is "move" (the default) — the legal move(s) this puzzle accepts. */
+    correctMoves: z.array(z.string().min(1)).optional(),
+    /** Required when kind is "select-square" — the square(s) this puzzle accepts a tap on, no move involved. */
+    correctSquares: z.array(SquareSchema).optional(),
+    difficulty: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+    feedback: FeedbackMapSchema,
+    /** Shown on a correct answer — explains WHY it's correct, matching every other exercise type's standardized feedback. */
+    successExplanation: z.string().min(1).optional(),
+    sourceGameId: z.string().min(1).optional(),
+    /** Concept-level prerequisites beyond this puzzle's own conceptIds — same role as Lesson.prerequisiteConceptIds. */
+    prerequisiteConceptIds: z.array(z.string().min(1)).optional(),
+    suitableLevel: z.enum(["new-to-chess", "improving", "advanced"]).optional(),
+  })
+  .refine((p) => (p.kind === "move" ? (p.correctMoves?.length ?? 0) > 0 : (p.correctSquares?.length ?? 0) > 0), {
+    message: 'a "move" puzzle needs a non-empty correctMoves; a "select-square" puzzle needs a non-empty correctSquares',
+  });
 
 export type Hint = z.infer<typeof HintSchema>;
 export type ExerciseStep = z.infer<typeof ExerciseStepSchema>;

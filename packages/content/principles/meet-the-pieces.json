@@ -6,7 +6,12 @@
     "conceptId": "board-orientation",
     "order": 0,
     "subLessonIds": ["meet-the-pieces.01-welcome", "meet-the-pieces.02-ranks-files-squares"],
-    "puzzleIds": ["meet-the-pieces.puzzle-board-basics-1", "meet-the-pieces.puzzle-board-basics-2"]
+    "puzzleIds": [
+      "meet-the-pieces.puzzle-board-basics-1",
+      "meet-the-pieces.puzzle-board-basics-2",
+      "meet-the-pieces.puzzle-board-basics-3",
+      "meet-the-pieces.puzzle-board-basics-4"
+    ]
   },
   {
     "id": "meet-the-pieces.the-rook",

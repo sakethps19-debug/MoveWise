@@ -205,18 +205,20 @@ test("a failed placement-confirmation attempt changes what the very next Daily W
   await loginAs(page, email, password);
 
   await page.goto("/practice/confirm/meet-the-pieces.board-basics");
-  await expect(page.getByText("Puzzle 1/2")).toBeVisible();
-  // Wrong first (not a legal single-square king move), then correct — same
-  // exact fail-then-pass move sequence as placement-confirmation.spec.ts.
-  await page.locator('[aria-label*="a1,"]').click();
-  await page.locator('[aria-label*="a8,"]').click();
+  await expect(page.getByText("Puzzle 1/3")).toBeVisible();
+  // Wrong first (not White's king's square), then correct — same exact
+  // fail-then-pass tap sequence as placement-confirmation.spec.ts. Every
+  // Board Basics puzzle is "select-square" (a single tap, no move) per
+  // the P0 curriculum-integrity fix.
+  await page.locator('[aria-label*="d1,"]').click();
   await expect(page.getByText(/^Not quite\./)).toBeVisible();
-  await page.locator('[aria-label*="a1,"]').click();
-  await page.locator('[aria-label*="b2,"]').click();
+  await page.locator('[aria-label*="e1,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.locator('[aria-label*="e1,"]').click();
-  await page.locator('[aria-label*="f2,"]').click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e4,"]').click();
   await page.getByRole("button", { name: "Finish practice" }).click();
   await expect(page.getByRole("heading", { name: "Thanks — this needs a closer look" })).toBeVisible();
 

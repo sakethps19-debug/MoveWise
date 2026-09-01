@@ -1,27 +1,55 @@
 [
   {
     "id": "meet-the-pieces.puzzle-board-basics-1",
-    "conceptIds": ["board-orientation", "square-identification"],
-    "fen": "4k3/8/8/8/8/8/8/K7 w - - 0 1",
-    "prompt": "Move your king one square toward the center of the board — onto b2.",
-    "correctMoves": ["a1b2"],
+    "kind": "select-square",
+    "conceptIds": ["board-orientation"],
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "prompt": "Tap the square where White's king starts.",
+    "correctSquares": ["e1"],
     "difficulty": 1,
     "feedback": {
-      "default": "The king moves exactly one square in any direction, including diagonally. From a1, which single square gets you toward the middle of the board?"
+      "default": "White's king starts on the back row, right of center — the tallest piece with a small cross on top."
     },
-    "successExplanation": "Kb2 moves one square diagonally — the king can step in any of the eight directions around it, always just one square at a time."
+    "successExplanation": "White's king begins on e1 — the same square this lesson introduced it on."
   },
   {
     "id": "meet-the-pieces.puzzle-board-basics-2",
-    "conceptIds": ["board-orientation", "square-identification"],
-    "fen": "4k3/8/8/8/8/8/8/4K3 w - - 0 1",
-    "prompt": "Move your king onto the f-file, one rank up.",
-    "correctMoves": ["e1f2"],
+    "kind": "select-square",
+    "conceptIds": ["board-orientation"],
+    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    "prompt": "Tap the square where Black's king starts.",
+    "correctSquares": ["e8"],
     "difficulty": 1,
     "feedback": {
-      "default": "Read the files left to right: a, b, c, d, e, f... From e1, the f-file is one step to the right. Combine that with moving one rank up."
+      "default": "Remember how the two sides mirror each other: find White's king on e1, then look at the square directly across the board from it."
     },
-    "successExplanation": "Kf2 is one square right (onto the f-file) and one square up (onto rank 2) — exactly the kind of single-square step every king move is."
+    "successExplanation": "Black's king begins on e8 — directly across the board from White's king, since the two sides mirror each other."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-board-basics-3",
+    "kind": "select-square",
+    "conceptIds": ["square-identification"],
+    "fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
+    "prompt": "Tap the e4 square — where the e-file meets the 4th rank.",
+    "correctSquares": ["e4"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "Count the files from the left first (a, b, c, d, e...), then the ranks from the bottom (1, 2, 3, 4...)."
+    },
+    "successExplanation": "That's e4 — the e-file and the 4th rank cross exactly there."
+  },
+  {
+    "id": "meet-the-pieces.puzzle-board-basics-4",
+    "kind": "select-square",
+    "conceptIds": ["square-identification"],
+    "fen": "7k/8/8/8/8/8/8/K7 w - - 0 1",
+    "prompt": "Tap the c6 square — where the c-file meets the 6th rank.",
+    "correctSquares": ["c6"],
+    "difficulty": 1,
+    "feedback": {
+      "default": "Count the files from the left first (a, b, c...), then the ranks from the bottom (1, 2, 3, 4, 5, 6...)."
+    },
+    "successExplanation": "That's c6 — the c-file and the 6th rank cross exactly there."
   },
   {
     "id": "meet-the-pieces.puzzle-rook-1",

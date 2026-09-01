@@ -20,10 +20,49 @@ import {
   legalMoves,
   moveMatches,
   parseUci,
+  pieceAt,
   tryMove,
   type Square,
 } from "@movewise/chess-rules";
 import type { ExerciseStep, Lesson, Puzzle } from "./index";
+
+const PIECE_MOVEMENT_CONCEPT: Record<string, string> = {
+  q: "queen-movement",
+  r: "rook-movement",
+  b: "bishop-movement",
+  n: "knight-movement",
+  p: "pawn-movement",
+};
+
+/**
+ * Which piece-movement (and, for a capture, "captures") concept a UCI
+ * move on this FEN structurally requires knowing — computed from the
+ * board itself, not from whatever a lesson/puzzle happened to declare,
+ * so content can't under-declare its way past
+ * scripts/validate-content.ts's curriculum-integrity pass. This is the
+ * real, reproduced Board Basics defect's root check: a puzzle tagged
+ * conceptIds ["board-orientation", "square-identification"] whose
+ * correct move was actually a king move — a rule not introduced for six
+ * more principles — was invisible to every check that only looked at
+ * declared metadata.
+ */
+export function impliedMoveConceptIds(fen: string, uci: string): string[] {
+  const from = uci.slice(0, 2) as Square;
+  const to = uci.slice(2, 4) as Square;
+  const mover = pieceAt(fen, from);
+  if (!mover) return [];
+  const concepts: string[] = [];
+  if (mover.type === "k") {
+    const fileDelta = Math.abs(from.charCodeAt(0) - to.charCodeAt(0));
+    concepts.push(fileDelta === 2 ? "king-safety-castling" : "king-movement");
+  } else {
+    const concept = PIECE_MOVEMENT_CONCEPT[mover.type];
+    if (concept) concepts.push(concept);
+  }
+  const target = pieceAt(fen, to);
+  if (target && target.color !== mover.color) concepts.push("captures");
+  return concepts;
+}
 
 export interface ValidationIssue {
   lessonId: string;
@@ -190,7 +229,16 @@ export function validatePuzzle(puzzle: Puzzle): ValidationIssue[] {
     return issues;
   }
 
-  for (const candidate of puzzle.correctMoves) {
+  if (puzzle.kind === "select-square") {
+    // No move-legality to check — a "select-square" puzzle is answered by
+    // tapping a square, never by making a move (see PuzzleSchema's own
+    // doc comment: it exists so content can avoid requiring a
+    // piece-movement rule that hasn't been taught yet). correctSquares'
+    // syntax and non-emptiness are already schema-validated.
+    return issues;
+  }
+
+  for (const candidate of puzzle.correctMoves ?? []) {
     const legal = legalMoves(puzzle.fen).some((m) => moveMatches(m, [candidate]));
     if (!legal) {
       fail(`correct move "${candidate}" is not legal from this FEN`);

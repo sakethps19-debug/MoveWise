@@ -35,15 +35,22 @@ async function signUpFresh(page: import("@playwright/test").Page, email: string)
   await page.waitForURL("/");
 }
 
-async function solveBothPuzzlesCorrectly(page: import("@playwright/test").Page) {
-  await page.locator('[aria-label*="a1,"]').click();
-  await page.locator('[aria-label*="b2,"]').click();
+// Confirmation uses the pool's first 3 puzzles (CONFIRMATION_PUZZLE_COUNT,
+// app/practice/confirm/[principleId]/page.tsx) — all "select-square" per
+// the P0 curriculum-integrity fix (Board Basics never requires a move,
+// only orientation/square taps).
+async function solveAllPuzzlesCorrectly(page: import("@playwright/test").Page) {
+  await page.locator('[aria-label*="e1,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
 
-  await expect(page.getByText("Puzzle 2/2")).toBeVisible();
-  await page.locator('[aria-label*="e1,"]').click();
-  await page.locator('[aria-label*="f2,"]').click();
+  await expect(page.getByText("Puzzle 2/3")).toBeVisible();
+  await page.locator('[aria-label*="e8,"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  await expect(page.getByText("Puzzle 3/3")).toBeVisible();
+  await page.locator('[aria-label*="e4,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
   await page.getByRole("button", { name: "Finish practice" }).click();
 }
@@ -57,12 +64,12 @@ test("solving a concept's confirmation activity first-try promotes it to real, c
   await page.goto(CONFIRM_URL);
   await expect(page.getByRole("heading", { name: /Confirm:/ })).toBeVisible();
   await expect(page.getByText(/Your placement result unlocked/)).toBeVisible();
-  await expect(page.getByText("Puzzle 1/2")).toBeVisible();
+  await expect(page.getByText("Puzzle 1/3")).toBeVisible();
 
-  await solveBothPuzzlesCorrectly(page);
+  await solveAllPuzzlesCorrectly(page);
 
   await expect(page.getByRole("heading", { name: "Thanks — confirmed" })).toBeVisible();
-  await expect(page.getByText("2 of 2 solved on the first try.")).toBeVisible();
+  await expect(page.getByText("3 of 3 solved on the first try.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Back to Board basics/i })).toBeVisible();
 
   const userId = dbHelper("get-user-id", { email });
@@ -81,7 +88,7 @@ test("solving a concept's confirmation activity first-try promotes it to real, c
 
   // "Record the attempt and questions used" — real ExerciseAttempt rows exist.
   const attemptCount = Number(dbHelper("count-exercise-attempts-for-concept", { userId, conceptId: CONCEPT_ID }));
-  expect(attemptCount).toBe(2);
+  expect(attemptCount).toBe(3);
 });
 
 test("a wrong answer during confirmation contradicts the evidence honestly without punishing the learner, though it does revoke an inference-only unlock", async ({
@@ -104,21 +111,22 @@ test("a wrong answer during confirmation contradicts the evidence honestly witho
   });
 
   await page.goto(CONFIRM_URL);
-  await expect(page.getByText("Puzzle 1/2")).toBeVisible();
+  await expect(page.getByText("Puzzle 1/3")).toBeVisible();
 
-  // A wrong move first (not a legal single-square king move) — the
-  // activity accepts a retry, same as ordinary puzzle practice, but the
-  // wrong sub-attempt still counts against "first-try perfect".
-  await page.locator('[aria-label*="a1,"]').click();
-  await page.locator('[aria-label*="a8,"]').click();
+  // A wrong tap first (not White's king's square) — the activity accepts
+  // a retry, same as ordinary puzzle practice, but the wrong sub-attempt
+  // still counts against "first-try perfect".
+  await page.locator('[aria-label*="d1,"]').click();
   await expect(page.getByText(/^Not quite\./)).toBeVisible();
-  await page.locator('[aria-label*="a1,"]').click();
-  await page.locator('[aria-label*="b2,"]').click();
+  await page.locator('[aria-label*="e1,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
 
-  await page.locator('[aria-label*="e1,"]').click();
-  await page.locator('[aria-label*="f2,"]').click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  await page.locator('[aria-label*="e4,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
   await page.getByRole("button", { name: "Finish practice" }).click();
 
@@ -130,16 +138,17 @@ test("a wrong answer during confirmation contradicts the evidence honestly witho
   await expect(page.getByRole("link", { name: /Review the lesson for board orientation/i })).toBeVisible();
 
   // Real, confirmed bug this reproduces exactly as reported live: this
-  // exact journey (puzzle 1 wrong then correct, puzzle 2 correct) used to
-  // ALSO show "2 of 2 solved on the first try" on this same screen —
-  // PuzzleRunner's `solved` counter tracked "eventually completed," which
-  // trivially always equals the puzzle count once a set is finished (there
-  // is no way to skip an unsolved puzzle), never actual first-try
-  // accuracy. A learner would see "needs a closer look" and "2 of 2 solved
-  // on the first try" on the same screen — a direct contradiction. Only 1
-  // of the 2 puzzles here was genuinely solved on the first try.
-  await expect(page.getByText("1 of 2 solved on the first try.")).toBeVisible();
-  await expect(page.getByText("2 of 2 solved on the first try.")).toHaveCount(0);
+  // exact journey (puzzle 1 wrong then correct, puzzles 2-3 correct) used
+  // to ALSO show "N of N solved on the first try" (matching the full
+  // puzzle count) on this same screen — PuzzleRunner's `solved` counter
+  // tracked "eventually completed," which trivially always equals the
+  // puzzle count once a set is finished (there is no way to skip an
+  // unsolved puzzle), never actual first-try accuracy. A learner would
+  // see "needs a closer look" and "3 of 3 solved on the first try" on the
+  // same screen — a direct contradiction. Only 2 of the 3 puzzles here
+  // were genuinely solved on the first try.
+  await expect(page.getByText("2 of 3 solved on the first try.")).toBeVisible();
+  await expect(page.getByText("3 of 3 solved on the first try.")).toHaveCount(0);
   await page.waitForTimeout(300);
 
   const mastery = JSON.parse(dbHelper("get-user-concept-mastery", { userId, conceptId: CONCEPT_ID }));
@@ -150,7 +159,7 @@ test("a wrong answer during confirmation contradicts the evidence honestly witho
   // The one wrong sub-attempt is still recorded for real (feeds the
   // practice scheduler's recentIncorrectCount, lib/practiceScheduler.ts).
   const attemptCount = Number(dbHelper("count-exercise-attempts-for-concept", { userId, conceptId: CONCEPT_ID }));
-  expect(attemptCount).toBe(3); // 1 wrong + 2 correct
+  expect(attemptCount).toBe(4); // 1 wrong + 3 correct
 
   // The inferred-placement bypass that unlocked this pool is no longer
   // trustworthy once directly contradicted — curriculum correctness
@@ -176,15 +185,19 @@ test("a failed confirmation surfaces the concept in Practice's Review needed sec
   });
 
   await page.goto(CONFIRM_URL);
-  await page.locator('[aria-label*="a1,"]').click();
-  await page.locator('[aria-label*="a8,"]').click(); // wrong on purpose
+  // Confirmation uses the pool's first 3 puzzles (CONFIRMATION_PUZZLE_COUNT,
+  // app/practice/confirm/[principleId]/page.tsx) — all "select-square" per
+  // the P0 curriculum-integrity fix (Board Basics never requires a move,
+  // only orientation/square taps).
+  await page.locator('[aria-label*="d1,"]').click(); // wrong on purpose — not White's king
   await expect(page.getByText(/^Not quite\./)).toBeVisible();
-  await page.locator('[aria-label*="a1,"]').click();
-  await page.locator('[aria-label*="b2,"]').click();
+  await page.locator('[aria-label*="e1,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
   await page.getByRole("button", { name: "Continue" }).click();
-  await page.locator('[aria-label*="e1,"]').click();
-  await page.locator('[aria-label*="f2,"]').click();
+  await page.locator('[aria-label*="e8,"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.locator('[aria-label*="e4,"]').click();
   await page.getByRole("button", { name: "Finish practice" }).click();
   await expect(page.getByRole("heading", { name: "Thanks — this needs a closer look" })).toBeVisible();
 

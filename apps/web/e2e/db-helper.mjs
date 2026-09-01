@@ -11,8 +11,35 @@
  * Playwright's transform, not to work around a real product bug. Never
  * imported by application code.
  */
-import { prisma } from "@movewise/db";
-import bcrypt from "bcryptjs";
+import { readFileSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+// @movewise/db reads process.env.DATABASE_URL at import time (its own
+// src/index.ts constructs the Prisma pg adapter directly from it, with
+// no dotenv loading of its own). This script runs as a plain `node`
+// child process via execFileSync from inside a Playwright test, which
+// does NOT get Next.js's automatic .env.local loading the way the dev
+// server does. Real, reproduced defect this fixes: every dbHelper call
+// across this suite silently depended on DATABASE_URL already being set
+// in whatever shell launched Playwright — true by accident in some
+// environments, false in others (a fresh shell, a container/Postgres
+// restart) — and failed with an opaque Prisma "denied access on
+// database (not available)" error that gave no hint the real problem
+// was a missing env var. Loaded here, once, before the dynamic import
+// below (a static `import` of @movewise/db is resolved before any of
+// this file's own code could run, so setting the env var has to happen
+// first via a dynamic import instead).
+const ENV_FILE = join(dirname(fileURLToPath(import.meta.url)), "..", ".env.local");
+if (!process.env.DATABASE_URL && existsSync(ENV_FILE)) {
+  for (const line of readFileSync(ENV_FILE, "utf-8").split("\n")) {
+    const match = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
+    if (match) process.env[match[1]] = match[2].trim().replace(/^["']|["']$/g, "");
+  }
+}
+
+const { prisma } = await import("@movewise/db");
+const { default: bcrypt } = await import("bcryptjs");
 
 const [, , command, argJson] = process.argv;
 const args = argJson ? JSON.parse(argJson) : {};
