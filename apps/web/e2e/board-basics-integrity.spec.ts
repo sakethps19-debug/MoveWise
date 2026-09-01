@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures";
+import { ensureFullCurriculumVisible } from "./testHelpers";
 
 /**
  * P0 "curriculum/practice integrity" — the exact reproduction reported
@@ -52,7 +53,11 @@ test("the exact reported reproduction: a new-to-chess learner's Board Basics Pra
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
-  // Board Basics Practice is now unlocked.
+  // Board Basics Practice is now unlocked. The homepage's curriculum map
+  // stays compact until a real milestone (P1 "persistent Today view"), so
+  // the inline "Practice puzzles" link isn't shown until the full
+  // curriculum view is expanded.
+  await ensureFullCurriculumVisible(page);
   const practiceLink = page.getByRole("link", { name: /Practice puzzles/ });
   await expect(practiceLink).toBeVisible();
   await practiceLink.click();

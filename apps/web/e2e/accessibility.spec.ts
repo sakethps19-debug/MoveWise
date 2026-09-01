@@ -77,7 +77,11 @@ test("play mode: post-game review workspace, with the board flipped", async ({ p
   await expect(page.getByRole("heading", { name: "2. Review the game" })).toBeVisible({ timeout: 60_000 });
   await expectNoViolations(page); // already Black-oriented by default, plus the short-game honesty notice
 
-  await page.getByRole("button", { name: /Flip board/i }).click();
+  // Scoped to the review workspace specifically: the live-play board
+  // above stays mounted (finished, non-interactive) alongside the review
+  // workspace once a game is analyzed, and it carries its own identically-
+  // labeled "Flip board" control — a page-wide getByRole would match both.
+  await page.locator(".mw-review-workspace").getByRole("button", { name: /Flip board/i }).click();
   await expectNoViolations(page);
 });
 
@@ -172,7 +176,9 @@ test.describe("dark theme", () => {
     await expect(page.getByRole("heading", { name: "2. Review the game" })).toBeVisible({ timeout: 60_000 });
     await expectNoViolations(page);
 
-    await page.getByRole("button", { name: /Flip board/i }).click();
+    // Scoped to the review workspace — see the light-theme variant of this
+    // test above for why a page-wide getByRole would match two buttons.
+    await page.locator(".mw-review-workspace").getByRole("button", { name: /Flip board/i }).click();
     await expectNoViolations(page);
   });
 

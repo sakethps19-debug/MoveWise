@@ -12,16 +12,43 @@ export function loadUnitPuzzles(unitId: string): Puzzle[] {
   return data.map(parsePuzzle);
 }
 
+/**
+ * Every puzzle across every file in packages/content/puzzles, keyed by id
+ * — built once per server process and reused, not re-read from disk on
+ * every call. Content files are static for the life of a running server
+ * (a real content change needs a redeploy/dev-server restart regardless),
+ * so this is safe, and matters now that resolving a cross-file id
+ * (`loadPuzzlesForPrinciple` below) needs the *whole* directory, not one
+ * small per-unit file: a real perf regression was caught this round —
+ * `apps/web/app/practice/warm-up/page.tsx` calls
+ * `loadPuzzlesForPrinciple` once per principle across every unit, and
+ * without this cache each call re-read and re-JSON.parsed all six puzzle
+ * files (now ~180 KB combined, up from a few KB before this round's CC0
+ * import) from scratch — compounding into real request latency under the
+ * e2e suite's load (several tests waiting on that page, or a page that
+ * links to it, started timing out).
+ */
+let allPuzzlesByIdCache: Map<string, Puzzle> | null = null;
+function allPuzzlesById(): Map<string, Puzzle> {
+  if (allPuzzlesByIdCache) return allPuzzlesByIdCache;
+  const byId = new Map<string, Puzzle>();
+  if (existsSync(PUZZLES_ROOT)) {
+    for (const file of readdirSync(PUZZLES_ROOT)) {
+      if (!file.endsWith(".json")) continue;
+      const data = JSON.parse(readFileSync(path.join(PUZZLES_ROOT, file), "utf-8"));
+      for (const raw of data) {
+        const puzzle = parsePuzzle(raw);
+        byId.set(puzzle.id, puzzle);
+      }
+    }
+  }
+  allPuzzlesByIdCache = byId;
+  return byId;
+}
+
 /** Finds a puzzle by id across every unit's pool — mirrors lib/lessons.ts's loadLesson, since a server action recording an attempt only has the puzzle id, not which unit it belongs to. */
 export function findPuzzle(puzzleId: string): Puzzle | null {
-  if (!existsSync(PUZZLES_ROOT)) return null;
-  for (const file of readdirSync(PUZZLES_ROOT)) {
-    if (!file.endsWith(".json")) continue;
-    const data = JSON.parse(readFileSync(path.join(PUZZLES_ROOT, file), "utf-8"));
-    const match = data.find((p: { id?: string }) => p.id === puzzleId);
-    if (match) return parsePuzzle(match);
-  }
-  return null;
+  return allPuzzlesById().get(puzzleId) ?? null;
 }
 
 /**
@@ -42,21 +69,11 @@ export function findPuzzle(puzzleId: string): Puzzle | null {
  * served a 2-puzzle pool instead of the real 16-puzzle one (caught by
  * apps/web/e2e/puzzle-practice.spec.ts timing out waiting for "Puzzle
  * 1/16"). Fixed the same way `findPuzzle` already searches for a single
- * id: build the id map from every puzzle file in the directory, not just
- * one.
+ * id: resolve against every puzzle file, not just one — via the shared
+ * cache above.
  */
 export function loadPuzzlesForPrinciple(principle: Principle): Puzzle[] {
-  const byId = new Map<string, Puzzle>();
-  if (existsSync(PUZZLES_ROOT)) {
-    for (const file of readdirSync(PUZZLES_ROOT)) {
-      if (!file.endsWith(".json")) continue;
-      const data = JSON.parse(readFileSync(path.join(PUZZLES_ROOT, file), "utf-8"));
-      for (const raw of data) {
-        const puzzle = parsePuzzle(raw);
-        byId.set(puzzle.id, puzzle);
-      }
-    }
-  }
+  const byId = allPuzzlesById();
   return principle.puzzleIds.map((id) => byId.get(id)).filter((p): p is Puzzle => p !== undefined);
 }
 

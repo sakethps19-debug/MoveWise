@@ -76,8 +76,11 @@ test("a 1-move game gets no overall claim — too few moves, resignation explain
   await expect(page.getByText(/Clean game/)).toHaveCount(0);
   await expect(page.getByText(/ended by resignation/)).toBeVisible();
   // Per-move analysis is still real and present — the honesty banner
-  // replaces the aggregate claim, not the whole review.
-  await expect(page.locator(".mw-game-review-table, .mw-review-workspace")).toBeVisible();
+  // replaces the aggregate claim, not the whole review. Both the board
+  // workspace and the move table render together (an OR selector here
+  // now matches both, ambiguously) — .first() just confirms at least one
+  // of the real per-move analysis views is actually visible.
+  await expect(page.locator(".mw-game-review-table, .mw-review-workspace").first()).toBeVisible();
 });
 
 test("the exact reported defect: 2 learner moves then resignation never claims a clean game", async ({ page }) => {
