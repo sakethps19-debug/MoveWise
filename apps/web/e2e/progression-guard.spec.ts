@@ -1,5 +1,16 @@
 import { test, expect } from "./fixtures";
 import { ensureFullCurriculumVisible } from "./testHelpers";
+import { execFileSync } from "node:child_process";
+import path from "node:path";
+
+const DB_HELPER = path.join(__dirname, "db-helper.mjs");
+
+function dbHelper(command: string, args: Record<string, unknown> = {}): string {
+  return execFileSync("node", [DB_HELPER, command, JSON.stringify(args)], {
+    cwd: path.join(__dirname, ".."),
+    encoding: "utf-8",
+  });
+}
 
 /**
  * Coverage map for the 10 progression requirements this file exists to
@@ -201,4 +212,68 @@ test("a guest CAN open a lesson directly by URL once its prerequisite is really 
   await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
   await expect(page).toHaveURL("/learn/meet-the-pieces.03-meet-the-rook");
   await expect(page.locator(".mw-lesson-title")).toHaveText("Meet the rook");
+});
+
+test("'What is check?' opens once every Meet the Pieces concept is directly demonstrated, even though its prerequisite is a mastery-challenge lesson", async ({
+  page,
+}) => {
+  // Real, confirmed bug this reproduces exactly as reported live:
+  // check-and-checkmate.01-what-is-check's prerequisite is
+  // meet-the-pieces.12-unit-mastery-challenge — a lesson that belongs to
+  // no principle's subLessonIds at all (a mastery challenge, not an
+  // ordinary sub-lesson). The server-side bypass in
+  // app/learn/[lessonId]/page.tsx used to look for "the principle
+  // containing the missing lesson," which can never exist for a
+  // mastery-challenge lesson — so it stayed locked no matter what
+  // evidence existed, even directly demonstrating "check" itself. The
+  // correct rule (matching LearningPath.tsx's own client-side
+  // `unitFullyDemonstrated`) is: bypassed once every principle in the
+  // *missing lesson's own unit* is independently proficient.
+  const email = `checklock${Date.now()}@example.com`;
+  const userId = dbHelper("create-user", { email, password: "password123" });
+  for (const conceptId of [
+    "board-orientation",
+    "rook-movement",
+    "bishop-movement",
+    "queen-movement",
+    "king-movement",
+    "knight-movement",
+    "pawn-movement",
+    "king-safety-castling",
+  ]) {
+    dbHelper("set-mastery", { userId, conceptId, status: "proficient" });
+  }
+  await page.goto("/login");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", "password123");
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+
+  await page.goto("/learn/check-and-checkmate.01-what-is-check");
+  await expect(page).not.toHaveURL(/\/\?locked=/);
+  await expect(page.getByText("What is check?")).toBeVisible();
+
+  // A PARTIAL result (one concept missing) must still lock it — proves
+  // this isn't just an accidentally-disabled gate.
+  const email2 = `checklock2${Date.now()}@example.com`;
+  const userId2 = dbHelper("create-user", { email: email2, password: "password123" });
+  for (const conceptId of [
+    "board-orientation",
+    "rook-movement",
+    "bishop-movement",
+    "queen-movement",
+    "king-movement",
+    "knight-movement",
+    "pawn-movement",
+    // king-safety-castling deliberately omitted
+  ]) {
+    dbHelper("set-mastery", { userId: userId2, conceptId, status: "proficient" });
+  }
+  await page.goto("/login");
+  await page.fill("input[name=email]", email2);
+  await page.fill("input[name=password]", "password123");
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+  await page.goto("/learn/check-and-checkmate.01-what-is-check");
+  await expect(page).toHaveURL(/\/\?locked=/);
 });
