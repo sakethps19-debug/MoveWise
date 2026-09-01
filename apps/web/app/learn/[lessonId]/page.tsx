@@ -3,6 +3,7 @@ import { prisma } from "@movewise/db";
 import { loadLesson } from "../../../lib/lessons";
 import { loadUnitPrinciples, findPreviousPrinciple } from "../../../lib/principles";
 import { PROFICIENT_STATUSES, type MasteryStatus } from "../../../lib/masteryModel";
+import { unitFullyDemonstrated } from "../../../lib/lessonStatus";
 import { LessonResumeGate } from "../../../components/LessonResumeGate";
 import { LessonGate } from "../../../components/LessonGate";
 import { completeLessonAction } from "../../actions";
@@ -40,16 +41,72 @@ export default async function LessonPage({
       // demonstratedConceptIds bypasses it client-side — never a false
       // "completed", just recognized evidence the literal-completion
       // check alone would otherwise ignore.
-      const missingPrinciple = loadUnitPrinciples(lesson.unitId).find((p) => p.subLessonIds.includes(missingId));
-      const demonstrated = missingPrinciple
-        ? await prisma.userConceptMastery.findUnique({
-            where: { userId_conceptId: { userId: user.id, conceptId: missingPrinciple.conceptId } },
-          })
-        : null;
-      const demonstratedStatus = demonstrated?.status as MasteryStatus | undefined;
-      const bypassed = !!demonstratedStatus && PROFICIENT_STATUSES.has(demonstratedStatus);
+      //
+      // Real, confirmed bug this fixes: a cross-unit prerequisite (e.g.
+      // Tactical Vision's first lesson requiring Basic Tactics' terminal
+      // lesson) was looked up against `lesson.unitId` — the unit of the
+      // lesson being OPENED, not the unit the missing prerequisite lesson
+      // actually belongs to. `loadUnitPrinciples(lesson.unitId)` can never
+      // contain a principle from a different unit, so this bypass was
+      // silently dead for any cross-unit prerequisite: a rated learner
+      // whose placement directly demonstrated the prerequisite concept
+      // still got redirected as locked, even though the homepage/learning
+      // path (LearningPath.tsx's own `allPrinciplesById`, built across
+      // every unit) correctly showed the lesson as available — client and
+      // server disagreeing on the identical evidence. The missing
+      // prerequisite's own lesson (not the one being opened) is what
+      // determines which unit's principles to search.
+      const missingLesson = loadLesson(missingId);
+      let bypassed = false;
+      if (missingLesson?.kind === "mastery-challenge") {
+        // A mastery-challenge lesson belongs to no principle's
+        // subLessonIds at all, so the single-principle lookup below can
+        // never find it — real, confirmed bug this branch fixes: "What is
+        // check?" (prerequisite: meet-the-pieces' own mastery challenge)
+        // stayed locked for a learner whose placement directly
+        // demonstrated check/checkmate, because there was no principle to
+        // even check evidence against. Delegates to lib/lessonStatus.ts's
+        // `unitFullyDemonstrated` — the exact same function
+        // LearningPath.tsx's client-side `nextUp` computation uses — so
+        // this route guard and that recommendation can never again
+        // disagree the way they did before.
+        const unitPrinciples = loadUnitPrinciples(missingLesson.unitId);
+        const masteries = await prisma.userConceptMastery.findMany({
+          where: { userId: user.id, conceptId: { in: unitPrinciples.map((p) => p.conceptId) } },
+        });
+        const demonstratedConceptIds = new Set(
+          masteries
+            .filter((m) => PROFICIENT_STATUSES.has(m.status as MasteryStatus))
+            .map((m) => m.conceptId),
+        );
+        bypassed = unitFullyDemonstrated(unitPrinciples, demonstratedConceptIds);
+      } else {
+        // Real, confirmed bug this fixes: a cross-unit prerequisite (e.g.
+        // Tactical Vision's first lesson requiring Basic Tactics' terminal
+        // lesson) was looked up against `lesson.unitId` — the unit of the
+        // lesson being OPENED, not the unit the missing prerequisite lesson
+        // actually belongs to. `loadUnitPrinciples(lesson.unitId)` can never
+        // contain a principle from a different unit, so this bypass was
+        // silently dead for any cross-unit prerequisite: a rated learner
+        // whose placement directly demonstrated the prerequisite concept
+        // still got redirected as locked, even though the homepage/learning
+        // path (LearningPath.tsx's own `allPrinciplesById`, built across
+        // every unit) correctly showed the lesson as available — client and
+        // server disagreeing on the identical evidence. The missing
+        // prerequisite's own lesson (not the one being opened) is what
+        // determines which unit's principles to search.
+        const missingPrinciple = missingLesson
+          ? loadUnitPrinciples(missingLesson.unitId).find((p) => p.subLessonIds.includes(missingId))
+          : null;
+        const demonstrated = missingPrinciple
+          ? await prisma.userConceptMastery.findUnique({
+              where: { userId_conceptId: { userId: user.id, conceptId: missingPrinciple.conceptId } },
+            })
+          : null;
+        const demonstratedStatus = demonstrated?.status as MasteryStatus | undefined;
+        bypassed = !!demonstratedStatus && PROFICIENT_STATUSES.has(demonstratedStatus);
+      }
       if (!bypassed) {
-        const missingLesson = loadLesson(missingId);
         const needs = encodeURIComponent(missingLesson?.title ?? missingId);
         redirect(`/?locked=${encodeURIComponent(lesson.title)}&needs=${needs}`);
       }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Lesson, Principle } from "@movewise/exercise-schema";
-import { statusOf, unlockReason } from "./lessonStatus";
+import { statusOf, unlockReason, unitFullyDemonstrated } from "./lessonStatus";
 
 function makeLesson(overrides: Partial<Lesson> & Pick<Lesson, "id">): Lesson {
   return {
@@ -112,5 +112,44 @@ describe("statusOf demonstratedConceptIds bypass", () => {
       new Set(["board-orientation"]),
     );
     expect(withPlacement).toBeNull();
+  });
+});
+
+/**
+ * Curriculum-availability invariant: this is the single rule both
+ * LearningPath.tsx (client, "which lesson is nextUp") and
+ * app/learn/[lessonId]/page.tsx (server, the route guard a mastery-
+ * challenge lesson's cross-unit prerequisite hits) must apply — real,
+ * confirmed bug this guards against: before this function was extracted
+ * and shared, the server side had no equivalent check at all, so a
+ * learner whose placement demonstrated every concept in a unit still got
+ * redirected as locked from that unit's own mastery-challenge lesson.
+ */
+describe("unitFullyDemonstrated", () => {
+  const principles = [
+    makePrinciple({ id: "u.a", conceptId: "concept-a", subLessonIds: ["a1"] }),
+    makePrinciple({ id: "u.b", conceptId: "concept-b", subLessonIds: ["b1"] }),
+    makePrinciple({ id: "u.c", conceptId: "concept-c", subLessonIds: ["c1"] }),
+  ];
+
+  it("is true only when every principle in the unit is demonstrated", () => {
+    expect(unitFullyDemonstrated(principles, new Set(["concept-a", "concept-b", "concept-c"]))).toBe(true);
+  });
+
+  it("is false for a partial result — never bypasses from incomplete evidence", () => {
+    expect(unitFullyDemonstrated(principles, new Set(["concept-a", "concept-b"]))).toBe(false);
+  });
+
+  it("is false with no evidence at all, undefined or empty", () => {
+    expect(unitFullyDemonstrated(principles, undefined)).toBe(false);
+    expect(unitFullyDemonstrated(principles, new Set())).toBe(false);
+  });
+
+  it("is false for a unit with no principles at all — nothing to have demonstrated", () => {
+    expect(unitFullyDemonstrated([], new Set(["concept-a"]))).toBe(false);
+  });
+
+  it("ignores evidence for concepts outside this unit", () => {
+    expect(unitFullyDemonstrated(principles, new Set(["concept-a", "concept-b", "unrelated-concept"]))).toBe(false);
   });
 });

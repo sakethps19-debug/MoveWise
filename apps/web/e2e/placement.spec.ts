@@ -139,3 +139,61 @@ test("a signed-in rated player's placement result is a real, server-persisted Us
   await expect(page).not.toHaveURL(/\/\?locked=/);
   await expect(page.getByText("Puzzle 1/")).toBeVisible();
 });
+
+test("a signed-in rated player who scores 13/14 Advanced can open the recommended Tactical Vision lesson, not be bounced back as locked @smoke", async ({
+  page,
+}) => {
+  // Real, confirmed bug this reproduces exactly as reported live: the
+  // server-side prerequisite bypass in app/learn/[lessonId]/page.tsx
+  // looked up the missing prerequisite's principle using the OPENED
+  // lesson's own unit (`loadUnitPrinciples(lesson.unitId)`) — for
+  // tactical-vision.01, that's Tactical Vision's own principles, which
+  // can never contain Basic Tactics' "Is this trade worth it?" (the
+  // cross-unit prerequisite this lesson actually declares). The bypass
+  // was therefore silently dead for any cross-unit prerequisite: a
+  // learner who directly demonstrated trade-evaluation via placement
+  // still got redirected as locked, even though the homepage/learning
+  // path (built from ALL units' principles) correctly recommended this
+  // exact lesson as "Start here" — client and server disagreeing on
+  // identical evidence. Every other placement item is answered correctly
+  // except the very last one (an easy, low-stakes endgame item, not
+  // trade-evaluation itself) to reproduce the exact "13/14, Advanced"
+  // live finding rather than a suspiciously-perfect 14/14.
+  const email = `crossunit${Date.now()}@example.com`;
+  await page.goto("/signup");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", "password123");
+  await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+
+  await page.goto("/placement");
+  const moves = ALL_CORRECT_MOVES.slice(0, -1);
+  for (const { from, to } of moves) {
+    await answerCorrectly(page, from, to);
+  }
+  // The final item (endgame-king-escort) answered wrong, legally: the
+  // king steps sideways instead of escorting the pawn.
+  await page.locator('[aria-label*="e5,"]').click();
+  await page.locator('[aria-label*="d5,"]').click();
+  await expect(page.getByText(/^Not quite\./)).toBeVisible();
+  await page.getByRole("button", { name: /See my result/ }).click();
+
+  await expect(page.getByRole("heading", { name: /Placement result: Advanced/ })).toBeVisible();
+  await expect(page.getByText(/13 of 14 answered correctly/)).toBeVisible();
+
+  // The homepage's own recommendation must lead somewhere it actually
+  // works — this is the "recommended implies accessible" invariant.
+  await page.goto("/");
+  const continueCard = page.locator(".mw-continue-card");
+  await expect(continueCard.getByText("Start here")).toBeVisible();
+  await expect(continueCard.getByText("Checks, captures, and threats")).toBeVisible();
+  await continueCard.click();
+
+  // Must land on the real lesson, never bounced back to "/" with a
+  // locked banner — the exact contradiction reported live.
+  await expect(page).toHaveURL("/learn/tactical-vision.01-checks-captures-and-threats");
+  await expect(page.getByText(/is locked until/)).toHaveCount(0);
+  await expect(page.getByText("Checks, captures, and threats")).toBeVisible();
+  await expect(page.getByText("Step 1/")).toBeVisible();
+});

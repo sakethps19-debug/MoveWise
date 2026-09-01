@@ -94,6 +94,31 @@ export function demonstratedLessonIdsFrom(
 }
 
 /**
+ * Whether every principle belonging to `unitId` has independently
+ * demonstrated evidence — the single rule that decides whether a unit's
+ * own mastery-challenge lesson (which belongs to no principle's own
+ * subLessonIds, so `demonstratedLessonIdsFrom` above can never cover it
+ * directly) can be bypassed as a prerequisite. Exported so both
+ * LearningPath.tsx's client-side "which lesson is `nextUp`" computation
+ * and app/learn/[lessonId]/page.tsx's server-side route guard apply the
+ * *identical* rule — real, confirmed bug this closes: before this was
+ * extracted, the server route had no equivalent check at all (the
+ * single-principle lookup its bypass used can never find a
+ * mastery-challenge lesson), so a learner whose placement directly
+ * demonstrated every concept in a unit still got redirected as locked
+ * from that unit's own mastery-challenge lesson gating a later unit,
+ * even though the homepage correctly recommended it. Bypassed only when
+ * every principle in the unit is demonstrated — never from a partial
+ * result, exactly mirroring the "completion" bar an actual mastery
+ * challenge would otherwise require.
+ */
+export function unitFullyDemonstrated(unitPrinciples: Principle[], demonstratedConceptIds?: Set<string>): boolean {
+  if (unitPrinciples.length === 0) return false;
+  if (!demonstratedConceptIds || demonstratedConceptIds.size === 0) return false;
+  return unitPrinciples.every((p) => demonstratedConceptIds.has(p.conceptId));
+}
+
+/**
  * What a locked lesson needs before it opens — shown on the row itself
  * (Phase 4: "clearly show what is required to unlock a lesson"), not just
  * as a banner after a bounced direct-URL attempt.
