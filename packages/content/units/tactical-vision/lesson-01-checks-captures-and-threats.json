@@ -9,7 +9,7 @@
     "Find a capture that isn't the first thing your eye lands on",
     "Recognize that a move can be strong purely because it threatens something next turn, even with no check or capture right now"
   ],
-  "prerequisites": ["basic-tactics.04-is-this-trade-worth-it"],
+  "prerequisites": ["basic-tactics.05-the-opposition"],
   "xpReward": 20,
   "masteryTags": ["cct-scanning"],
   "difficulty": 1,

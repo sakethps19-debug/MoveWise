@@ -1,0 +1,93 @@
+{
+  "id": "basic-tactics.05-the-opposition",
+  "version": 1,
+  "unitId": "basic-tactics",
+  "title": "King and pawn endings: the opposition",
+  "objectives": [
+    "Recognize direct opposition between two kings and know which side it favors",
+    "Explain why the side forced to move first in an opposition standoff is at a disadvantage",
+    "Escort a passed pawn toward promotion by getting your king in front of it"
+  ],
+  "prerequisites": ["basic-tactics.04-is-this-trade-worth-it"],
+  "xpReward": 30,
+  "masteryTags": ["opposition-key-squares"],
+  "introducedConceptIds": ["opposition-key-squares"],
+  "assessedConceptIds": ["opposition-key-squares"],
+  "suitableLevel": "improving",
+  "difficulty": 2,
+  "estimatedDurationSec": 360,
+  "steps": [
+    {
+      "id": "step-1",
+      "type": "explain",
+      "text": "Once most of the pieces are traded off, a game often comes down to just kings and pawns. These endings reward precise technique — a single wrong king move can turn a winning position into a draw, or a drawn one into a loss. The two ideas on this page — the opposition, and escorting a pawn — are the foundation everything else in king-and-pawn endings builds on.",
+      "boardFen": "8/8/8/8/8/8/8/8 w - - 0 1"
+    },
+    {
+      "id": "step-2",
+      "type": "explain",
+      "text": "This is direct opposition: the two kings face each other on the same file with exactly one empty square between them. It's Black's move here — but any king move Black makes has to step backward, away from the center, since kings can never move adjacent to each other. White's king immediately advances into the space Black just gave up. Whoever is NOT forced to move in this standoff is the one with the advantage — that's called 'having the opposition.'",
+      "boardFen": "8/8/8/4k3/8/4K3/8/8 b - - 0 1",
+      "highlights": ["e5", "e3"]
+    },
+    {
+      "id": "step-3",
+      "type": "true-false",
+      "prompt": "True or false: in a direct-opposition standoff, the side forced to move first has the advantage.",
+      "correct": false,
+      "feedback": {
+        "default": "It's the other way around. The side that has to move must give ground — step back or sideways — while the other king immediately advances into the space just vacated. Being forced to move first is a disadvantage here, not a strength."
+      },
+      "successExplanation": "Right — the side forced to move must give ground, letting the other king advance. That's why chess players say the side that does NOT have to move 'has the opposition.'"
+    },
+    {
+      "id": "step-4",
+      "type": "explain",
+      "text": "The other essential king-and-pawn skill: escorting a pawn. A lone pawn pushed forward on its own can usually be caught and captured by the enemy king. But a pawn with its own king marching in front of it, clearing the way and blocking the enemy king from getting close, is a completely different story. The key squares for a pawn are the ones directly in front of it — get your king to one of those before pushing, and the pawn's promotion becomes far more likely to succeed.",
+      "boardFen": "4k3/8/8/8/8/8/4P3/4K3 w - - 0 1",
+      "highlights": ["e2", "e3"]
+    },
+    {
+      "id": "step-5",
+      "type": "move-piece",
+      "prompt": "Escort the pawn — move your king to the square directly in front of it.",
+      "fen": "k7/8/8/2PK4/8/8/8/8 w - - 0 1",
+      "expectedMoves": ["d5c6"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "Don't push the pawn yet — bring your king in front of it first." },
+        { "level": 2, "text": "Which square is directly ahead of your pawn, on its way to promotion?", "highlightSquares": ["c6"] },
+        { "level": 3, "text": "Step your king onto that square.", "arrowFrom": "d5", "arrowTo": "c6" },
+        { "level": 4, "text": "Kc6 puts the king directly in front of the c-pawn, clearing and protecting its path forward." }
+      ],
+      "feedback": {
+        "default": "That's a legal king move, but it doesn't put your king directly in front of the pawn. Look for the square on the pawn's own file, one rank ahead of it."
+      },
+      "successExplanation": "Kc6 escorts the pawn — the king now leads the way up the c-file, ready to shield the pawn from the enemy king and clear its path to promotion."
+    },
+    {
+      "id": "step-6",
+      "type": "move-piece",
+      "prompt": "Same idea, further advanced: escort this pawn toward promotion.",
+      "fen": "k7/8/8/5KP1/8/8/8/8 w - - 0 1",
+      "expectedMoves": ["f5g6"],
+      "altValid": [],
+      "hints": [
+        { "level": 1, "text": "The pawn is already close to promoting — get your king in front of it before pushing further." },
+        { "level": 2, "text": "Which square is directly ahead of the pawn?", "highlightSquares": ["g6"] },
+        { "level": 3, "text": "Step your king onto that square.", "arrowFrom": "f5", "arrowTo": "g6" },
+        { "level": 4, "text": "Kg6 leads the g-pawn the rest of the way, exactly like the previous example." }
+      ],
+      "feedback": {
+        "default": "Not quite — find the square directly ahead of the pawn on its own file, one rank closer to promotion."
+      },
+      "successExplanation": "Kg6 escorts the pawn again — the same technique works no matter which file or how far along the pawn already is."
+    },
+    {
+      "id": "step-7",
+      "type": "review",
+      "summary": "Two ideas carry most of king-and-pawn endgame technique: the opposition (whoever is NOT forced to move in a standoff has the advantage, since the other king must give ground) and escorting a pawn (getting your own king in front of it, rather than pushing it forward alone). Neither idea depends on memorizing exact positions — both are patterns you can recognize and apply in almost any king-and-pawn ending you reach."
+    }
+  ],
+  "principleId": "basic-tactics.the-opposition"
+}
