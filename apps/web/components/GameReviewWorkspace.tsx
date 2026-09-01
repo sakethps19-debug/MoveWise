@@ -199,8 +199,8 @@ export function GameReviewWorkspace({
         <div className="mw-game-review-summary mw-game-review-summary--short" role="status">
           <p style={{ margin: 0 }}>
             Too few moves ({learnerMoveCount(review.moves, learnerColor)}) for a reliable overall assessment — every
-            move below still has its own real analysis, but a "clean game" or accuracy claim from a game this short
-            wouldn&apos;t mean much.
+            move below still has its own real analysis, but a &ldquo;clean game&rdquo; or accuracy claim from a game
+            this short wouldn&apos;t mean much.
           </p>
           {resigned && (
             <p style={{ margin: 0 }}>
