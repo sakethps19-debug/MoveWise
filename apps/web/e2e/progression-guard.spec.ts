@@ -277,3 +277,48 @@ test("'What is check?' opens once every Meet the Pieces concept is directly demo
   await page.goto("/learn/check-and-checkmate.01-what-is-check");
   await expect(page).toHaveURL(/\/\?locked=/);
 });
+
+test("the learning path visually distinguishes a demonstrated-but-not-completed lesson from a genuinely completed or untouched one", async ({
+  page,
+}) => {
+  // Real, confirmed gap this closes: a lesson reachable purely from
+  // evidence rendered identically to any other "available" lesson (same
+  // plain arrow), and a unit's own header showed a bare "0 / N" with no
+  // indication that evidence, not neglect, explains the zero — reported
+  // live as "the curriculum visually shows 0/13 completed even though
+  // large sections are bypassed, without explaining the distinction."
+  const email = `demonstrated${Date.now()}@example.com`;
+  const userId = dbHelper("create-user", { email, password: "password123" });
+  // "Meet the rook"'s own prerequisites are meet-the-pieces.01/02 (the
+  // Board basics principle) — seeding its own concept, board-orientation,
+  // is what unlocks entry without literally completing them.
+  dbHelper("set-mastery", { userId, conceptId: "board-orientation", status: "proficient" });
+  await page.goto("/login");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", "password123");
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+  await ensureFullCurriculumVisible(page);
+
+  const rookRow = page
+    .locator(".mw-lesson-node")
+    .filter({ has: page.locator(".mw-lesson-node-title", { hasText: "Meet the rook" }) });
+  await expect(rookRow).toHaveClass(/mw-lesson-node--demonstrated/);
+  await expect(rookRow.getByText("Demonstrated")).toBeVisible();
+  await expect(rookRow.getByText(/Open from your placement result/)).toBeVisible();
+  // Never confused with a genuine completion — no stars, no "Mastered".
+  await expect(rookRow.locator(".mw-stars")).toHaveCount(0);
+
+  // A lesson that's neither completed nor evidence-demonstrated (e.g. the
+  // very first, always-open lesson before any real work) must NOT get the
+  // demonstrated treatment just because it's "available".
+  const welcomeRow = page
+    .locator(".mw-lesson-node")
+    .filter({ has: page.locator(".mw-lesson-node-title", { hasText: "Welcome to the chessboard" }) });
+  await expect(welcomeRow).not.toHaveClass(/mw-lesson-node--demonstrated/);
+
+  // The unit header's own count explains the zero instead of leaving it
+  // silent — one demonstrated lesson (the rook) in this fresh account.
+  const unitCount = page.locator(".mw-unit-count").first();
+  await expect(unitCount).toContainText("demonstrated");
+});

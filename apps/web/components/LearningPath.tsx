@@ -5,7 +5,12 @@ import Link from "next/link";
 import type { Lesson, Principle } from "@movewise/exercise-schema";
 import { starsForPerformance } from "../lib/mastery";
 import type { MasteryStatus } from "../lib/masteryModel";
-import { statusOf, unlockReason, demonstratedLessonIdsFrom } from "../lib/lessonStatus";
+import {
+  statusOf,
+  unlockReason,
+  demonstratedLessonIdsFrom,
+  unitFullyDemonstrated as lessonStatusUnitFullyDemonstrated,
+} from "../lib/lessonStatus";
 import { useEffectiveCompletions, type CompletionRecord } from "../lib/useEffectiveCompletions";
 import { useDemonstratedConcepts } from "../lib/useDemonstratedConcepts";
 import { readStartedLessons } from "../lib/lessonProgressUI";
@@ -158,6 +163,26 @@ export function LearningPath({
       demonstratedConceptIds,
     );
   const demonstratedLessonIds = demonstratedLessonIdsFrom(allPrinciplesById, demonstratedConceptIds);
+  // Real, confirmed bug an earlier version of this check produced: a
+  // lesson whose sibling (same principle) was just completed with a
+  // strong run can land in `demonstratedLessonIds` too, purely because
+  // completing the sibling pushed their *shared* principle's concept to
+  // a proficient `status` — real evidence, but not evidence this lesson's
+  // OWN reachability actually depends on (its ordinary `prerequisites`
+  // chain already covers it once the sibling is done). Labeling that
+  // "Demonstrated" was misleading — a genuinely evidence-bypassed lesson
+  // is one that would be LOCKED without `demonstratedConceptIds` at all,
+  // not merely one that also happens to be covered by it.
+  const isGenuinelyDemonstratedFor = (lesson: Lesson) =>
+    statusFor(lesson) !== "locked" &&
+    statusOf(
+      lesson,
+      completedIds,
+      allPrinciplesById,
+      units.find((u) => u.id === lesson.unitId)?.principles ?? [],
+      conceptMastery,
+      undefined,
+    ) === "locked";
   // Layers "in-progress" and "mastered" onto the three core, gating-
   // relevant statuses — see the LessonStatus/CoreStatus doc comment above.
   const displayStatusFor = (lesson: Lesson): LessonStatus => {
@@ -185,13 +210,14 @@ export function LearningPath({
   // never covers it directly even when every principle in its unit was
   // demonstrated — without this, it was the one lesson left un-bypassed,
   // so a learner who tested out of an entire unit still got recommended
-  // its mastery-challenge as `nextUp` instead of moving on. Bypassed only
-  // when every one of the unit's own principles was demonstrated — never
-  // from a partial result.
-  const unitFullyDemonstrated = (unitId: string) => {
-    const unit = units.find((u) => u.id === unitId);
-    return !!unit && unit.principles.length > 0 && unit.principles.every((p) => demonstratedConceptIds.has(p.conceptId));
-  };
+  // its mastery-challenge as `nextUp` instead of moving on. The actual
+  // "every principle demonstrated" rule lives in lib/lessonStatus.ts's
+  // `unitFullyDemonstrated` — the same function app/learn/[lessonId]/
+  // page.tsx's server-side route guard now calls too, so this recommendation
+  // and that guard can never again disagree the way they did before (a
+  // recommended lesson that the server then rejected as locked).
+  const unitFullyDemonstrated = (unitId: string) =>
+    lessonStatusUnitFullyDemonstrated(units.find((u) => u.id === unitId)?.principles ?? [], demonstratedConceptIds);
   const isPassed = (l: Lesson) =>
     (completedIds?.has(l.id) ?? false) ||
     demonstratedLessonIds.has(l.id) ||
@@ -277,6 +303,25 @@ export function LearningPath({
       {hasAnyProgress || manuallyExpanded ? (
         units.map((unit) => {
         const completedInUnit = unit.lessons.filter((l) => statusFor(l) === "completed").length;
+        // Real, confirmed gap this closes: a rated learner whose placement
+        // bypassed most of a unit still saw a bare "0 / 13" here, with
+        // nothing distinguishing "untouched" from "already demonstrated,
+        // just never literally completed" — the exact confusion a large
+        // bypassed section with no explanation produces. Deliberately
+        // NOT `isPassed` (defined above, driving `nextUp`/
+        // `testedOutOfEverything`) — `isPassed` also treats a lesson as
+        // "passed" when its own sibling's completion happened to push
+        // their *shared* principle to proficient, which is real evidence
+        // but not evidence this lesson's own reachability needed (its
+        // ordinary prerequisite chain already covers it). Counting that
+        // as "demonstrated" here produced a real, reproduced bug: the
+        // very next lesson after a strong first lesson got labeled
+        // "Demonstrated" for no reason a learner could see. This count
+        // only credits a lesson that would be LOCKED without the
+        // evidence — see `isGenuinelyDemonstratedFor`'s own doc comment.
+        const demonstratedInUnit = unit.lessons.filter(
+          (l) => statusFor(l) !== "completed" && isGenuinelyDemonstratedFor(l),
+        ).length;
 
         // ADR-0008: group by Principle where the unit has been
         // restructured into one; fall back to a flat lesson list for
@@ -313,11 +358,19 @@ export function LearningPath({
               ) : (
                 <span className="mw-unit-count">
                   {completedInUnit} / {unit.lessons.length}
+                  {demonstratedInUnit > 0 && (
+                    <span className="mw-unit-count-demonstrated"> · {demonstratedInUnit} demonstrated</span>
+                  )}
                 </span>
               )}
             </div>
             <div className="mw-unit-progress">
-              <ProgressBar value={completedInUnit} max={unit.lessons.length} label={`${unit.title} progress`} />
+              <ProgressBar
+                value={completedInUnit}
+                max={unit.lessons.length}
+                secondaryValue={demonstratedInUnit > 0 ? completedInUnit + demonstratedInUnit : undefined}
+                label={`${unit.title} progress`}
+              />
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "var(--mw-space-5)" }}>
@@ -340,6 +393,28 @@ export function LearningPath({
                       const record = effectiveCompletions?.get(lesson.id);
                       const reason = coreStatus === "locked" ? unlockReasonFor(lesson) : null;
 
+                      // Real, confirmed gap this closes: a lesson reachable
+                      // purely from placement/practice evidence (never
+                      // literally completed) rendered identically to any
+                      // other "available" lesson — same plain ▶, no
+                      // indication *why* it was already open. Paired with
+                      // the "0/N completed" unit count below (which never
+                      // explained a large bypassed section either), a rated
+                      // learner's own curriculum looked untouched even
+                      // after their placement result unlocked most of it.
+                      // Distinct only when genuinely evidence-based — never
+                      // for a lesson that's simply first-in-sequence and
+                      // unlocked with no work done yet, and never for a
+                      // lesson whose own ordinary prerequisite chain
+                      // already covers it (see `isGenuinelyDemonstratedFor`'s
+                      // own doc comment for the real, reproduced bug a
+                      // looser `demonstratedLessonIds.has()` check caused:
+                      // completing lesson 1 of a principle can itself push
+                      // that principle's concept to proficient, wrongly
+                      // labeling lesson 2 — its own ordinary next lesson —
+                      // "Demonstrated" too).
+                      const isDemonstrated = status === "available" && !record && isGenuinelyDemonstratedFor(lesson);
+
                       const icon =
                         status === "locked"
                           ? "🔒"
@@ -349,10 +424,14 @@ export function LearningPath({
                               ? "✓"
                               : status === "completed"
                                 ? "✓"
-                                : "▶";
+                                : isDemonstrated
+                                  ? "◆"
+                                  : "▶";
 
                       const row = (
-                        <div className={`mw-lesson-node mw-lesson-node--${status}`}>
+                        <div
+                          className={`mw-lesson-node mw-lesson-node--${status}${isDemonstrated ? " mw-lesson-node--demonstrated" : ""}`}
+                        >
                           <span className="mw-lesson-node-icon" aria-hidden="true">
                             {icon}
                           </span>
@@ -360,8 +439,12 @@ export function LearningPath({
                             <span className="mw-lesson-node-title">{lesson.title}</span>
                             {reason && <span className="mw-lesson-node-reason">{reason}</span>}
                             {status === "in-progress" && <span className="mw-lesson-node-reason">In progress</span>}
+                            {isDemonstrated && (
+                              <span className="mw-lesson-node-reason">Open from your placement result — not yet completed</span>
+                            )}
                           </span>
                           {status === "mastered" && <span className="mw-badge mw-badge--success">Mastered</span>}
+                          {isDemonstrated && <span className="mw-badge mw-badge--info">Demonstrated</span>}
                           {(status === "completed" || status === "mastered") && record && (
                             <Stars count={starsForPerformance(record.mistakes, record.hintsUsed)} />
                           )}

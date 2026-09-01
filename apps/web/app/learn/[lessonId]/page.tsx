@@ -3,6 +3,7 @@ import { prisma } from "@movewise/db";
 import { loadLesson } from "../../../lib/lessons";
 import { loadUnitPrinciples, findPreviousPrinciple } from "../../../lib/principles";
 import { PROFICIENT_STATUSES, type MasteryStatus } from "../../../lib/masteryModel";
+import { unitFullyDemonstrated } from "../../../lib/lessonStatus";
 import { LessonResumeGate } from "../../../components/LessonResumeGate";
 import { LessonGate } from "../../../components/LessonGate";
 import { completeLessonAction } from "../../actions";
@@ -59,27 +60,26 @@ export default async function LessonPage({
       let bypassed = false;
       if (missingLesson?.kind === "mastery-challenge") {
         // A mastery-challenge lesson belongs to no principle's
-        // subLessonIds at all (LearningPath.tsx's own `unitFullyDemonstrated`
-        // doc comment explains why), so the single-principle lookup below
-        // can never find it — real, confirmed bug this branch fixes:
-        // "What is check?" (prerequisite: meet-the-pieces' own mastery
-        // challenge) stayed locked for a learner whose placement directly
+        // subLessonIds at all, so the single-principle lookup below can
+        // never find it — real, confirmed bug this branch fixes: "What is
+        // check?" (prerequisite: meet-the-pieces' own mastery challenge)
+        // stayed locked for a learner whose placement directly
         // demonstrated check/checkmate, because there was no principle to
-        // even check evidence against. Mirrors LearningPath.tsx's own
-        // client-side rule exactly: bypassed only when every principle in
-        // the missing lesson's unit is independently proficient, never
-        // from a partial result.
+        // even check evidence against. Delegates to lib/lessonStatus.ts's
+        // `unitFullyDemonstrated` — the exact same function
+        // LearningPath.tsx's client-side `nextUp` computation uses — so
+        // this route guard and that recommendation can never again
+        // disagree the way they did before.
         const unitPrinciples = loadUnitPrinciples(missingLesson.unitId);
-        if (unitPrinciples.length > 0) {
-          const masteries = await prisma.userConceptMastery.findMany({
-            where: { userId: user.id, conceptId: { in: unitPrinciples.map((p) => p.conceptId) } },
-          });
-          const masteryByConceptId = new Map(masteries.map((m) => [m.conceptId, m.status as MasteryStatus]));
-          bypassed = unitPrinciples.every((p) => {
-            const status = masteryByConceptId.get(p.conceptId);
-            return !!status && PROFICIENT_STATUSES.has(status);
-          });
-        }
+        const masteries = await prisma.userConceptMastery.findMany({
+          where: { userId: user.id, conceptId: { in: unitPrinciples.map((p) => p.conceptId) } },
+        });
+        const demonstratedConceptIds = new Set(
+          masteries
+            .filter((m) => PROFICIENT_STATUSES.has(m.status as MasteryStatus))
+            .map((m) => m.conceptId),
+        );
+        bypassed = unitFullyDemonstrated(unitPrinciples, demonstratedConceptIds);
       } else {
         // Real, confirmed bug this fixes: a cross-unit prerequisite (e.g.
         // Tactical Vision's first lesson requiring Basic Tactics' terminal

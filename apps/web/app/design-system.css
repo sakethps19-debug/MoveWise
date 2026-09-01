@@ -89,16 +89,28 @@
 
 /* ---------- ProgressBar ---------- */
 .mw-progress-track {
+  position: relative;
   height: 6px;
   border-radius: 3px;
   background: var(--mw-surface-2);
   overflow: hidden;
 }
 .mw-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
   height: 100%;
   background: var(--mw-moss);
   border-radius: 3px;
   transition: width var(--mw-duration-slow) var(--mw-ease);
+}
+/* The "demonstrated but not completed" segment (LearningPath.tsx) — drawn
+   first/underneath, in the same honest info tone as `.mw-badge--info`, so
+   a unit a learner tested out of via placement reads as visibly further
+   along than a genuinely untouched one, without conflating "evidence
+   covers this" with the solid moss fill real completion earns. */
+.mw-progress-fill--demonstrated {
+  background: var(--mw-info);
+  opacity: 0.55;
 }
 
 /* ---------- Badges / pills ---------- */
@@ -115,6 +127,12 @@
 .mw-badge--warning { background: var(--mw-warning-bg); color: var(--mw-warning-ink); }
 .mw-badge--error { background: var(--mw-error-bg); color: var(--mw-error-ink); }
 .mw-badge--neutral { background: var(--mw-surface-2); color: var(--mw-text-dim); }
+/* "Demonstrated" (LearningPath.tsx) — a lesson reachable from real
+   evidence, never literally completed. Same info tone as
+   ConfirmationActivity's "needs a closer look" and PracticeHub's
+   contradicted-inference item — an honest, non-alarming distinction,
+   not a warning and not the success tone completion itself earns. */
+.mw-badge--info { background: var(--mw-info-bg); color: var(--mw-info-ink); }
 
 /* ---------- Hearts ---------- */
 .mw-hearts {
@@ -699,6 +717,13 @@
   font-weight: 700;
   color: var(--mw-text-dim);
 }
+/* The "X demonstrated" suffix — deliberately not mono/bold like the
+   completed count, so it doesn't compete with it as the primary number. */
+.mw-unit-count-demonstrated {
+  font-family: var(--mw-font-body);
+  font-weight: 500;
+  color: var(--mw-info-ink);
+}
 .mw-unit-progress {
   margin: 0 0 var(--mw-space-5);
 }
@@ -740,6 +765,14 @@
 }
 .mw-lesson-node--locked {
   opacity: 0.55;
+}
+/* A lesson reachable purely from placement/practice evidence, not yet
+   literally completed — the same honest info tone as `.mw-badge--info`
+   and the "demonstrated" progress-bar segment above, on the icon only
+   (never a blanket opacity — the title/reason text stays full-contrast,
+   this row is fully interactive). */
+.mw-lesson-node--demonstrated .mw-lesson-node-icon {
+  color: var(--mw-info);
 }
 .mw-lesson-node--locked-cta {
   justify-content: space-between;
