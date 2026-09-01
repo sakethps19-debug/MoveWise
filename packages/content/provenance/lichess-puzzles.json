@@ -1,0 +1,1874 @@
+[
+  {
+    "contentId": "tactical-vision.puzzle-lichess-05tJf",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "05tJf",
+    "transformationsPerformed": [
+      "applied Lichess setup move e5e6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "e00b148cd7751314d19b8e64e98736f3e402444d5861579b0538ccacb7cb19c6"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-07qIe",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "07qIe",
+    "transformationsPerformed": [
+      "applied Lichess setup move g6f5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "f24607239d9b79ce9b9db0b62bdab72e399db4c57b0156ac0f59619401911632"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-0BxmS",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "0BxmS",
+    "transformationsPerformed": [
+      "applied Lichess setup move g4d7 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "3da7c0391b7343891ca4ca2a094c2567afe922bfdf14e45dd74cb1e3b41c5b5c"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-0CBPG",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "0CBPG",
+    "transformationsPerformed": [
+      "applied Lichess setup move f7c7 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "4e1565e20926bf2b679bfc8a4258e84210549f58cb9f0712878b6f8a9e4d0d4e"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-0HfWa",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "0HfWa",
+    "transformationsPerformed": [
+      "applied Lichess setup move c1e1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "89802ca6c6f5bb9178d106a7c028e2a413ca8a35f76151cccdbb20ff587f2a50"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-0IpoN",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "0IpoN",
+    "transformationsPerformed": [
+      "applied Lichess setup move d6h2 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "b787617427cacfa90fec0590eaf2491f0236debf2c058447bc252a8f36085970"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-0Nfsj",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "0Nfsj",
+    "transformationsPerformed": [
+      "applied Lichess setup move c6c1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "2f65cf8a1fb7e12a90bced18bef06dface8de59b44e1c26054eb5eefbf556c09"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-0Wmez",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "0Wmez",
+    "transformationsPerformed": [
+      "applied Lichess setup move h6c6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "6b45fa13708d2d03e1ddacb7a211994914f02300e3cc2fcec0fbd107865c890f"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-0icN3",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "0icN3",
+    "transformationsPerformed": [
+      "applied Lichess setup move e3c5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "db2e4818e56683687d18727630bb04e31bf772a2d820e5ee10e6f237cd61ce6a"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-0n17w",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "0n17w",
+    "transformationsPerformed": [
+      "applied Lichess setup move d4c5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "3f8185196bcfa98baf008aaeb88212bcaf70cd8bae63d53d399324d88c90970c"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-0oMgy",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "0oMgy",
+    "transformationsPerformed": [
+      "applied Lichess setup move f6f5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "ad1543f301351ae7ce8f4213ad026a60cb1691fb8e7558d7a731342504834f99"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-0stES",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "0stES",
+    "transformationsPerformed": [
+      "applied Lichess setup move g5h6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "cb5a969cece4aabc74f4afe0f178225d9de78b742a87ec849f0a54e7470f8628"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-0zEUE",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "0zEUE",
+    "transformationsPerformed": [
+      "applied Lichess setup move e8f8 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "f8af63ab0ee05ca8b0a58956f61979e80cdd1fca1cee1502bd9f7601aa0f5512"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-12BJz",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "12BJz",
+    "transformationsPerformed": [
+      "applied Lichess setup move a8d8 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "e6ea541ac944ffe00ee145c696b030e5b0c7ad2d8bcb4ea133efe22e31a78aec"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-157zO",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "157zO",
+    "transformationsPerformed": [
+      "applied Lichess setup move d4e5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "655d5d32a524768ae06a94bbdbc0ae17d3cbad2c81ecc3a6dbd6c290c8b3f656"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-175H9",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "175H9",
+    "transformationsPerformed": [
+      "applied Lichess setup move d8e7 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "1f38451d5aa2d85db2897b28f869929a594898b40b219aa5314ff8f0b0e043e9"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-1BVk9",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "1BVk9",
+    "transformationsPerformed": [
+      "applied Lichess setup move f1d2 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "c8f0b05cd75d49a4a5f3eb20ef4440f6a39b8aea16135437c55e7c0e9bd6a6a7"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-1Erzp",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "1Erzp",
+    "transformationsPerformed": [
+      "applied Lichess setup move e2g1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "3a7631d14c8d75573459efc0122475a009ed55f6e95a5ae4c588167ef2dd227a"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-1K2Ce",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "1K2Ce",
+    "transformationsPerformed": [
+      "applied Lichess setup move a8a7 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "1e91beab788a6428b1c2dd82f21b3ecf6a921fc59a84a3074986be8ce2a77ad6"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-1N2CB",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "1N2CB",
+    "transformationsPerformed": [
+      "applied Lichess setup move h1g1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "62f6d446043d5291ab506eb145dd428c8410bcecb8936a2bcab7b3c6507ae91f"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-1bDdH",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "1bDdH",
+    "transformationsPerformed": [
+      "applied Lichess setup move a1e1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "3105e765a999d48eb0dfa3627c96dc7f52019cbaf769fdab952761d5e09e583b"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-1dmBc",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "1dmBc",
+    "transformationsPerformed": [
+      "applied Lichess setup move c6d5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "61c0b2a5ee8efbf1f160ccf03ff0d571be1dbe63b6085530e0f8534d500e61a3"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-1iVfT",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "1iVfT",
+    "transformationsPerformed": [
+      "applied Lichess setup move h7h4 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "2bfe4998334fb2a27b3d9c7179340e61b670ff92d5c92ff94694d736fdc8aac2"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-1qT0V",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "1qT0V",
+    "transformationsPerformed": [
+      "applied Lichess setup move d6a3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "4284e4bf10f18c6ed79fad267ff5a10253c20bdcfeca4c45899f0d1af4161577"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-1tsal",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "1tsal",
+    "transformationsPerformed": [
+      "applied Lichess setup move a8b8 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "9f3e3a02247ed189a8352afa5b69d968477c2ed31b443ae95594ad3f242486e3"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-1uMNu",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "1uMNu",
+    "transformationsPerformed": [
+      "applied Lichess setup move d8d1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "236c09f9c3f963184da4c7230bd494b68f56a54f089c89d0bb71c6c59bc3809a"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-1zaL6",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "1zaL6",
+    "transformationsPerformed": [
+      "applied Lichess setup move b1d2 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "607385b29ab2df04a8d79ea08f118304ef071a04bdc1a9deb0121d3c8e12f843"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-24mOl",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "24mOl",
+    "transformationsPerformed": [
+      "applied Lichess setup move g4f3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "3950d7e528c445e34dcb3f200b7a7dc38b1068aa931aa21fa7802aed3ba588b3"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-27par",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "27par",
+    "transformationsPerformed": [
+      "applied Lichess setup move f4e5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "a8793d283ba928dc2b85984eddf0e76ace8505f462ee12243e081be2912b2f02"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-28CsJ",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "28CsJ",
+    "transformationsPerformed": [
+      "applied Lichess setup move e8g6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "ef7fb63207007641b8f1f7edd554b9acad2af418e369b04586b6f25885134437"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-2LmJm",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "2LmJm",
+    "transformationsPerformed": [
+      "applied Lichess setup move d8d5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "537420956a89d9a7f1b5d1a589b3dddffbcd42ad1bccd80ea26ec535d5f36432"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-2Lrbq",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "2Lrbq",
+    "transformationsPerformed": [
+      "applied Lichess setup move c1c4 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "a9930aff9ae8dbb27773e85d06ffebb462debe5ad9fb8c4531808cad046ff99d"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-2Tmif",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "2Tmif",
+    "transformationsPerformed": [
+      "applied Lichess setup move a1b1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "40f22cc416f89096f9694fe11d4c479e3d31079a5c85fdb07911d33c70028705"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-2VQgo",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "2VQgo",
+    "transformationsPerformed": [
+      "applied Lichess setup move f3d3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "b758e1bd23a0a85af68505cf5fffbf277135ad59f1cd27b83c99e9dcaa801e60"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-2Yhfi",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "2Yhfi",
+    "transformationsPerformed": [
+      "applied Lichess setup move h5g6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "299cd5b1751aa628afa518ffc2e33d71538cff53cde1de2280c8c20af858216e"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-2ZHhk",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "2ZHhk",
+    "transformationsPerformed": [
+      "applied Lichess setup move e5d6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "0b7a39adde020d1a97d632c2a4a624f8016ee8df914d2c6036a036d4837d7672"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-2i212",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "2i212",
+    "transformationsPerformed": [
+      "applied Lichess setup move h6h7 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "aa95458abe178125ee6f36cef6128d4188cdaee774e0aed72f922e8ec75aff92"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-2lvuW",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "2lvuW",
+    "transformationsPerformed": [
+      "applied Lichess setup move c5b7 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "5c681a21a1538250c91fd90118f2898c3815c98159d150f546499f2a50c93dc4"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-2wqI0",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "2wqI0",
+    "transformationsPerformed": [
+      "applied Lichess setup move c1e3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "9fed7c71f53784ec39ea0296dbfb27c72a7abbe5e95af96245defbfe18c741b1"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-35LMn",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "35LMn",
+    "transformationsPerformed": [
+      "applied Lichess setup move a4b5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "79c427b81708859d7ef4407998265647afabe1da2564bb2b4d36778be276f03e"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-35dfy",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "35dfy",
+    "transformationsPerformed": [
+      "applied Lichess setup move e1e4 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "109e9367b60376030088fe46f7f941bddece41289404b8f2473742cdc7a518f5"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-36bW6",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "36bW6",
+    "transformationsPerformed": [
+      "applied Lichess setup move g2e4 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "b681f50115fd43d43718ba7addb21b8801c306f8f757fe054440d46fb136326e"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-3PLHW",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "3PLHW",
+    "transformationsPerformed": [
+      "applied Lichess setup move e6b3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "9c0059040c75ed135b0d822fcf0de3ea12f20713ea661fd43f1bf1580c4e00ce"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-3R8Xr",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "3R8Xr",
+    "transformationsPerformed": [
+      "applied Lichess setup move f2f3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "34cff764425171ae7027bb20c2b37d9f4832866c23aec3a3e9015a42953ac63b"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-3UfwY",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "3UfwY",
+    "transformationsPerformed": [
+      "applied Lichess setup move a7a6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "aca5be49269e262dfe0fe1efeb99c135776be52f045d60a87a1eff56fa54921b"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-3ZBko",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "3ZBko",
+    "transformationsPerformed": [
+      "applied Lichess setup move f5f6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "166c24477ccebe71fb64e09f21e773b304b13ceaa26ef824cae3633a7dbf3e36"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-3bHPK",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "3bHPK",
+    "transformationsPerformed": [
+      "applied Lichess setup move d3b5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "383ed3e116324da8f763ff5960deb3df62b1fd3a9116fe4b256a9c10722c84fd"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-3ghgO",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "3ghgO",
+    "transformationsPerformed": [
+      "applied Lichess setup move d7c7 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "c0e73cb5da69929155c42f882e14afe44932fa997cbd101223c698f5e0aa6a1b"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-3h6gd",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "3h6gd",
+    "transformationsPerformed": [
+      "applied Lichess setup move c6e5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "9af9e0c696ed7f885b9f426796af3fb7ca85121719ec3f8033af41a3857af8d1"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-3iu7t",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "3iu7t",
+    "transformationsPerformed": [
+      "applied Lichess setup move f6h5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "a6458f5bd2337821c419d09df87b1f69c08a3c797e20df1786e8fa9ddc55ca09"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-3uqCN",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "3uqCN",
+    "transformationsPerformed": [
+      "applied Lichess setup move e1d1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "636ecd06c714db3c4881a5b27f3d7b0f444475bfaa68f78fd556c6defa954fc5"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-43WMg",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "43WMg",
+    "transformationsPerformed": [
+      "applied Lichess setup move d5e7 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "8379bfb3d763a5b5d8a8db0b4437f54aa01a93c3f2e7418190da5abad4c727f1"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-4F0Jf",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "4F0Jf",
+    "transformationsPerformed": [
+      "applied Lichess setup move e3d4 to obtain the presented position",
+      "re-encoded presented FEN",
+      "widened accepted solution to 2 chess-rules-verified equivalent moves",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "370b0a2187ad3da3919655beee8265a73183b8ac88507863dc190f833f57bb8c"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-4JGMS",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "4JGMS",
+    "transformationsPerformed": [
+      "applied Lichess setup move c4e6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "f345e917f32a0ce66b06e038b63ee04c3b3e5556f7874b61728e7d04a57595f8"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-4MqgQ",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "4MqgQ",
+    "transformationsPerformed": [
+      "applied Lichess setup move g4f6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "widened accepted solution to 2 chess-rules-verified equivalent moves",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "9d133470bd64af502dc431c6a5d7a0b6081d7f0e37d009469ce266a0143c5dd5"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-4WSQ5",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "4WSQ5",
+    "transformationsPerformed": [
+      "applied Lichess setup move g3h3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "a8287474129719f072cfc10448a5bf62c5d743811186553c35d2c41cff169865"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-4Yhlp",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "4Yhlp",
+    "transformationsPerformed": [
+      "applied Lichess setup move f2f3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "8d8095bdce0a01bb4b55c2c3abe7e52e5ba6c3649fd9ba7287c3b3db5bf17a47"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-4u3hp",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "4u3hp",
+    "transformationsPerformed": [
+      "applied Lichess setup move g7g5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "088ad400a980a32107626e1d64f7c8b3069f9ccb0ac841ecac0d834e1e2e2a8b"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-5M40c",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "5M40c",
+    "transformationsPerformed": [
+      "applied Lichess setup move e6b3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "76a199f92e5976ae2a673725ef5e3ede33197f58a3261ac02311e796e831d7a3"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-5qoNC",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "5qoNC",
+    "transformationsPerformed": [
+      "applied Lichess setup move f8g6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "2edbce960f28e9583728ce2f67ceb3b1ac5fa06bca5ecd0dececef91d0415b88"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-67K6T",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "67K6T",
+    "transformationsPerformed": [
+      "applied Lichess setup move g4f3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "widened accepted solution to 2 chess-rules-verified equivalent moves",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "c36568b361c3b2082362bde6ffeba6fe8ca3f1871e564cbebce09c27577ba503"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-6hMIb",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "6hMIb",
+    "transformationsPerformed": [
+      "applied Lichess setup move d1d4 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "c19fee7132f54caa718280f45fbba98fdb9a9f527d56536397732c1c6d83caf6"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-6iE0E",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "6iE0E",
+    "transformationsPerformed": [
+      "applied Lichess setup move c4f1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "3a4d648f32c1929d4189db07d052cd36f0cdc4222c4cc8f6bafc3e475c5f5702"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-6pchQ",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "6pchQ",
+    "transformationsPerformed": [
+      "applied Lichess setup move g5f6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "c75edd295f87465d106f5232b9d4c2dc769cd00ddb4483e555c1db503f9663f2"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-7DN8B",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "7DN8B",
+    "transformationsPerformed": [
+      "applied Lichess setup move c6e5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "9d65c1366eadb1b99d71ebfaa6c4596244550a030602c984c23ca95fdfa402b8"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-7RqH2",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "7RqH2",
+    "transformationsPerformed": [
+      "applied Lichess setup move e4e3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "2a6cb5c33f69dc700d3f3a33c7df97a20ce8830e7b8e8d047cf7831fdc9c5b79"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-9uqiI",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "9uqiI",
+    "transformationsPerformed": [
+      "applied Lichess setup move d8f8 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [hanging-pieces] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "e92a1665d9c4e05a46ebb77adb1d9ff97c076512d77fe20bac6c6199194494bb"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-AK3x7",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "AK3x7",
+    "transformationsPerformed": [
+      "applied Lichess setup move g1h1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "efee31d34bcf7934d9b254111128527f88b933597be5357e8baaec71193cb1f4"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-B0tCB",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "B0tCB",
+    "transformationsPerformed": [
+      "applied Lichess setup move a1f1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "fdec91ef537684ae44a407c1988155931626c1cc8b0190a5bfd48ead1067f452"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-C8JRp",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "C8JRp",
+    "transformationsPerformed": [
+      "applied Lichess setup move b7a6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "b42769064ceb7d8f0fc3319b04dab02454f0b97b6cafa751723d967ba28b9dc0"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-CXsMC",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "CXsMC",
+    "transformationsPerformed": [
+      "applied Lichess setup move d5b5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "58848973a49269976c38115a7d74d14ae42f1f370a47c6b17214205ccec07c56"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-Cs1Vl",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "Cs1Vl",
+    "transformationsPerformed": [
+      "applied Lichess setup move b2f6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "5c3771b1ecda1ac4a06574e5f5c438ef4b97eb3f9d6186d69837ca760573f08a"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-EKNqo",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "EKNqo",
+    "transformationsPerformed": [
+      "applied Lichess setup move e3c4 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "b817921d554c145d0c02a184041d0886bd85e5b9a67a4754809781dbad34d34f"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-Fomel",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "Fomel",
+    "transformationsPerformed": [
+      "applied Lichess setup move g5f4 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "7978722b112529c5805e78223b25528dea97da606e93a2cfac3aa064a4927580"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-I48eU",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "I48eU",
+    "transformationsPerformed": [
+      "applied Lichess setup move e4e5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "3cab4748ceda56e69171843607af0fed355db0d595c754b53c39f242f326ce17"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-IvQrl",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "IvQrl",
+    "transformationsPerformed": [
+      "applied Lichess setup move c6d4 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "5ec3733f47735b41480bc5ff0d3b777cff695a8d8b4648f26169ab02a4746fa9"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-JOEpi",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "JOEpi",
+    "transformationsPerformed": [
+      "applied Lichess setup move f1f8 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "c8b4bbc3169cedad792afd41b510ac27375a2a478c51d55b8c08b96e103388d8"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-JfwEQ",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "JfwEQ",
+    "transformationsPerformed": [
+      "applied Lichess setup move h1c1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "a98148c92d370a4ef6915e32d41010721ee964b69c882f5a5e8bd1f940cbd73d"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-LZr4h",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "LZr4h",
+    "transformationsPerformed": [
+      "applied Lichess setup move g8g7 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "0df91f09917316355ff21edb0eb3b2c77f3a0f2aedc3034c50bd8ff072c5a5ae"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-MkHMK",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "MkHMK",
+    "transformationsPerformed": [
+      "applied Lichess setup move e2f1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "865bd0b5182f83d9bbeae807f981feda355d300906993c46a5961772936e037b"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-NuOub",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "NuOub",
+    "transformationsPerformed": [
+      "applied Lichess setup move e2g4 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "c9ddd47d36a90d781cef8f83a709ee9173a05d414d9d42813dd5d0834baf94a9"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-Oilo6",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "Oilo6",
+    "transformationsPerformed": [
+      "applied Lichess setup move a8d8 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "c8854da11d147e807796a5bb000c74dfc35948e21798282164869d2ededb1d3c"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-PJjdI",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "PJjdI",
+    "transformationsPerformed": [
+      "applied Lichess setup move b2b7 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "db5f4787c849f60e1d8e83ebff62e783fba417ec0ea72510c4a1f602a2ba3c32"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-PLxIg",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "PLxIg",
+    "transformationsPerformed": [
+      "applied Lichess setup move g6h5 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "bea09baae9798df05c57c69f1ce94b5ae6ce03229334fca7785a79d13f5c2b63"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-PP7Je",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "PP7Je",
+    "transformationsPerformed": [
+      "applied Lichess setup move h1h2 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "68cde1d41a787698d4c10045e8bd0d8bc2311b07853701c85563bd28b88d7eab"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-PY7GF",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "PY7GF",
+    "transformationsPerformed": [
+      "applied Lichess setup move d1e1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "6676443e46cfac9669f826ce0d67b7e87a395c13bae92527902f84705e4dea96"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-QmlZO",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "QmlZO",
+    "transformationsPerformed": [
+      "applied Lichess setup move d1f1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "50445980ee962d4ede6b5fcdb0308dc0e854faed362b4fafb092e776e5528513"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-TXw51",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "TXw51",
+    "transformationsPerformed": [
+      "applied Lichess setup move f2f1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "b69ef74fc3e9eb4ab12d65d89a7a9adc470a209b444d31a9621303ade82897b0"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-VLdq1",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "VLdq1",
+    "transformationsPerformed": [
+      "applied Lichess setup move e5f6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "4d61280aed46a9c86d76a6fd7ed2663e1c72f307d4e492ddd03428f0d125208b"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-VQaXl",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "VQaXl",
+    "transformationsPerformed": [
+      "applied Lichess setup move d2e3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, knight-fork] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "455d7ecef8aee69e042cb362eb78a5d79db2c5f079f617f46d1063aa035bfbf7"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-XT5CQ",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "XT5CQ",
+    "transformationsPerformed": [
+      "applied Lichess setup move f4c7 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "b73faf8be246b66771671bb04fd7dabb392d635d96f76c311780647f62669f74"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-a7PhY",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "a7PhY",
+    "transformationsPerformed": [
+      "applied Lichess setup move f3h4 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [fork, forking-patterns] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "8447f957894b5accd3b82eec3332618a5d233da30e0365488a16b237d457b77d"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-cWc3Q",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "cWc3Q",
+    "transformationsPerformed": [
+      "applied Lichess setup move d1e1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "224e2030eaedb71c5cfd70c3aee5f8821574a09ed1194f7b0e665e8d03b3533d"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-dHMYr",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "dHMYr",
+    "transformationsPerformed": [
+      "applied Lichess setup move c7e8 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "4ea38bbaf84b004d5dc16013115d1d5d57ec403a6355be3ba23c6bbb3d4a1121"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-hNuqy",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "hNuqy",
+    "transformationsPerformed": [
+      "applied Lichess setup move h7g6 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "16b3a477ad3f72ae3625804728c53faaba3ef86721fddb01a3528b58c07c8251"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-hs041",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "hs041",
+    "transformationsPerformed": [
+      "applied Lichess setup move d1e1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "1a04ac08a3904454d5bcdae6e3921965e84f04356b19a24dd5c34616811e4535"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-nbX5s",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "nbX5s",
+    "transformationsPerformed": [
+      "applied Lichess setup move e1f1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "52b094a730d8b1d59fabc24b012ea192182ba5ae32ab1401390066674c1b877e"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-oxwBm",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "oxwBm",
+    "transformationsPerformed": [
+      "applied Lichess setup move d5d8 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "997b504fb82558593811e0f846d48a89e0b3514b297654bb9f52db554db84b3a"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-sjebi",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "sjebi",
+    "transformationsPerformed": [
+      "applied Lichess setup move d8c8 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "06a027ffeb7a9ed8e4d4e29cc7e498f8a5b956c31de488747f7b0e9934d6a5bc"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-uDHrn",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "uDHrn",
+    "transformationsPerformed": [
+      "applied Lichess setup move b2b3 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "8e1788a0a395354e42f905e28086e59d32be10f907eb84f49db2ed6ea4f69f83"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-x0GG4",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "x0GG4",
+    "transformationsPerformed": [
+      "applied Lichess setup move h8b8 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "51af1412128cb1945cf2d9f12500cb10b9f39d9d17a8d805c8c051bda4076bac"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-x6ykp",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "x6ykp",
+    "transformationsPerformed": [
+      "applied Lichess setup move b1f1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "ab1f4d233aca3bfbcbe477f13ded13d10ed5716279d6c0feceb03c0dd5ac79dc"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-z0sxf",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "z0sxf",
+    "transformationsPerformed": [
+      "applied Lichess setup move c7d8 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "f6e5603f931218f0fa0347194013c1a13f7a18a360899ebc44e2337ecbde7e5d"
+  },
+  {
+    "contentId": "tactical-vision.puzzle-lichess-ztVZ2",
+    "sourceId": "lichess-puzzle-db-cc0",
+    "sourceUrl": "https://github.com/FeXd/puzzle-chess/blob/main/puzzles/offline/puzzles.csv",
+    "sourceVersionOrDate": "cddfa24b1a5a9013b99622d6d5e7093a64b1d55a",
+    "licence": "CC0-1.0",
+    "originalRecordId": "ztVZ2",
+    "transformationsPerformed": [
+      "applied Lichess setup move d7d1 to obtain the presented position",
+      "re-encoded presented FEN",
+      "kept single canonical solution move",
+      "derived theme tag(s) [checkmate, back-rank-tactics] via chess-rules geometry (source has no Themes column)"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:35:10.980Z",
+    "contentHash": "475db999093297305f0e31c0bc79159c39c71dd24ba1a6c4b205df3429a07944"
+  }
+]

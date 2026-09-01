@@ -24,10 +24,39 @@ export function findPuzzle(puzzleId: string): Puzzle | null {
   return null;
 }
 
-/** A Principle's own puzzle pool, in the order its `puzzleIds` declares. */
+/**
+ * A Principle's own puzzle pool, in the order its `puzzleIds` declares.
+ *
+ * Real, confirmed bug this fixes: this used to resolve ids only against
+ * `principle.unitId`'s own single puzzle file (`loadUnitPuzzles`), so any
+ * id belonging to a different file was silently dropped — `.filter((p) =>
+ * p !== undefined)` swallowed the miss instead of surfacing it. This
+ * broke as soon as content started referencing puzzles across files: the
+ * imported CC0 Lichess pack (`packages/content/puzzles/imported-lichess.json`)
+ * is a standalone file (its content spans multiple units' concepts, so it
+ * isn't itself named after any one unit), and principles in
+ * `basic-tactics.json`/`tactical-vision.json`/`check-and-checkmate.json`
+ * reference its puzzle ids directly — e.g. `basic-tactics.the-knight-fork`
+ * lists 14 `tactical-vision.puzzle-lichess-*` ids alongside its own 2
+ * hand-authored ones. Resolving against only `basic-tactics.json` silently
+ * served a 2-puzzle pool instead of the real 16-puzzle one (caught by
+ * apps/web/e2e/puzzle-practice.spec.ts timing out waiting for "Puzzle
+ * 1/16"). Fixed the same way `findPuzzle` already searches for a single
+ * id: build the id map from every puzzle file in the directory, not just
+ * one.
+ */
 export function loadPuzzlesForPrinciple(principle: Principle): Puzzle[] {
-  const pool = loadUnitPuzzles(principle.unitId);
-  const byId = new Map(pool.map((p) => [p.id, p]));
+  const byId = new Map<string, Puzzle>();
+  if (existsSync(PUZZLES_ROOT)) {
+    for (const file of readdirSync(PUZZLES_ROOT)) {
+      if (!file.endsWith(".json")) continue;
+      const data = JSON.parse(readFileSync(path.join(PUZZLES_ROOT, file), "utf-8"));
+      for (const raw of data) {
+        const puzzle = parsePuzzle(raw);
+        byId.set(puzzle.id, puzzle);
+      }
+    }
+  }
   return principle.puzzleIds.map((id) => byId.get(id)).filter((p): p is Puzzle => p !== undefined);
 }
 

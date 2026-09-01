@@ -5,8 +5,13 @@
     "title": "Checks, captures, and threats",
     "conceptId": "cct-scanning",
     "order": 0,
-    "subLessonIds": ["tactical-vision.01-checks-captures-and-threats"],
-    "puzzleIds": ["tactical-vision.puzzle-cct-1", "tactical-vision.puzzle-cct-2"]
+    "subLessonIds": [
+      "tactical-vision.01-checks-captures-and-threats"
+    ],
+    "puzzleIds": [
+      "tactical-vision.puzzle-cct-1",
+      "tactical-vision.puzzle-cct-2"
+    ]
   },
   {
     "id": "tactical-vision.hanging-pieces-in-combination",
@@ -14,8 +19,13 @@
     "title": "Hanging pieces in combination",
     "conceptId": "hanging-pieces-in-combination",
     "order": 1,
-    "subLessonIds": ["tactical-vision.02-hanging-pieces-in-combination"],
-    "puzzleIds": ["tactical-vision.puzzle-hanging-combo-1", "tactical-vision.puzzle-hanging-combo-2"]
+    "subLessonIds": [
+      "tactical-vision.02-hanging-pieces-in-combination"
+    ],
+    "puzzleIds": [
+      "tactical-vision.puzzle-hanging-combo-1",
+      "tactical-vision.puzzle-hanging-combo-2"
+    ]
   },
   {
     "id": "tactical-vision.knight-fork-tactics",
@@ -23,8 +33,13 @@
     "title": "Knight forks in combination",
     "conceptId": "knight-fork-tactics",
     "order": 2,
-    "subLessonIds": ["tactical-vision.03-knight-fork-tactics"],
-    "puzzleIds": ["tactical-vision.puzzle-knight-fork-tactics-1", "tactical-vision.puzzle-knight-fork-tactics-2"]
+    "subLessonIds": [
+      "tactical-vision.03-knight-fork-tactics"
+    ],
+    "puzzleIds": [
+      "tactical-vision.puzzle-knight-fork-tactics-1",
+      "tactical-vision.puzzle-knight-fork-tactics-2"
+    ]
   },
   {
     "id": "tactical-vision.forking-patterns",
@@ -32,8 +47,33 @@
     "title": "Other forks: pawn, bishop, rook, and queen",
     "conceptId": "forking-patterns",
     "order": 3,
-    "subLessonIds": ["tactical-vision.04-forking-patterns"],
-    "puzzleIds": ["tactical-vision.puzzle-forking-patterns-1", "tactical-vision.puzzle-forking-patterns-2"]
+    "subLessonIds": [
+      "tactical-vision.04-forking-patterns"
+    ],
+    "puzzleIds": [
+      "tactical-vision.puzzle-forking-patterns-1",
+      "tactical-vision.puzzle-forking-patterns-2",
+      "tactical-vision.puzzle-lichess-0n17w",
+      "tactical-vision.puzzle-lichess-175H9",
+      "tactical-vision.puzzle-lichess-28CsJ",
+      "tactical-vision.puzzle-lichess-2VQgo",
+      "tactical-vision.puzzle-lichess-35LMn",
+      "tactical-vision.puzzle-lichess-35dfy",
+      "tactical-vision.puzzle-lichess-3R8Xr",
+      "tactical-vision.puzzle-lichess-3iu7t",
+      "tactical-vision.puzzle-lichess-3uqCN",
+      "tactical-vision.puzzle-lichess-5qoNC",
+      "tactical-vision.puzzle-lichess-7RqH2",
+      "tactical-vision.puzzle-lichess-B0tCB",
+      "tactical-vision.puzzle-lichess-Cs1Vl",
+      "tactical-vision.puzzle-lichess-EKNqo",
+      "tactical-vision.puzzle-lichess-Fomel",
+      "tactical-vision.puzzle-lichess-IvQrl",
+      "tactical-vision.puzzle-lichess-Oilo6",
+      "tactical-vision.puzzle-lichess-VLdq1",
+      "tactical-vision.puzzle-lichess-XT5CQ",
+      "tactical-vision.puzzle-lichess-a7PhY"
+    ]
   },
   {
     "id": "tactical-vision.pins",
@@ -41,8 +81,13 @@
     "title": "Pins",
     "conceptId": "pins",
     "order": 4,
-    "subLessonIds": ["tactical-vision.05-pins"],
-    "puzzleIds": ["tactical-vision.puzzle-pins-1", "tactical-vision.puzzle-pins-2"]
+    "subLessonIds": [
+      "tactical-vision.05-pins"
+    ],
+    "puzzleIds": [
+      "tactical-vision.puzzle-pins-1",
+      "tactical-vision.puzzle-pins-2"
+    ]
   },
   {
     "id": "tactical-vision.skewers",
@@ -50,8 +95,13 @@
     "title": "Skewers",
     "conceptId": "skewers",
     "order": 5,
-    "subLessonIds": ["tactical-vision.06-skewers"],
-    "puzzleIds": ["tactical-vision.puzzle-skewers-1", "tactical-vision.puzzle-skewers-2"]
+    "subLessonIds": [
+      "tactical-vision.06-skewers"
+    ],
+    "puzzleIds": [
+      "tactical-vision.puzzle-skewers-1",
+      "tactical-vision.puzzle-skewers-2"
+    ]
   },
   {
     "id": "tactical-vision.discovered-attacks",
@@ -59,8 +109,13 @@
     "title": "Discovered attacks",
     "conceptId": "discovered-attacks",
     "order": 6,
-    "subLessonIds": ["tactical-vision.07-discovered-attacks"],
-    "puzzleIds": ["tactical-vision.puzzle-discovered-1", "tactical-vision.puzzle-discovered-2"]
+    "subLessonIds": [
+      "tactical-vision.07-discovered-attacks"
+    ],
+    "puzzleIds": [
+      "tactical-vision.puzzle-discovered-1",
+      "tactical-vision.puzzle-discovered-2"
+    ]
   },
   {
     "id": "tactical-vision.removing-the-defender",
@@ -68,8 +123,13 @@
     "title": "Removing the defender",
     "conceptId": "removing-the-defender",
     "order": 7,
-    "subLessonIds": ["tactical-vision.08-removing-the-defender"],
-    "puzzleIds": ["tactical-vision.puzzle-removing-defender-1", "tactical-vision.puzzle-removing-defender-2"]
+    "subLessonIds": [
+      "tactical-vision.08-removing-the-defender"
+    ],
+    "puzzleIds": [
+      "tactical-vision.puzzle-removing-defender-1",
+      "tactical-vision.puzzle-removing-defender-2"
+    ]
   },
   {
     "id": "tactical-vision.back-rank-tactics",
@@ -77,8 +137,41 @@
     "title": "Back-rank tactics",
     "conceptId": "back-rank-tactics",
     "order": 8,
-    "subLessonIds": ["tactical-vision.09-back-rank-tactics"],
-    "puzzleIds": ["tactical-vision.puzzle-back-rank-1", "tactical-vision.puzzle-back-rank-2"]
+    "subLessonIds": [
+      "tactical-vision.09-back-rank-tactics"
+    ],
+    "puzzleIds": [
+      "tactical-vision.puzzle-back-rank-1",
+      "tactical-vision.puzzle-back-rank-2",
+      "tactical-vision.puzzle-lichess-07qIe",
+      "tactical-vision.puzzle-lichess-0CBPG",
+      "tactical-vision.puzzle-lichess-0HfWa",
+      "tactical-vision.puzzle-lichess-0zEUE",
+      "tactical-vision.puzzle-lichess-1K2Ce",
+      "tactical-vision.puzzle-lichess-1N2CB",
+      "tactical-vision.puzzle-lichess-1dmBc",
+      "tactical-vision.puzzle-lichess-2Yhfi",
+      "tactical-vision.puzzle-lichess-6iE0E",
+      "tactical-vision.puzzle-lichess-AK3x7",
+      "tactical-vision.puzzle-lichess-JOEpi",
+      "tactical-vision.puzzle-lichess-JfwEQ",
+      "tactical-vision.puzzle-lichess-PJjdI",
+      "tactical-vision.puzzle-lichess-PP7Je",
+      "tactical-vision.puzzle-lichess-PY7GF",
+      "tactical-vision.puzzle-lichess-QmlZO",
+      "tactical-vision.puzzle-lichess-TXw51",
+      "tactical-vision.puzzle-lichess-cWc3Q",
+      "tactical-vision.puzzle-lichess-dHMYr",
+      "tactical-vision.puzzle-lichess-hs041",
+      "tactical-vision.puzzle-lichess-nbX5s",
+      "tactical-vision.puzzle-lichess-oxwBm",
+      "tactical-vision.puzzle-lichess-sjebi",
+      "tactical-vision.puzzle-lichess-uDHrn",
+      "tactical-vision.puzzle-lichess-x0GG4",
+      "tactical-vision.puzzle-lichess-x6ykp",
+      "tactical-vision.puzzle-lichess-z0sxf",
+      "tactical-vision.puzzle-lichess-ztVZ2"
+    ]
   },
   {
     "id": "tactical-vision.zwischenzug",
@@ -86,8 +179,13 @@
     "title": "Zwischenzug (in-between moves)",
     "conceptId": "zwischenzug",
     "order": 9,
-    "subLessonIds": ["tactical-vision.10-zwischenzug"],
-    "puzzleIds": ["tactical-vision.puzzle-zwischenzug-1", "tactical-vision.puzzle-zwischenzug-2"]
+    "subLessonIds": [
+      "tactical-vision.10-zwischenzug"
+    ],
+    "puzzleIds": [
+      "tactical-vision.puzzle-zwischenzug-1",
+      "tactical-vision.puzzle-zwischenzug-2"
+    ]
   },
   {
     "id": "tactical-vision.mixed-tactical-calculation",
@@ -95,7 +193,12 @@
     "title": "Mixed tactical calculation",
     "conceptId": "mixed-tactical-calculation",
     "order": 10,
-    "subLessonIds": ["tactical-vision.11-mixed-tactical-calculation"],
-    "puzzleIds": ["tactical-vision.puzzle-mixed-1", "tactical-vision.puzzle-mixed-2"]
+    "subLessonIds": [
+      "tactical-vision.11-mixed-tactical-calculation"
+    ],
+    "puzzleIds": [
+      "tactical-vision.puzzle-mixed-1",
+      "tactical-vision.puzzle-mixed-2"
+    ]
   }
 ]

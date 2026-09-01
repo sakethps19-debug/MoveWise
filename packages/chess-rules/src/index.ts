@@ -417,6 +417,34 @@ export function replayPgn(pgn: string): { move: Move; fenBefore: string; fenAfte
   }));
 }
 
+const ALL_SQUARES: Square[] = (() => {
+  const squares: Square[] = [];
+  for (const file of "abcdefgh") for (const rank of "12345678") squares.push(`${file}${rank}` as Square);
+  return squares;
+})();
+
+/**
+ * Every square the piece on `square` attacks in this position — i.e. every
+ * square where `game.attackers(target, colorOfPieceOnSquare)` includes
+ * `square`, checked over all 64 squares. This is the piece's raw attack
+ * pattern (chess.js's own `attackers()`, already relied on by
+ * `staticExchangeEval` above), not the narrower "legal destinations"
+ * `legalTargetsFrom` returns — a piece pinned to its own king still
+ * *attacks* along its pattern even though moving there would be illegal,
+ * which is the correct notion for tactics detection (e.g. import-time fork
+ * classification: "this move attacks two enemy pieces at once" is a
+ * pattern claim about the resulting position, not a legality claim about
+ * a follow-up move). Used by scripts/import-lichess-puzzles.ts's theme
+ * heuristics, offline and in batch, so the O(64) scan per call is cheap
+ * relative to the import run as a whole.
+ */
+export function squaresAttackedBy(fen: string, square: Square): Square[] {
+  const game = new Chess(fen);
+  const piece = game.get(square);
+  if (!piece) return [];
+  return ALL_SQUARES.filter((target) => target !== square && game.attackers(target, piece.color).includes(square));
+}
+
 const SEE_PIECE_VALUE: Record<PieceSymbol, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 1000 };
 
 /**

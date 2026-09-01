@@ -181,8 +181,11 @@ test("completing a principle's sub-lessons unlocks its puzzle pool, and solving 
   await expect(page.locator('[aria-label="h1, empty"]')).toBeVisible();
 
   // basic-tactics.the-knight-fork: knight c4 -> e5 forks the king and rook.
+  // Pool size is 16 (2 hand-authored + 14 imported CC0 Lichess puzzles —
+  // see docs/content-review-report.md); the hand-authored puzzle-1 is
+  // still served first, since imports were appended, not prepended.
   await page.goto("/practice/basic-tactics.the-knight-fork");
-  await expect(page.getByText("Puzzle 1/2")).toBeVisible();
+  await expect(page.getByText("Puzzle 1/16")).toBeVisible();
   await page.locator('[aria-label*="c4,"]').click();
   await page.locator('[aria-label*="e5,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
