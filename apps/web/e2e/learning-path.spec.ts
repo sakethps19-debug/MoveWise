@@ -63,6 +63,11 @@ test("guest progress persists locally, unlocks the next lesson, and migrates int
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
+  // One lesson in, the homepage is still the compact "Today" plan (P1
+  // curriculum-expansion fix) — expand it to see the per-lesson star
+  // rating this test is actually about.
+  await ensureFullCurriculumVisible(page);
+
   // Locally recorded: the completed lesson shows a star rating, and the
   // next lesson (whose only prerequisite is this one) is now unlocked.
   // (`exact: true` avoids also matching the "Continue learning" callout,
@@ -79,6 +84,7 @@ test("guest progress persists locally, unlocks the next lesson, and migrates int
   await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
   await page.click("button[type=submit]");
   await page.waitForURL("/");
+  await ensureFullCurriculumVisible(page);
 
   // The guest completion migrated into the new account: same star
   // rating, same lesson unlocked, now backed by the DB instead of
@@ -112,6 +118,7 @@ test("a perfect first run earns 3 stars; a run with mistakes earns fewer @smoke"
   await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
+  await ensureFullCurriculumVisible(page);
 
   // 2 mistakes -> 2 filled stars, not 3 (see docs/adr/0004 for the tiering rule)
   const lessonRow = page.locator(".mw-lesson-node", { hasText: "Welcome to the chessboard" });
@@ -168,6 +175,10 @@ test("meet-the-pieces shows principle groupings with a mastery badge (ADR-0008)"
   await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
+  // The compact-vs-full choice is component state, reset by this fresh
+  // navigation back to "/" — one lesson in still isn't a full chapter,
+  // so it needs expanding again here, not just once at the top of the test.
+  await ensureFullCurriculumVisible(page);
 
   // A perfect single attempt is enough evidence for "Proficient" per
   // lib/masteryModel.ts, and it shows up next to the principle heading.
@@ -299,6 +310,7 @@ test("a zero-mistake run that used a hint doesn't earn 3 stars", async ({ page }
   await expect(page.getByText(/hint used/)).toBeVisible();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
+  await ensureFullCurriculumVisible(page);
 
   const lessonRow = page.locator(".mw-lesson-node", { hasText: "Welcome to the chessboard" });
   await expect(lessonRow.locator("span[aria-label='2 of 3 stars']")).toBeVisible();

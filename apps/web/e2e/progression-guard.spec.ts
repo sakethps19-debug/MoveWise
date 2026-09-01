@@ -133,6 +133,9 @@ test("10. anonymous-user progression: a guest unlocking a principle-gated lesson
 
   // Reload — real, server-verified state, not a transient client render.
   await page.reload();
+  // Two lessons in, still short of a full chapter — the homepage is
+  // still the compact "Today" plan (P1 curriculum-expansion fix).
+  await ensureFullCurriculumVisible(page);
   const rookRow = page
     .locator(".mw-lesson-node")
     .filter({ has: page.locator(".mw-lesson-node-title", { hasText: "Meet the rook" }) });
@@ -154,6 +157,7 @@ test("10. anonymous-user progression: a guest unlocking a principle-gated lesson
   await page.fill("input[name=birthYear]", String(new Date().getFullYear() - 25));
   await page.click("button[type=submit]");
   await page.waitForURL("/");
+  await ensureFullCurriculumVisible(page);
   const rookRowSignedIn = page
     .locator(".mw-lesson-node")
     .filter({ has: page.locator(".mw-lesson-node-title", { hasText: "Meet the rook" }) });

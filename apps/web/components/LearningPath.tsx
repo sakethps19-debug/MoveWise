@@ -225,6 +225,23 @@ export function LearningPath({
   const nextUp = allLessons.find((l) => !isPassed(l) && statusFor(l) === "available");
   const testedOutOfEverything = !nextUp && demonstratedConceptIds.size > 0 && allLessons.every(isPassed);
 
+  // Real, reproduced defect this fixes: `hasAnyProgress` above answers
+  // "has this learner touched anything at all" — true the instant a
+  // single lesson is finished — but was also being used to decide
+  // whether to blow past the compact "Today" preview (below) straight
+  // into the full ~33-lesson curriculum map. A brand-new learner who
+  // commits five minutes a day, finishes lesson 1, and reloads the
+  // homepage got dumped into a wall of locked cards instead of the same
+  // helpful compact plan they'd seen a minute earlier — exactly the
+  // reported defect. The curriculum map earns its place once a learner
+  // has cleared a real, promised milestone: the compact preview's own
+  // "Current chapter — N lessons — next milestone: complete them all"
+  // copy already names it. A placement result that demonstrates real
+  // prior knowledge (never the "learn from scratch" persona this bug
+  // targets) still expands immediately, same as before.
+  const hasCompletedFirstUnit = (units[0]?.lessons.length ?? 0) > 0 && (units[0]?.lessons.every((l) => isPassed(l)) ?? false);
+  const readyForFullCurriculum = hasCompletedFirstUnit || demonstratedConceptIds.size > 0;
+
   // Phase 5's "review-needed section": principles whose concept has
   // regressed to "struggling" per lib/masteryModel.ts — real signal
   // already computed from ExerciseAttempt history, not a placeholder.
@@ -300,7 +317,7 @@ export function LearningPath({
         </Link>
       )}
 
-      {hasAnyProgress || manuallyExpanded ? (
+      {readyForFullCurriculum || manuallyExpanded ? (
         units.map((unit) => {
         const completedInUnit = unit.lessons.filter((l) => statusFor(l) === "completed").length;
         // Real, confirmed gap this closes: a rated learner whose placement

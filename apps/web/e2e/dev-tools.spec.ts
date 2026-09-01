@@ -41,6 +41,9 @@ test("dev reset control clears a signed-in account's lesson progress", async ({ 
   await page.getByRole("button", { name: "Finish lesson" }).click();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
+  // One lesson in, the homepage is still the compact "Today" plan (P1
+  // curriculum-expansion fix) — expand it to see the row this test checks.
+  await ensureFullCurriculumVisible(page);
   // Filtered by the row's own title element, not hasText on the whole
   // row — lesson-02's "Unlocks after ..." subtitle quotes this same
   // lesson's title as substring text, which would otherwise match two rows.
