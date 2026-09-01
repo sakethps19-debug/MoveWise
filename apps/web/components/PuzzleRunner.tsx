@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Puzzle } from "@movewise/exercise-schema";
 import { legalTargetsFrom, moveMatches, tryMove, type Square } from "@movewise/chess-rules";
@@ -52,6 +52,20 @@ export function PuzzleRunner({
   const [feedback, setFeedback] = useState<string | null>(null);
   const [selected, setSelected] = useState<Square | null>(null);
   const [solved, setSolved] = useState(0);
+  // Real, confirmed bug this fixes: the completion screen's own "X of Y
+  // solved on the first try" text used `solved` above, which counts every
+  // puzzle eventually completed — since finishing a set requires solving
+  // each one (there's no skip), `solved` always equals `puzzles.length` by
+  // the time this screen renders, regardless of how many retries it took.
+  // A learner who got puzzle 1 wrong, retried, then solved puzzle 2 clean
+  // saw "2 of 2 solved on the first try" — directly contradicting
+  // ConfirmationActivity's own, separately-computed "this needs a closer
+  // look" outcome (which correctly tracks every attempt, not just the
+  // final one). `firstTry` is a genuinely distinct count, incremented only
+  // when the puzzle now finishing was never previously marked incorrect —
+  // `missedThisPuzzleRef` resets per puzzle below.
+  const [firstTry, setFirstTry] = useState(0);
+  const missedThisPuzzleRef = useRef(false);
   const [finished, setFinished] = useState(false);
   const [syncError, setSyncError] = useState(false);
 
@@ -70,6 +84,7 @@ export function PuzzleRunner({
   const [fen, setFen] = useState(puzzle.fen);
   useEffect(() => {
     setFen(puzzle.fen);
+    missedThisPuzzleRef.current = false;
   }, [puzzle.fen]);
 
   const legalTargets = useMemo(
@@ -88,7 +103,7 @@ export function PuzzleRunner({
         <h1 className="mw-completion-title">{completionTitle}</h1>
         {completionMessage && <p className="mw-completion-explanation">{completionMessage}</p>}
         <p className="mw-completion-explanation">
-          {solved} of {puzzles.length} solved on the first try.
+          {firstTry} of {puzzles.length} solved on the first try.
         </p>
         <p role="status" className="mw-completion-xp">
           +{solved * PUZZLE_XP} XP
@@ -141,6 +156,7 @@ export function PuzzleRunner({
     if (!result || !moveMatches(result.move, puzzle.correctMoves)) {
       if (onAttempt) Promise.resolve(onAttempt(puzzle.id, false)).catch(() => setSyncError(true));
       else recordGuestPracticeAttempt(false, puzzle.conceptIds);
+      missedThisPuzzleRef.current = true;
       setStatus("incorrect");
       setFeedback(puzzle.feedback.default ?? "Not quite — try again.");
       return;
@@ -149,6 +165,7 @@ export function PuzzleRunner({
     else recordGuestPracticeAttempt(true);
     setFen(result.fenAfter);
     setSolved((s) => s + 1);
+    if (!missedThisPuzzleRef.current) setFirstTry((f) => f + 1);
     setStatus("correct");
     setFeedback(null);
   }

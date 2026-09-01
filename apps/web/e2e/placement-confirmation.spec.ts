@@ -62,6 +62,7 @@ test("solving a concept's confirmation activity first-try promotes it to real, c
   await solveBothPuzzlesCorrectly(page);
 
   await expect(page.getByRole("heading", { name: "Thanks — confirmed" })).toBeVisible();
+  await expect(page.getByText("2 of 2 solved on the first try.")).toBeVisible();
   await expect(page.getByRole("link", { name: /Back to Board basics/i })).toBeVisible();
 
   const userId = dbHelper("get-user-id", { email });
@@ -127,6 +128,18 @@ test("a wrong answer during confirmation contradicts the evidence honestly witho
   await expect(page.getByText(/refining what we know about your placement/)).toBeVisible();
   await expect(page.getByText(/not marking anything as failed/)).toBeVisible();
   await expect(page.getByRole("link", { name: /Review the lesson for board orientation/i })).toBeVisible();
+
+  // Real, confirmed bug this reproduces exactly as reported live: this
+  // exact journey (puzzle 1 wrong then correct, puzzle 2 correct) used to
+  // ALSO show "2 of 2 solved on the first try" on this same screen —
+  // PuzzleRunner's `solved` counter tracked "eventually completed," which
+  // trivially always equals the puzzle count once a set is finished (there
+  // is no way to skip an unsolved puzzle), never actual first-try
+  // accuracy. A learner would see "needs a closer look" and "2 of 2 solved
+  // on the first try" on the same screen — a direct contradiction. Only 1
+  // of the 2 puzzles here was genuinely solved on the first try.
+  await expect(page.getByText("1 of 2 solved on the first try.")).toBeVisible();
+  await expect(page.getByText("2 of 2 solved on the first try.")).toHaveCount(0);
   await page.waitForTimeout(300);
 
   const mastery = JSON.parse(dbHelper("get-user-concept-mastery", { userId, conceptId: CONCEPT_ID }));

@@ -115,7 +115,14 @@ test("completing a principle's sub-lessons unlocks its puzzle pool, and solving 
   await page.getByRole("button", { name: "Finish practice" }).click();
 
   await expect(page.getByRole("heading", { name: "Practice complete!" })).toBeVisible();
-  await expect(page.getByText("2 of 2 solved on the first try.")).toBeVisible();
+  // Real, confirmed bug this reproduces and fixes: PuzzleRunner's summary
+  // used to count "puzzles eventually completed" (always equal to
+  // puzzles.length once a set is finished, since there's no way to skip
+  // an unsolved one) and mislabel it "solved on the first try" — this
+  // exact journey (puzzle 1 wrong-then-correct, puzzle 2 correct) used to
+  // still claim "2 of 2 solved on the first try," which this test itself
+  // previously (wrongly) asserted. Only puzzle 2 was genuinely first-try.
+  await expect(page.getByText("1 of 2 solved on the first try.")).toBeVisible();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
