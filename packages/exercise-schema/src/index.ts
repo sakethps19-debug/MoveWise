@@ -280,6 +280,14 @@ export const PuzzleSchema = z
     /** Shown on a correct answer — explains WHY it's correct, matching every other exercise type's standardized feedback. */
     successExplanation: z.string().min(1).optional(),
     sourceGameId: z.string().min(1).optional(),
+    /**
+     * When this puzzle was imported from an external dataset (not
+     * hand-authored), the contentId of its ProvenanceRecord in
+     * packages/content/provenance/*.json — see
+     * packages/exercise-schema/src/provenance.ts. Absent for
+     * hand-authored puzzles, which need no external provenance.
+     */
+    provenanceId: z.string().min(1).optional(),
     /** Concept-level prerequisites beyond this puzzle's own conceptIds — same role as Lesson.prerequisiteConceptIds. */
     prerequisiteConceptIds: z.array(z.string().min(1)).optional(),
     suitableLevel: z.enum(["new-to-chess", "improving", "advanced"]).optional(),

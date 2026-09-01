@@ -23,12 +23,14 @@ import { parseLesson, parseConcept, parsePrinciple, parsePuzzle, type Lesson, ty
 import { validateLesson, validatePuzzle, impliedMoveConceptIds } from "../packages/exercise-schema/src/validate-chess";
 import { validateInstructionalQuality, validatePuzzleInstructionalQuality } from "../packages/exercise-schema/src/validate-instructional";
 import { DETECTABLE_CONCEPT_IDS } from "../apps/web/lib/conceptDetection";
+import { parseProvenanceRecord, validateProvenanceManifest, type ProvenanceRecord } from "../packages/exercise-schema/src/provenance";
 
 const CONTENT_ROOT = join(import.meta.dirname, "../packages/content");
 const UNITS_ROOT = join(CONTENT_ROOT, "units");
 const CONCEPTS_FILE = join(CONTENT_ROOT, "concepts.json");
 const PRINCIPLES_ROOT = join(CONTENT_ROOT, "principles");
 const PUZZLES_ROOT = join(CONTENT_ROOT, "puzzles");
+const PROVENANCE_ROOT = join(CONTENT_ROOT, "provenance");
 
 function* walkLessonFiles(dir: string): Generator<string> {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -100,6 +102,45 @@ if (existsSync(PUZZLES_ROOT)) {
       }
     }
     if (fileOk) console.log(`✓ ${filePath} (${raw.length} puzzles)`);
+  }
+}
+
+// Provenance manifest (P0 content-provenance requirement — see
+// docs/content-licensing-policy.md). Every ProvenanceRecord is validated
+// individually and cross-manifest (duplicate contentId, content-hash
+// drift, source/licence mismatch); every puzzle that declares a
+// provenanceId must resolve to a real, non-rejected record.
+const provenanceById = new Map<string, ProvenanceRecord>();
+if (existsSync(PROVENANCE_ROOT)) {
+  const allRecords: ProvenanceRecord[] = [];
+  for (const file of readdirSync(PROVENANCE_ROOT)) {
+    if (!file.endsWith(".json")) continue;
+    const filePath = join(PROVENANCE_ROOT, file);
+    const raw = JSON.parse(readFileSync(filePath, "utf-8"));
+    let fileOk = true;
+    for (const entry of raw) {
+      const record = parseProvenanceRecord(entry); // throws on structural schema violation
+      allRecords.push(record);
+      provenanceById.set(record.contentId, record);
+    }
+    if (fileOk) console.log(`✓ ${filePath} (${raw.length} provenance records)`);
+  }
+  const provenanceIssues = validateProvenanceManifest(allRecords);
+  for (const issue of provenanceIssues) {
+    failures += 1;
+    console.error(`\n✗ ${PROVENANCE_ROOT}\n  [${issue.contentId}] ${issue.message}`);
+  }
+}
+
+for (const puzzle of puzzlesById.values()) {
+  if (!puzzle.provenanceId) continue;
+  const record = provenanceById.get(puzzle.provenanceId);
+  if (!record) {
+    failures += 1;
+    console.error(`\n✗ ${puzzle.id}\n  provenanceId "${puzzle.provenanceId}" has no matching record in ${PROVENANCE_ROOT}`);
+  } else if (record.validationStatus === "rejected") {
+    failures += 1;
+    console.error(`\n✗ ${puzzle.id}\n  provenanceId "${puzzle.provenanceId}" is marked "rejected" and must not be referenced by shipped content`);
   }
 }
 
