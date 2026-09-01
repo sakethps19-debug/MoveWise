@@ -1,0 +1,19 @@
+[
+  {
+    "contentId": "openings.lichess-org-chess-openings-dataset",
+    "sourceId": "lichess-org-chess-openings",
+    "sourceUrl": "https://github.com/lichess-org/chess-openings",
+    "sourceVersionOrDate": "4b8622759e7ae6f93f011cc6c83a3823401ab45e",
+    "licence": "CC0-1.0",
+    "originalRecordId": "a.tsv+b.tsv+c.tsv+d.tsv+e.tsv (full dataset)",
+    "transformationsPerformed": [
+      "parsed PGN move-number tokens out of the pgn column",
+      "replayed each move sequence with chess-rules to verify legality; illegal rows rejected",
+      "deduplicated by exact move sequence"
+    ],
+    "validationStatus": "passed",
+    "attributionRequired": false,
+    "importTimestamp": "2026-09-01T20:22:10.593Z",
+    "contentHash": "f06c547b42a8ab1ad310fbf74f290e06f781843d1368318a2de2e1d30d4ec1cd"
+  }
+]
