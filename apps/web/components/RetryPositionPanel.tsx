@@ -23,11 +23,14 @@ export function RetryPositionPanel({
   move,
   lessonTitleById,
   onClose,
+  flipped = false,
 }: {
   fenBefore: string;
   move: MoveAnalysis;
   lessonTitleById: Record<string, string>;
   onClose: () => void;
+  /** Matches the review board's own orientation — see Board's own doc comment. */
+  flipped?: boolean;
 }) {
   const [selected, setSelected] = useState<Square | null>(null);
   const [status, setStatus] = useState<"active" | "correct" | "incorrect">("active");
@@ -61,7 +64,14 @@ export function RetryPositionPanel({
       </p>
 
       <div style={{ display: "flex", justifyContent: "center", margin: "var(--mw-space-2) 0" }}>
-        <Board fen={fenBefore} selected={selected} legalTargets={legalTargets} onSquareClick={handleClick} maxWidth={480} />
+        <Board
+          fen={fenBefore}
+          selected={selected}
+          legalTargets={legalTargets}
+          onSquareClick={handleClick}
+          maxWidth={480}
+          flipped={flipped}
+        />
       </div>
 
       {status === "correct" && (

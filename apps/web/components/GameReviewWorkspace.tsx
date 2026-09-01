@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { buildPgn, sanToSquares } from "@movewise/chess-rules";
+import { buildPgn, gameStatus, sanToSquares } from "@movewise/chess-rules";
 import type { GameReview, MoveAnalysis, MoveClassification } from "../lib/gameAnalysis";
-import { CLASSIFICATION_LABEL } from "../lib/gameAnalysis";
+import { CLASSIFICATION_LABEL, MIN_LEARNER_MOVES_FOR_OVERALL_ASSESSMENT, learnerMoveCount } from "../lib/gameAnalysis";
+import { identifyOpening } from "../lib/openingBook";
 import { formatEval, formatEvalLoss } from "../lib/evalFormat";
 import { Board } from "./Board";
 import { Button } from "./ui/Button";
@@ -45,6 +46,19 @@ function summaryLine(summary: GameReview["summary"]): string {
 }
 
 /**
+ * The only other way PlayRunner ends a game besides the rules themselves
+ * (checkmate/stalemate/draw) is resignation — and a resigned position is
+ * indistinguishable from an ongoing one by the rules alone, so "the
+ * final position isn't itself game-over" is the one reliable signal
+ * available here without threading extra state through. Real games
+ * only — an isDemo review's SAN sequence was never actually played, so
+ * "resignation" doesn't meaningfully apply to it.
+ */
+function endedByResignation(finalFen: string, sanHistory: string[]): boolean {
+  return gameStatus(finalFen, sanHistory) === "in-progress";
+}
+
+/**
  * Replaces the old static-table-only review (GameReviewPanel +
  * GameReviewWithRetry) with an interactive workspace: a real board that
  * steps through the game ply by ply, a compact selectable move list, and
@@ -72,6 +86,13 @@ export function GameReviewWorkspace({
   const [filter, setFilter] = useState<"learner" | "full">(learnerColor ? "learner" : "full");
   const [tryingBetterMove, setTryingBetterMove] = useState(false);
   const [pgnCopied, setPgnCopied] = useState(false);
+  // Real, reproduced defect this fixes: review always rendered White-
+  // oriented, even for a game played as Black — mismatched against the
+  // game itself (and, before the Play & Learn fix, against nothing, since
+  // that board didn't flip either). Defaults to match the side actually
+  // played; independent afterward and stays put across ply navigation
+  // (goTo never touches this state), same as Play & Learn's own control.
+  const [flipped, setFlipped] = useState(learnerColor === "b");
 
   const lastPly = review.moves.length;
   const currentMove = selectedPly > 0 ? review.moves[selectedPly - 1] : null;
@@ -144,6 +165,19 @@ export function GameReviewWorkspace({
     .map((move, i) => ({ move, ply: i + 1 }))
     .filter(({ move }) => TURNING_POINT_CLASSIFICATIONS.has(move.classification));
 
+  // P1 "honest short-game review" — real, reproduced defect: a 3-move
+  // game (2 learner moves) resigned early was summarized as "Clean game
+  // — no blunders or mistakes, 2 best-or-better moves," a confident
+  // overall-quality claim from a sample size that can't support one.
+  // Demo data is explicitly illustrative already (the DEMO banner above)
+  // and was never actually played, so this only ever applies to a real
+  // review. Per-move analysis (the board, move list, and each move's own
+  // classification/explanation below) is unaffected either way.
+  const reliableSampleSize = review.isDemo || learnerMoveCount(review.moves, learnerColor) >= MIN_LEARNER_MOVES_FOR_OVERALL_ASSESSMENT;
+  const finalFen = positions[positions.length - 1] ?? positions[0];
+  const resigned = !review.isDemo && review.moves.length > 0 && endedByResignation(finalFen, review.moves.map((m) => m.playedMove));
+  const opening = review.isDemo ? null : identifyOpening(review.moves.map((m) => m.playedMove));
+
   return (
     <div className="mw-game-review">
       {review.isDemo && (
@@ -157,9 +191,30 @@ export function GameReviewWorkspace({
       )}
 
       <h3 className="mw-game-review-heading">2. Review the game{review.isDemo ? " (sample)" : ""}</h3>
-      <p className="mw-game-review-summary" role="status">
-        {summaryLine(review.summary)}
-      </p>
+      {reliableSampleSize ? (
+        <p className="mw-game-review-summary" role="status">
+          {summaryLine(review.summary)}
+        </p>
+      ) : (
+        <div className="mw-game-review-summary mw-game-review-summary--short" role="status">
+          <p style={{ margin: 0 }}>
+            Too few moves ({learnerMoveCount(review.moves, learnerColor)}) for a reliable overall assessment — every
+            move below still has its own real analysis, but a "clean game" or accuracy claim from a game this short
+            wouldn&apos;t mean much.
+          </p>
+          {resigned && (
+            <p style={{ margin: 0 }}>
+              This game ended by resignation, not by a forced result — the position itself hadn&apos;t reached
+              checkmate or a draw.
+            </p>
+          )}
+          {opening && (
+            <p style={{ margin: 0 }}>
+              Opening: <strong>{opening.name}</strong>. {opening.idea}
+            </p>
+          )}
+        </div>
+      )}
 
       {!review.isDemo && review.moves.length > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: "var(--mw-space-3)" }}>
@@ -213,7 +268,22 @@ export function GameReviewWorkspace({
 
       <div className="mw-review-workspace">
         <div className="mw-review-board-col">
-          <Board fen={currentFen} lastMove={playedSquares} arrow={bestSquares} interactive={false} maxWidth={420} />
+          <Board
+            fen={currentFen}
+            lastMove={playedSquares}
+            arrow={bestSquares}
+            interactive={false}
+            maxWidth={420}
+            flipped={flipped}
+          />
+          <Button
+            variant="ghost"
+            onClick={() => setFlipped((f) => !f)}
+            aria-pressed={flipped}
+            aria-label={flipped ? "Flip board to White's view" : "Flip board to Black's view"}
+          >
+            ⇅ Flip board
+          </Button>
           <div className="mw-review-nav" role="group" aria-label="Move navigation">
             <Button variant="ghost" onClick={() => goTo(0)} disabled={selectedPly === 0}>
               Start
@@ -290,6 +360,7 @@ export function GameReviewWorkspace({
                   move={currentMove}
                   lessonTitleById={lessonTitleById}
                   onClose={() => setTryingBetterMove(false)}
+                  flipped={flipped}
                 />
               )}
 
