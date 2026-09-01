@@ -101,6 +101,27 @@ export interface GameReview {
   recommendedLessonIds: string[];
 }
 
+/**
+ * P1 "honest short-game review": a real, reproduced defect — 1.e4 e5
+ * 2.Nc3 Nf6 3.Bc4, resigned after only 2 learner moves, was reported as
+ * "Clean game — no blunders or mistakes, 2 best-or-better moves" — a
+ * confident overall-quality claim built from a sample size too small to
+ * support it. `summarize()`'s per-classification counts are always real
+ * (each one is a genuine per-move classification), but an *aggregate*
+ * claim like "clean game" implies something about the learner's play in
+ * general, which 1-2 moves can never actually demonstrate. Below this
+ * threshold, the UI (GameReviewWorkspace) must drop every overall
+ * accuracy/performance/weakness claim and say so explicitly — per-move
+ * analysis stays fully available regardless (every move still has a
+ * real classification, eval, and explanation).
+ */
+export const MIN_LEARNER_MOVES_FOR_OVERALL_ASSESSMENT = 5;
+
+/** How many of `moves` were actually played by the learner — every move when `learnerColor` isn't known (a stand-alone review with no game-side context, where every move is already treated as equally real per GameReviewWorkspace's own doc comment). */
+export function learnerMoveCount(moves: MoveAnalysis[], learnerColor?: "w" | "b"): number {
+  return learnerColor ? moves.filter((m) => m.color === learnerColor).length : moves.length;
+}
+
 /** Exported for app/actions.ts to persist as GameAnalysis.summary. */
 export function summarize(moves: MoveAnalysis[]): Record<MoveClassification, number> {
   const summary: Record<MoveClassification, number> = {
