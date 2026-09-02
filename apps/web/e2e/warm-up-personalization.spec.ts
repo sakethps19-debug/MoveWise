@@ -22,7 +22,7 @@ const ALL_CORRECT_MOVES: { from: string; to: string }[] = [
  * P0 "personalize the Daily Warm-up" — the exact "rated learner's Daily
  * Warm-up isn't elementary king movement" requirement from the 16 named
  * E2E journeys. Before this fix, /practice/warm-up always served
- * meet-the-pieces' board-basics king-move puzzles (verified in
+ * meet-the-pieces' board-basics puzzles (verified in
  * practice-fresh-user.spec.ts, which still checks that behavior for a
  * genuinely fresh learner) — this checks the other half: once a
  * placement result demonstrates the whole curriculum, warm-up content

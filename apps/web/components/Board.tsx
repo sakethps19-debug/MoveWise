@@ -55,11 +55,18 @@ export function parseFenBoard(fen: string): ParsedSquare[][] {
   });
 }
 
-/** Center of a square in an 8x8 (0..8) coordinate space, a8 at the top-left. */
-function squareCenter(square: Square): { x: number; y: number } {
+/**
+ * Center of a square in an 8x8 (0..8) coordinate space, a8 at the
+ * top-left by default; with `flipped`, h1 is at the top-left instead —
+ * Black's own view of the board — so a hint arrow still points at the
+ * square as actually displayed, not its absolute (White-oriented) spot.
+ */
+function squareCenter(square: Square, flipped: boolean): { x: number; y: number } {
   const file = FILES.indexOf(square[0] as (typeof FILES)[number]);
   const rank = Number(square[1]);
-  return { x: file + 0.5, y: 8 - rank + 0.5 };
+  const x = flipped ? 7 - file : file;
+  const y = flipped ? rank - 1 : 8 - rank;
+  return { x: x + 0.5, y: y + 0.5 };
 }
 
 export interface BoardProps {
@@ -90,6 +97,15 @@ export interface BoardProps {
    * board is that screen's dominant element.
    */
   maxWidth?: number;
+  /**
+   * Renders from Black's own perspective — a8 at the bottom-right, h1 at
+   * the top-left — instead of the default White-oriented view. A pure
+   * display transform: `fen`/`selected`/`legalTargets`/etc. all stay in
+   * absolute square-space (`onSquareClick` still reports the real square
+   * tapped, e.g. "e5"), so nothing about move validation, analysis, or
+   * any other consumer of a square id needs to know this happened.
+   */
+  flipped?: boolean;
 }
 
 export function Board({
@@ -104,18 +120,24 @@ export function Board({
   interactive = true,
   describedBy,
   maxWidth = 560,
+  flipped = false,
 }: BoardProps) {
   const rows = parseFenBoard(fen);
+  // Reversing both dimensions is a 180° rotation of the same grid — every
+  // square keeps its real light/dark color (the (rowIndex+colIndex)%2
+  // parity below is invariant under a full reversal), so nothing else
+  // needs to change to render Black's own view of the board.
+  const displayRows = flipped ? rows.slice().reverse().map((row) => row.slice().reverse()) : rows;
 
   return (
     <div className="mw-chessboard-shell" style={{ width: `min(100%, ${maxWidth}px)` }}>
       <div
         className="mw-chessboard"
         role="grid"
-        aria-label="Chessboard"
+        aria-label={flipped ? "Chessboard, viewed from Black's side" : "Chessboard"}
         aria-describedby={describedBy}
       >
-        {rows.map((row, rowIndex) => (
+        {displayRows.map((row, rowIndex) => (
           // ARIA requires a gridcell's parent to have role="row" (an
           // axe-core "aria-required-parent" violation without this) —
           // display: contents keeps the row out of the box-layout tree so
@@ -123,7 +145,7 @@ export function Board({
           // the CSS grid above (`grid-template-columns`/`-rows` in
           // design-system.css), while still being real DOM ancestors for
           // the accessibility tree.
-          <div role="row" key={`rank-${8 - rowIndex}`} style={{ display: "contents" }}>
+          <div role="row" key={`row-${row[0]?.square ?? rowIndex}`} style={{ display: "contents" }}>
             {row.map(({ square, piece }, colIndex) => {
               const isLight = (rowIndex + colIndex) % 2 === 0;
               const isSelected = selected === square;
@@ -187,7 +209,7 @@ export function Board({
                         opacity: isError || isHighlighted || wasLastMove ? 0.85 : 0.7,
                       }}
                     >
-                      {8 - rowIndex}
+                      {square[1]}
                     </span>
                   )}
                   {isBottomEdge && (
@@ -199,7 +221,7 @@ export function Board({
                         opacity: isError || isHighlighted || wasLastMove ? 0.85 : 0.7,
                       }}
                     >
-                      {FILES[colIndex]}
+                      {square[0]}
                     </span>
                   )}
                   {piece && (
@@ -235,8 +257,8 @@ export function Board({
             </marker>
           </defs>
           {(() => {
-            const from = squareCenter(arrow.from);
-            const to = squareCenter(arrow.to);
+            const from = squareCenter(arrow.from, flipped);
+            const to = squareCenter(arrow.to, flipped);
             const dx = to.x - from.x;
             const dy = to.y - from.y;
             const length = Math.hypot(dx, dy) || 1;

@@ -20,7 +20,7 @@ function uniqueEmail(prefix: string) {
  * Coverage for the new Tactical Vision unit (packages/content/units/tactical-vision).
  * Two things this file establishes that nothing else does:
  *  - tactical-vision.01 is reachable once basic-tactics' terminal lesson
- *    (basic-tactics.04-is-this-trade-worth-it, the cross-unit prerequisite
+ *    (basic-tactics.05-the-opposition, the cross-unit prerequisite
  *    scripts/validate-content.ts enforces) is done, and its full exercise
  *    mix (explain/true-false/mcq/move-piece/capture/review) plays through
  *    for real.
@@ -134,7 +134,7 @@ test("tactical vision: a signed-in account can reach and complete lesson 1 after
   // covered elsewhere (cross-unit-progression.spec.ts, lessons.spec.ts);
   // what this test needs from them is only that they're done, so
   // tactical-vision.01's real cross-unit prerequisite
-  // (basic-tactics.04-is-this-trade-worth-it) is genuinely satisfied.
+  // (basic-tactics.05-the-opposition) is genuinely satisfied.
   dbHelper("seed-completions", {
     userId,
     lessonIds: [
@@ -159,6 +159,7 @@ test("tactical vision: a signed-in account can reach and complete lesson 1 after
       "basic-tactics.02-hanging-pieces",
       "basic-tactics.03-opening-development",
       "basic-tactics.04-is-this-trade-worth-it",
+      "basic-tactics.05-the-opposition",
     ],
   });
 

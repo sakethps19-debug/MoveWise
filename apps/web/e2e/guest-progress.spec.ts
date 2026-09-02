@@ -49,11 +49,13 @@ test("guest Progress reflects a warm-up completion and a practice attempt", asyn
   // Solve every warm-up puzzle by revealing and following its own
   // correct-move feedback loop is unnecessary here — this only needs at
   // least one real recorded attempt, not a full completion, so a single
-  // deliberate wrong click (any square that isn't the puzzle's solution)
-  // is enough to generate one real practice-attempt record.
+  // deliberate wrong click is enough to generate one real practice-
+  // attempt record. Per the P0 curriculum-integrity fix, Board Basics'
+  // puzzles are now "select-square" (one tap is one complete attempt),
+  // not "move" (a from/to pair) — a second click here would record a
+  // second, separate attempt instead of completing the first one.
   const board = page.locator(".mw-chessboard").first();
   await board.locator("button[data-square]").first().click();
-  await board.locator("button[data-square]").nth(1).click();
 
   await page.goto("/progress");
   const practiceStat = page.locator(".mw-progress-stat", { hasText: "practice accuracy" });

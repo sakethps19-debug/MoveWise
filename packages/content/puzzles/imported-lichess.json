@@ -1,0 +1,2043 @@
+[
+  {
+    "id": "tactical-vision.puzzle-lichess-05tJf",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "8/p7/k3K3/1p3P2/2p4p/P1B2r2/8/1R6 b - - 2 45",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "f3c3"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Rxc3 captures the bishop — the rook moved straight along the 3rd rank to c3. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-05tJf"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-07qIe",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "4rk2/ppp1rp1p/8/5p2/3p4/P2P2R1/KPP5/6R1 w - - 0 26",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "g3g8"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rg8# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-07qIe"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-0BxmS",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r4k1r/pp1b1p1p/6p1/b1p5/4P3/2N5/PP1R1PPP/5RK1 w - - 0 17",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "d2d7"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Rxd7 captures the bishop — the rook moved straight along the d-file to d7. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-0BxmS"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-0CBPG",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "6k1/ppr3p1/6P1/8/8/P2R4/1KP5/8 w - - 1 31",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "d3d8"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rd8# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-0CBPG"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-0HfWa",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "8/4ppk1/6pp/2Q5/4r3/P5Pb/5P1P/4R1K1 b - - 0 32",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "e4e1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rxe1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-0HfWa"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-0IpoN",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "2kr1r2/ppp5/7p/n2q1p2/3Pn1p1/1PP1Q3/P2N2Pb/RNB2RK1 w - - 0 20",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "g1h2"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Kxh2 captures the bishop — the king moved diagonally to h2. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-0IpoN"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-0Nfsj",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "4N1k1/5p2/1p4p1/4p2p/Pb2P3/5P1P/6P1/1Kr5 w - - 0 33",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "b1c1"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Kxc1 captures the rook — the king moved straight along the 1st rank to c1. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-0Nfsj"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-0Wmez",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "8/8/2R5/pp1pknN1/4p1n1/2N5/PPP1K3/8 b - - 0 47",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "f5d4"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the knight moved in an L-shape to d4. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-0Wmez"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-0icN3",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "8/8/5k2/1Kb5/8/8/8/5n2 w - - 0 80",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "b5c5"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Kxc5 captures the bishop — the king moved straight along the 5th rank to c5. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-0icN3"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-0n17w",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "rn1qkb1r/pp3ppp/3Pp3/1NPn4/8/8/PPP2PPP/R1BQK1NR b KQkq - 0 8",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "d8a5"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the queen moved diagonally to a5. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-0n17w"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-0oMgy",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r4rk1/1p4pp/p2p4/P2Pppn1/1P2P3/2N1Q1Pq/3B1P2/R5K1 w - - 0 30",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "e3g5"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxg5 captures the knight — the queen moved diagonally to g5. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-0oMgy"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-0stES",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "rnbq1rk1/ppp1b1p1/4p2B/5p2/3P3P/3Q1N2/PPP2PP1/2KR1B1R b - - 0 11",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "g7h6"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "gxh6 captures the bishop — the pawn moved diagonally to h6. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-0stES"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-0zEUE",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "3Q1r1k/4r1p1/6Pp/7P/pp2q3/8/PP6/K2R4 w - - 0 34",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "d8f8"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qxf8# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-0zEUE"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-12BJz",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "3r1rk1/p4ppp/bpn5/2p1PPq1/8/PQ4P1/1P3PBP/2RR2K1 w - - 1 22",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "g2c6"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Bxc6 captures the knight — the bishop moved diagonally to c6. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-12BJz"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-157zO",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "6k1/4pp2/6p1/3pB3/P5P1/1P3P2/2Q3K1/4q3 b - - 0 32",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "e1e5"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxe5 captures the bishop — the queen moved straight along the e-file to e5. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-157zO"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-175H9",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "r1b1k2r/ppp1qppp/5n2/2bPQ1N1/8/1n6/PPPP1PPP/RNB1K2R w KQkq - 1 9",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "e5e7"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Qxe7+ captures the queen — the queen moved straight along the e-file to e7. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-175H9"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-1BVk9",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "r1r3k1/6p1/4pp2/p6p/1pqP4/2nNP2P/2QN1PP1/R1R3K1 b - - 5 29",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "c3e2"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the knight moved in an L-shape to e2. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-1BVk9"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-1Erzp",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "3r4/5r2/1Q3bkp/4p3/2PpP1p1/1P1P1pPq/PR3P1P/2B1N1nK w - - 0 34",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "h1g1"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Kxg1 captures the knight — the king moved straight along the 1st rank to g1. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-1Erzp"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-1K2Ce",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "8/Q1p1kpp1/1p1q3p/1P6/8/7P/P4PP1/5K2 b - - 0 32",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "d6d1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qd1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-1K2Ce"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-1N2CB",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "8/2p3pk/8/1P1Q1p2/3P4/r5pP/6P1/6K1 b - - 0 32",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "a3a1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Ra1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-1N2CB"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-1bDdH",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "r2qr1k1/p4pbp/3p1np1/2p5/4PP2/2N2B1P/PPP2QP1/4RRK1 b - - 3 16",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "f6e4"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Nxe4 captures the pawn — the knight moved in an L-shape to e4. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-1bDdH"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-1dmBc",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "6k1/5pp1/4p3/pp1bP1p1/8/P4P1P/1r4P1/1BR3K1 w - - 1 29",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "c1c8"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rc8# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-1dmBc"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-1iVfT",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "2k4r/p1p3b1/5p2/1p6/2p3Rr/3p3P/PP1N2P1/R5K1 w - - 1 24",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "g4g7"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Rxg7 captures the bishop — the rook moved straight along the g-file to g7. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-1iVfT"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-1qT0V",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r1bq1rk1/5ppp/2Q1p3/3p4/3P4/b3P1P1/5P1P/R3K1NR w KQ - 0 17",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "c6a8"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxa8 captures the rook — the queen moved diagonally to a8. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-1qT0V"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-1tsal",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "1r1q1r2/pBpk2pp/8/2p5/3nP1b1/2NPQNp1/PPP3P1/1K3R2 w - - 1 18",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "f3e5"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the knight moved in an L-shape to e5. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-1tsal"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-1uMNu",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "5rk1/p4pp1/1p3n1p/2P2q2/2Q2B2/P7/2P2PPP/3r1RK1 w - - 0 25",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "f1d1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Rxd1 captures the rook — the rook moved straight along the 1st rank to d1. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-1uMNu"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-1zaL6",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "2r3k1/2r2ppp/1p1bpn2/qP1p4/3P4/1Q2P1P1/1B1N1PBP/R4RK1 b - - 0 20",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "a5d2"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxd2 captures the knight — the queen moved diagonally to d2. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-1zaL6"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-24mOl",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r4rk1/2p1qpp1/p1pp1n1p/8/1b2P3/2NP1b2/PPPB1PPP/R1Q1K1R1 w Q - 0 13",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "g2f3"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "gxf3 captures the bishop — the pawn moved diagonally to f3. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-24mOl"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-27par",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "rnb1kbnr/3p1ppp/p2q4/1p1NB3/3NP3/6P1/PPP2P1P/R2QKB1R b KQkq - 0 9",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "d6e5"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxe5 captures the bishop — the queen moved diagonally to e5. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-27par"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-28CsJ",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "2r5/pp4pk/4p1bp/3pN2Q/3q4/1P5P/P1r2nPK/R3R3 w - - 0 28",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "h5g6"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Qxg6+ captures the bishop — the queen moved diagonally to g6. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-28CsJ"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-2LmJm",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r6k/ppp5/6R1/3rb2p/8/1BP5/PPK3P1/8 w - - 1 29",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "b3d5"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Bxd5 captures the rook — the bishop moved diagonally to d5. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-2LmJm"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-2Lrbq",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "3r2k1/5p2/5p1p/7b/PpR1P3/1P5P/3N1PP1/6K1 b - - 1 30",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "d8d2"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Rxd2 captures the knight — the rook moved straight along the d-file to d2. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-2Lrbq"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-2Tmif",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "2kr3r/ppp2p1p/1q3p2/2N1p3/8/2P2Q2/P4PPP/1R3RK1 b - - 3 18",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "b6c5"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxc5 captures the knight — the queen moved diagonally to c5. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-2Tmif"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-2VQgo",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "rnb2k1r/pp1p1p1p/4P3/5Nb1/2q5/1N1Q2B1/PP2KPPP/R6R b - - 4 19",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "c4d3"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Qxd3+ captures the queen — the queen moved diagonally to d3. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-2VQgo"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-2Yhfi",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "4r2k/p2R4/5pQp/6p1/2p5/8/Pb4PP/7K b - - 0 38",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "e8e1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Re1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-2Yhfi"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-2ZHhk",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "8/8/3bKp2/p1p5/P1P3k1/8/8/8 w - - 0 62",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "e6d6"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Kxd6 captures the bishop — the king moved straight along the 6th rank to d6. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-2ZHhk"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-2i212",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "8/pBb1r2P/P1P5/3Kp1R1/4Pp2/5k2/8/8 b - - 0 56",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "e7h7"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Rxh7 captures the pawn — the rook moved straight along the 7th rank to h7. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-2i212"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-2lvuW",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "6k1/1N3p1p/2pb2p1/p7/3B4/2P5/Pr3PPP/R5K1 b - - 3 23",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "b2b7"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Rxb7 captures the knight — the rook moved straight along the b-file to b7. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-2lvuW"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-2wqI0",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r1b2rk1/pp4bp/1qp1p1p1/4n3/2P1P3/2N1BN1P/PP2B1P1/R3QR1K b - - 0 15",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "b6e3"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxe3 captures the bishop — the queen moved diagonally to e3. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-2wqI0"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-35LMn",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "k3r3/1pQ1R3/6p1/1Kp4p/2P2P1P/6P1/B1q5/8 b - - 2 45",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "c2b2"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the queen moved straight along the 2nd rank to b2. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-35LMn"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-35dfy",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "6k1/1r5p/4p1p1/8/4R2b/2Pr4/PP3PP1/R1B3K1 b - - 0 22",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "d3d1"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the rook moved straight along the d-file to d1. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-35dfy"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-36bW6",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r2q1rk1/1p3pp1/4b2p/p1ppP3/4B3/PQP3P1/4PP1P/R1BR2K1 b - - 0 15",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "d5e4"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "dxe4 captures the bishop — the pawn moved diagonally to e4. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-36bW6"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-3PLHW",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r2qnrk1/3nbppp/3p4/4p1P1/4P3/1b2BPN1/PP1Q3P/1K1R1B1R w - - 0 19",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "a2b3"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "axb3 captures the bishop — the pawn moved diagonally to b3. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-3PLHW"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-3R8Xr",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "3Q4/p4k2/1p4p1/7p/1P2q3/5PPP/6K1/3R4 b - - 0 36",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "e4e2"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the queen moved straight along the e-file to e2. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-3R8Xr"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-3UfwY",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "1r5k/6p1/Q3p3/P2Pqp2/1P2n3/6P1/1R2PPBP/6K1 b - - 0 37",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "e5b2"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxb2 captures the rook — the queen moved diagonally to b2. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-3UfwY"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-3ZBko",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "1k1qr3/1p5r/p1ppPP2/8/2B1P3/P3P3/1PP3Q1/1K4R1 b - - 0 36",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "d8f6"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxf6 captures the pawn — the queen moved diagonally to f6. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-3ZBko"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-3bHPK",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r4rk1/1p2bp2/p3pnpp/1Q2P3/7N/P6P/2B2PP1/R4RK1 b - - 0 20",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "a6b5"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "axb5 captures the queen — the pawn moved diagonally to b5. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-3bHPK"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-3ghgO",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r1bq1b1r/ppk1pBpp/1n1p4/8/3n2Q1/3P4/PPP2PPP/RN2K1NR w KQ - 3 12",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "g4d4"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxd4 captures the knight — the queen moved straight along the 4th rank to d4. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-3ghgO"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-3h6gd",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "r2qr3/pp1b1pkp/5np1/1BpNn1N1/3p3Q/8/PPp3PP/R4RK1 w - - 2 18",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "d5f6"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Nxf6 captures the knight — the knight moved in an L-shape to f6. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-3h6gd"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-3iu7t",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "4r3/1b3kpp/p3q3/1p2p2n/1b6/4BPQP/P5P1/2RR2K1 w - - 1 29",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "g3h4"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the queen moved diagonally to h4. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-3iu7t"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-3uqCN",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "3r1rk1/p4ppp/bqp2n2/8/1P3B2/PQ1n2P1/1N2NPBP/R2R2K1 b - - 5 21",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "b6f2"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Qxf2+ captures the pawn — the queen moved diagonally to f2. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-3uqCN"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-43WMg",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r2q1rk1/3nN1pp/p2p1p2/1p2pPP1/2n1P2P/PN2B3/1PP1Q3/R4R1K b - - 0 20",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "d8e7"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxe7 captures the knight — the queen moved diagonally to e7. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-43WMg"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-4F0Jf",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "4q2k/3np2p/b1np3B/p1p3N1/3QP3/3P2NP/Pr2B1P1/R3R1K1 b - - 0 24",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "c6d4",
+      "c5d4"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Nxd4 captures the queen — the knight moved in an L-shape to d4. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-4F0Jf"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-4JGMS",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r4rk1/6q1/bpP1Q1pp/2n1Np2/5P1B/pPP5/P1B3PP/2KR3R b - - 0 24",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "c5e6"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Nxe6 captures the queen — the knight moved in an L-shape to e6. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-4JGMS"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-4MqgQ",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r3r1k1/q3pp2/1p1p1Np1/1PpP4/p3nP1P/3Q4/PP2B3/2K3RR b - - 0 24",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "e7f6",
+      "e4f6"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "exf6 captures the knight — the pawn moved diagonally to f6. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-4MqgQ"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-4WSQ5",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "6r1/8/8/3R4/7P/3nkB1K/6P1/8 b - - 2 51",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "d3f4"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the knight moved in an L-shape to f4. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-4WSQ5"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-4Yhlp",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "8/pR6/2pk4/7p/5p2/2R2r2/Pn2r3/6K1 w - - 0 42",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "c3f3"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Rxf3 captures the rook — the rook moved straight along the 3rd rank to f3. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-4Yhlp"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-4u3hp",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "3q4/4b2k/4pr1p/p2bNppQ/1p1PnN2/7P/P4PP1/2B1R1K1 w - - 0 30",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "f4d5"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Nxd5 captures the bishop — the knight moved in an L-shape to d5. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-4u3hp"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-5M40c",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "1n3r1k/5p1p/2p2p1q/1pN5/5R1P/1b1P4/r1PK1QP1/5R2 w - - 3 28",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "c5b3"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Nxb3 captures the bishop — the knight moved in an L-shape to b3. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-5M40c"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-5qoNC",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "6k1/p4r2/1pb3n1/3p4/3B4/P6P/1P4P1/4R2K w - - 3 35",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "e1e6"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the rook moved straight along the e-file to e6. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-5qoNC"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-67K6T",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "rn1q1rk1/1pp1bpp1/p3p2p/5n2/1PNP1P2/P3Pb1P/1B2Q1P1/2KR1B1R w - - 0 14",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "e2f3",
+      "g2f3"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxf3 captures the bishop — the queen moved diagonally to f3. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-67K6T"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-6hMIb",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r1k2bnr/ppp3pp/5p2/4p3/2BRP3/5K1P/PPP2PP1/RNB5 b - - 0 11",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "e5d4"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "exd4 captures the rook — the pawn moved diagonally to d4. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-6hMIb"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-6iE0E",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "5r1k/Rpp3p1/7p/1N6/8/1P4bP/2P3P1/5Q1K b - - 0 28",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "f8f1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rxf1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-6iE0E"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-6pchQ",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r2qr1k1/ppp2pp1/5B1p/4p2b/2B1P3/2P3QP/P1P2PP1/R4RK1 b - - 0 15",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "d8f6"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxf6 captures the bishop — the queen moved diagonally to f6. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-6pchQ"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-7DN8B",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "r2q1rk1/3bbppp/p4n2/1pppn3/5P2/1PN5/PBPPB1PP/R2Q1R1K w - - 0 14",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "f4e5"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "fxe5 captures the knight — the pawn moved diagonally to e5. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-7DN8B"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-7RqH2",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "7b/pp2rp1k/6pP/3p2P1/3P4/4r3/PPPK4/5RR1 w - - 0 28",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "f1f7"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Rxf7+ captures the pawn — the rook moved straight along the f-file to f7. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-7RqH2"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-9uqiI",
+    "kind": "move",
+    "conceptIds": [
+      "hanging-pieces"
+    ],
+    "fen": "2k2r1r/nppb1p2/p2p2pp/4p3/4P2q/P2PQR1P/BPP2P2/2KR4 w - - 8 21",
+    "prompt": "Find the free piece — capture the one that's undefended.",
+    "correctMoves": [
+      "e3a7"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "improving",
+    "feedback": {
+      "default": "Look for an enemy piece with no defender covering it — that's free material."
+    },
+    "successExplanation": "Qxa7 captures the knight — the queen moved diagonally to a7. That piece had no defender covering it, so it was simply free material.",
+    "provenanceId": "tactical-vision.puzzle-lichess-9uqiI"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-AK3x7",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "r1b2k1r/ppp3pp/3p1q2/2bQP1N1/8/3p4/PPP3PP/RNB2R1K b - - 1 14",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "f6f1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qxf1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-AK3x7"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-B0tCB",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "5rk1/pp4p1/8/3Pn1q1/4P1b1/2N2BQ1/PP2P3/5RK1 b - - 6 28",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "g5e3"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the queen moved diagonally to e3. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-B0tCB"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-C8JRp",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "1r3rk1/5pp1/Q5qp/6n1/1P6/P3P3/4BPPP/3RR1K1 b - - 0 24",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "g5f3"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the knight moved in an L-shape to f3. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-C8JRp"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-CXsMC",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "1r3r1k/6pp/1p6/1R2Pp2/2n5/5N1P/P1P2PP1/1R4K1 b - - 4 33",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "c4a3"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the knight moved in an L-shape to a3. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-CXsMC"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-Cs1Vl",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "r2q1r1k/1p3pp1/p1nb1B1p/2pp4/4pP2/PP1PPNPP/2P1Q1BK/R4R2 b - - 0 16",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "e4f3"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "exf3 captures the knight — the pawn moved diagonally to f3. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-Cs1Vl"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-EKNqo",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "r3r2k/p4Qpp/2b5/4q3/2N5/8/PP4PP/RN3RK1 b - - 2 29",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "e5d4"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the queen moved diagonally to d4. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-EKNqo"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-Fomel",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "8/8/8/5p2/5kr1/R7/5n1K/8 w - - 7 52",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "a3f3"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the rook moved straight along the 3rd rank to f3. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-Fomel"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-I48eU",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "r1b2knr/ppp1bBpp/2nq4/4P3/8/1QP2N2/P4PPP/RNB1K2R b KQ - 0 11",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "c6e5"
+    ],
+    "difficulty": 2,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Nxe5 captures the pawn — the knight moved in an L-shape to e5. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-I48eU"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-IvQrl",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "r1b1kb1r/pp1n1ppp/1q2p3/3pP3/3n4/3BB3/PPQN1PPP/R3K1NR w KQkq - 0 10",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "c2c3"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the queen moved straight along the c-file to c3. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-IvQrl"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-JOEpi",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "1R3q1k/7p/4P1pP/6P1/P2K4/1P6/2P5/8 w - - 2 55",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "b8f8"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rxf8# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-JOEpi"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-JfwEQ",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "2r3k1/5p1p/Q3p1pP/1p6/3p4/8/PP6/K1R5 b - - 0 33",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "c8c1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rxc1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-JfwEQ"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-LZr4h",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "r4b2/3nq1kp/3p1rp1/pP2N3/2B1P3/QP6/P6P/1KBb1R2 w - - 1 28",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "e5d7"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Nxd7 captures the knight — the knight moved in an L-shape to d7. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-LZr4h"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-MkHMK",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "4k2r/1p4p1/3b1pb1/2np2Pp/Pn1N3P/4PPqB/1PP5/R2Q1KNR b k - 4 19",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "b4c2"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Nxc2 captures the pawn — the knight moved in an L-shape to c2. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-MkHMK"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-NuOub",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "r1b2rk1/pp3ppp/2p5/4PnNN/1q4B1/3P4/P5PP/R2Q1R1K b - - 3 18",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "f5e3"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the knight moved in an L-shape to e3. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-NuOub"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-Oilo6",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "3rq1k1/pp3rp1/8/3Q4/7R/6P1/PP2n1KP/5R2 w - - 9 33",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "h4e4"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the rook moved straight along the 4th rank to e4. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-Oilo6"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-PJjdI",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "5b1k/1q4pp/8/p7/5Q2/4Pb2/5P1P/5NK1 w - - 4 35",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "f4f8"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qxf8# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-PJjdI"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-PLxIg",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate"
+    ],
+    "fen": "r4rk1/pp3pbp/2q5/3pP2p/8/1PPQ4/P1B2P2/RN2K3 w Q - 0 18",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "d3h7"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qxh7# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-PLxIg"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-PP7Je",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "6r1/p6p/1p6/4k3/4n2P/8/PPP1R2R/4K3 b - - 1 30",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "g8g1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rg1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-PP7Je"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-PY7GF",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "r5k1/p3qpp1/2p2n1p/n7/8/1BP2Q2/P1P2PPP/R1B1R1K1 b - - 0 20",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "e7e1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qxe1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-PY7GF"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-QmlZO",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "r7/5rkp/1Q2p1p1/pNn5/3R4/8/PP4PP/5R1K b - - 0 32",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "f7f1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rxf1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-QmlZO"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-TXw51",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "6k1/p4pp1/4p2p/3p4/8/1P5Q/P5PP/4qR1K b - - 2 32",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "e1f1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qxf1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-TXw51"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-VLdq1",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "r2qk1nr/pb1p2b1/1pnPpP2/2p3Np/7P/P1N2QB1/1PP3P1/R3KB1R b KQkq - 0 15",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "d8f6"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Qxf6 captures the pawn — the queen moved diagonally to f6. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-VLdq1"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-VQaXl",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "knight-fork"
+    ],
+    "fen": "5rk1/p5np/B1p1p1p1/3rP3/3R2Pq/4Q2P/PPP5/2K4R b - - 4 23",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "g7f5"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "That's a legal move — the knight moved in an L-shape to f5. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-VQaXl"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-XT5CQ",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "3rr1k1/ppB2pp1/7p/q7/8/6P1/P2R1PKP/2RQ4 b - - 1 26",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "a5d2"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Qxd2 captures the rook — the queen moved diagonally to d2. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-XT5CQ"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-a7PhY",
+    "kind": "move",
+    "conceptIds": [
+      "fork",
+      "forking-patterns"
+    ],
+    "fen": "2r3r1/pR3pkp/2Pp1q1p/2b1p2b/Q3P2N/2P3P1/P2NBP1P/1R4K1 b - - 8 23",
+    "prompt": "Find the move that attacks two enemy pieces at once.",
+    "correctMoves": [
+      "f6f2"
+    ],
+    "difficulty": 3,
+    "suitableLevel": "advanced",
+    "feedback": {
+      "default": "Look for a square where one of your pieces would attack two enemy targets at the same time."
+    },
+    "successExplanation": "Qxf2+ captures the pawn — the queen moved straight along the f-file to f2. That single move attacked two enemy targets at once — the opponent can only save one of them.",
+    "provenanceId": "tactical-vision.puzzle-lichess-a7PhY"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-cWc3Q",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "r3q3/p1R2pkp/bp4p1/8/1P3Q2/P4P2/6PP/4R1K1 b - - 0 26",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "e8e1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qxe1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-cWc3Q"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-dHMYr",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "4n2k/pp4p1/7r/2pP1B2/2P5/q5P1/4R1KP/8 w - - 0 38",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "e2e8"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rxe8# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-dHMYr"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-hNuqy",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate"
+    ],
+    "fen": "rnbqkb1r/pp1np3/3pp1p1/P1p5/2P5/3B4/1P1P1PPP/RNB1K1NR w KQkq - 0 10",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "d3g6"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Bxg6# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-hNuqy"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-hs041",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "1rb3k1/4q1pp/p4p2/1pNp1n2/1P6/2PR1Q2/P4PPP/4R1K1 b - - 0 26",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "e7e1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qxe1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-hs041"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-nbX5s",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "5rk1/1p5p/p3brp1/2Qp4/8/2P5/P1B3RP/5RK1 b - - 0 31",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "f6f1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rxf1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-nbX5s"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-oxwBm",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "k2q4/pp6/8/8/8/PP6/K1PR4/4r3 w - - 0 42",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "d2d8"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rxd8# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-oxwBm"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-sjebi",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "k1r5/p1R2p2/2P5/4p1p1/2P5/P3P1P1/4KPq1/8 w - - 0 31",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "c7c8"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rxc8# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-sjebi"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-uDHrn",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "8/4kppp/1p2p3/p2p4/Pq1P4/1P2PP2/2Q3PP/6K1 b - - 0 29",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "b4e1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qe1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-uDHrn"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-x0GG4",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "1R6/pp4k1/2pr2p1/6Rp/4B2P/4n3/PP6/2K5 b - - 4 39",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "d6d1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Rd1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-x0GG4"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-x6ykp",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "6k1/p2Q3p/4p1p1/2p5/P2p4/1P1P2bP/2P1q1P1/5R1K b - - 0 35",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "e2f1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qxf1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-x6ykp"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-z0sxf",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "r2b1k2/1p1r1pp1/2p4p/p1Pp4/3P4/P5PP/1P1BRPK1/4R3 w - - 10 30",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "e2e8"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Re8# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-z0sxf"
+  },
+  {
+    "id": "tactical-vision.puzzle-lichess-ztVZ2",
+    "kind": "move",
+    "conceptIds": [
+      "checkmate",
+      "back-rank-tactics"
+    ],
+    "fen": "4rk2/pp3p2/2p2Qp1/4p3/2P1P3/5P1B/PP5P/1K1Rq3 b - - 2 27",
+    "prompt": "Find the move that delivers checkmate.",
+    "correctMoves": [
+      "e1d1"
+    ],
+    "difficulty": 1,
+    "suitableLevel": "new-to-chess",
+    "feedback": {
+      "default": "Look for a move that leaves the enemy king with no legal reply."
+    },
+    "successExplanation": "Qxd1# delivers checkmate. The enemy king had no legal reply — no capture, no block, and no square to escape to.",
+    "provenanceId": "tactical-vision.puzzle-lichess-ztVZ2"
+  }
+]

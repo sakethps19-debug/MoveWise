@@ -17,9 +17,17 @@ function dbHelper(command: string, args: Record<string, unknown> = {}): string {
  * cards before doing anything. Now they see a lightweight, skippable
  * onboarding quiz first, then a compact "current chapter / next chapter
  * preview / collapsed future chapters" view instead of the full
- * syllabus, with an explicit "View full curriculum" escape hatch. A
- * returning learner (any real progress) always sees the full syllabus
- * directly, same as before this change.
+ * syllabus, with an explicit "View full curriculum" escape hatch.
+ *
+ * The onboarding quiz itself retires the instant there's any real
+ * progress (unchanged). The curriculum MAP is a separate question, fixed
+ * later in this file: a real, reproduced production defect had it
+ * expanding to the full ~33-lesson wall the instant a single lesson
+ * finished — "hasAnyProgress" was being used for both decisions, when
+ * only the quiz-retirement one should ever fire that early. The map now
+ * waits for a real milestone (finishing the whole current chapter, or
+ * placement evidence for a rated learner) — see LearningPath.tsx's own
+ * `readyForFullCurriculum`.
  */
 
 test("a fresh guest sees the onboarding quiz first, and it's fully skippable", async ({ page }) => {
@@ -124,9 +132,18 @@ test("choosing the placement assessment from onboarding leaves the quiz permanen
   await expect(page.getByRole("region", { name: "A few quick questions" })).toHaveCount(0);
 });
 
-test("a learner with any real progress never sees onboarding and always sees the full curriculum directly", async ({
+test("a learner with any real progress never sees onboarding again, but the compact Today view stays until a real milestone is earned", async ({
   page,
 }) => {
+  // Real, reproduced production defect this test locks in: a beginner
+  // who commits five minutes a day finishes lesson 1, reloads the
+  // homepage, and the compact preview they'd just seen is instantly
+  // replaced by the full ~33-lesson curriculum map — a wall of locked
+  // cards, not the "helpful compact plan" the brief promises. Touching
+  // anything at all correctly retires the onboarding quiz (never shown
+  // again), but the curriculum map itself must wait for a real, promised
+  // milestone (finishing the whole current chapter), not just "did
+  // something."
   await page.goto("/learn/meet-the-pieces.01-welcome");
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "Continue" }).click();
@@ -141,18 +158,65 @@ test("a learner with any real progress never sees onboarding and always sees the
   await page.waitForURL("/");
 
   await expect(page.getByRole("region", { name: "A few quick questions" })).toHaveCount(0);
-  await expect(page.getByText("Current chapter")).toHaveCount(0); // no compact preview — straight to the full view
+  // Still the compact plan, one lesson in — not the full wall of locks.
+  await expect(page.getByText("Current chapter")).toBeVisible();
+  await expect(page.locator(".mw-lesson-node")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Continue learning" })).toBeVisible();
+
+  // The escape hatch still works for a learner who wants the map anyway.
+  await page.getByRole("button", { name: "View full curriculum" }).click();
   await expect(page.locator(".mw-lesson-node").first()).toBeVisible();
 });
 
-test("a signed-in account with real mastery data but zero completions is not treated as fresh either", async ({
+test("finishing an entire chapter earns the full curriculum map by default", async ({ page }) => {
+  const email = `chapterdone${Date.now()}@example.com`;
+  const password = "password123";
+  dbHelper("create-user", { email, password });
+  const userId = dbHelper("get-user-id", { email });
+  // Every meet-the-pieces lesson — the real milestone the compact
+  // preview's own "next milestone: complete them all" copy promises.
+  dbHelper("seed-completions", {
+    userId,
+    lessonIds: [
+      "meet-the-pieces.01-welcome",
+      "meet-the-pieces.02-ranks-files-squares",
+      "meet-the-pieces.03-meet-the-rook",
+      "meet-the-pieces.04-rook-captures",
+      "meet-the-pieces.05-meet-the-bishop",
+      "meet-the-pieces.06-bishop-colours",
+      "meet-the-pieces.07-meet-the-queen",
+      "meet-the-pieces.08-meet-the-king",
+      "meet-the-pieces.09-meet-the-knight",
+      "meet-the-pieces.10-meet-the-pawn",
+      "meet-the-pieces.11-capturing-piece-values",
+      "meet-the-pieces.12-unit-mastery-challenge",
+      "meet-the-pieces.13-king-safety-and-castling",
+    ],
+  });
+
+  await page.goto("/login");
+  await page.fill("input[name=email]", email);
+  await page.fill("input[name=password]", password);
+  await page.click("button[type=submit]");
+  await page.waitForURL("/");
+
+  await expect(page.getByText("Current chapter")).toHaveCount(0); // no compact preview — the map earned its place
+  await expect(page.locator(".mw-lesson-node").first()).toBeVisible();
+});
+
+test("a signed-in account with real mastery data but zero completions is not treated as fresh for onboarding, but still gets the compact plan", async ({
   page,
 }) => {
   // Regression test for a real bug: a struggling concept (real evidence
   // of engagement — computeMasteryStatus only ever sets this from actual
   // attempts) with no lesson ever fully completed was wrongly treated as
-  // "fresh," hiding the review-needed banner behind the onboarding
-  // quiz/compact preview instead of surfacing it as it should.
+  // "fresh" for the onboarding quiz, which must never show again once
+  // there's real engagement. The review-needed banner is unconditional
+  // (rendered above the compact-vs-full split either way) and must
+  // surface regardless. But this account hasn't earned the full
+  // curriculum map either (no completed chapter, no placement evidence)
+  // — same compact "Today" plan a genuinely fresh learner gets, per the
+  // curriculum-expansion fix above, not the full 33-lesson wall.
   const email = `masteryonly${Date.now()}@example.com`;
   const password = "password123";
   dbHelper("create-user", { email, password });
@@ -166,6 +230,7 @@ test("a signed-in account with real mastery data but zero completions is not tre
   await page.waitForURL("/");
 
   await expect(page.getByRole("region", { name: "A few quick questions" })).toHaveCount(0);
-  await expect(page.getByText("Current chapter")).toHaveCount(0);
   await expect(page.getByRole("link", { name: /went wrong/ })).toBeVisible();
+  await expect(page.getByText("Current chapter")).toBeVisible();
+  await expect(page.locator(".mw-lesson-node")).toHaveCount(0);
 });

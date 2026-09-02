@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateLesson, validatePuzzle } from "./validate-chess";
+import { validateLesson, validatePuzzle, impliedMoveConceptIds } from "./validate-chess";
 import type { ExerciseStep, Lesson, Puzzle } from "./index";
 
 /**
@@ -436,6 +436,7 @@ describe("validatePuzzle (ADR-0008 pooled Puzzle content)", () => {
   function makePuzzle(overrides: Partial<Puzzle> = {}): Puzzle {
     return {
       id: "test.puzzle",
+      kind: "move",
       conceptIds: ["rook-movement"],
       fen: "7k/8/8/8/4R3/8/8/K7 w - - 0 1",
       prompt: "Move the rook.",
@@ -463,5 +464,39 @@ describe("validatePuzzle (ADR-0008 pooled Puzzle content)", () => {
 
   it("accepts multiple correct moves when all are legal", () => {
     expect(validatePuzzle(makePuzzle({ correctMoves: ["e4e8", "e4e1", "e4a4", "e4h4"] }))).toEqual([]);
+  });
+});
+
+describe("impliedMoveConceptIds (curriculum-integrity's real-move check)", () => {
+  it("a king move requires king-movement", () => {
+    expect(impliedMoveConceptIds("7k/8/8/8/8/8/8/K7 w - - 0 1", "a1b2")).toEqual(["king-movement"]);
+  });
+
+  it("a two-square king move (castling) requires king-safety-castling, not king-movement", () => {
+    expect(impliedMoveConceptIds("4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1", "e1g1")).toEqual(["king-safety-castling"]);
+  });
+
+  it("a rook move requires rook-movement", () => {
+    expect(impliedMoveConceptIds("7k/8/8/8/4R3/8/8/K7 w - - 0 1", "e4e8")).toEqual(["rook-movement"]);
+  });
+
+  it("a rook capture requires both rook-movement and captures", () => {
+    expect(impliedMoveConceptIds("k7/8/8/8/3pR3/8/8/4K3 w - - 0 1", "e4d4")).toEqual(["rook-movement", "captures"]);
+  });
+
+  it("a knight move requires knight-movement", () => {
+    expect(impliedMoveConceptIds("4k3/8/8/8/8/8/8/1N2K3 w - - 0 1", "b1d2")).toEqual(["knight-movement"]);
+  });
+
+  it("a pawn push requires only pawn-movement, not captures", () => {
+    expect(impliedMoveConceptIds("4k3/8/8/8/8/8/4P3/4K3 w - - 0 1", "e2e4")).toEqual(["pawn-movement"]);
+  });
+
+  it("a pawn capture requires both pawn-movement and captures", () => {
+    expect(impliedMoveConceptIds("4k3/8/8/8/3p4/4P3/8/4K3 w - - 0 1", "e3d4")).toEqual(["pawn-movement", "captures"]);
+  });
+
+  it("returns nothing for a square with no piece on it", () => {
+    expect(impliedMoveConceptIds("4k3/8/8/8/8/8/8/4K3 w - - 0 1", "a1a2")).toEqual([]);
   });
 });

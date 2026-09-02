@@ -19,16 +19,18 @@
  */
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { parseLesson, parseConcept, parsePrinciple, parsePuzzle, type Lesson, type Puzzle } from "../packages/exercise-schema/src/index";
-import { validateLesson, validatePuzzle } from "../packages/exercise-schema/src/validate-chess";
+import { parseLesson, parseConcept, parsePrinciple, parsePuzzle, type Lesson, type Puzzle, type Principle } from "../packages/exercise-schema/src/index";
+import { validateLesson, validatePuzzle, impliedMoveConceptIds } from "../packages/exercise-schema/src/validate-chess";
 import { validateInstructionalQuality, validatePuzzleInstructionalQuality } from "../packages/exercise-schema/src/validate-instructional";
 import { DETECTABLE_CONCEPT_IDS } from "../apps/web/lib/conceptDetection";
+import { parseProvenanceRecord, validateProvenanceManifest, type ProvenanceRecord } from "../packages/exercise-schema/src/provenance";
 
 const CONTENT_ROOT = join(import.meta.dirname, "../packages/content");
 const UNITS_ROOT = join(CONTENT_ROOT, "units");
 const CONCEPTS_FILE = join(CONTENT_ROOT, "concepts.json");
 const PRINCIPLES_ROOT = join(CONTENT_ROOT, "principles");
 const PUZZLES_ROOT = join(CONTENT_ROOT, "puzzles");
+const PROVENANCE_ROOT = join(CONTENT_ROOT, "provenance");
 
 function* walkLessonFiles(dir: string): Generator<string> {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -103,6 +105,45 @@ if (existsSync(PUZZLES_ROOT)) {
   }
 }
 
+// Provenance manifest (P0 content-provenance requirement — see
+// docs/content-licensing-policy.md). Every ProvenanceRecord is validated
+// individually and cross-manifest (duplicate contentId, content-hash
+// drift, source/licence mismatch); every puzzle that declares a
+// provenanceId must resolve to a real, non-rejected record.
+const provenanceById = new Map<string, ProvenanceRecord>();
+if (existsSync(PROVENANCE_ROOT)) {
+  const allRecords: ProvenanceRecord[] = [];
+  for (const file of readdirSync(PROVENANCE_ROOT)) {
+    if (!file.endsWith(".json")) continue;
+    const filePath = join(PROVENANCE_ROOT, file);
+    const raw = JSON.parse(readFileSync(filePath, "utf-8"));
+    let fileOk = true;
+    for (const entry of raw) {
+      const record = parseProvenanceRecord(entry); // throws on structural schema violation
+      allRecords.push(record);
+      provenanceById.set(record.contentId, record);
+    }
+    if (fileOk) console.log(`✓ ${filePath} (${raw.length} provenance records)`);
+  }
+  const provenanceIssues = validateProvenanceManifest(allRecords);
+  for (const issue of provenanceIssues) {
+    failures += 1;
+    console.error(`\n✗ ${PROVENANCE_ROOT}\n  [${issue.contentId}] ${issue.message}`);
+  }
+}
+
+for (const puzzle of puzzlesById.values()) {
+  if (!puzzle.provenanceId) continue;
+  const record = provenanceById.get(puzzle.provenanceId);
+  if (!record) {
+    failures += 1;
+    console.error(`\n✗ ${puzzle.id}\n  provenanceId "${puzzle.provenanceId}" has no matching record in ${PROVENANCE_ROOT}`);
+  } else if (record.validationStatus === "rejected") {
+    failures += 1;
+    console.error(`\n✗ ${puzzle.id}\n  provenanceId "${puzzle.provenanceId}" is marked "rejected" and must not be referenced by shipped content`);
+  }
+}
+
 // Concept registry
 const conceptIds = new Set<string>();
 if (existsSync(CONCEPTS_FILE)) {
@@ -160,6 +201,7 @@ for (const conceptId of DETECTABLE_CONCEPT_IDS) {
 
 // Principle groupings — cross-referential integrity
 const principlesByUnit = new Map<string, { id: string; order: number; subLessonIds: string[] }[]>();
+const principlesById = new Map<string, Principle>();
 if (existsSync(PRINCIPLES_ROOT)) {
   for (const file of readdirSync(PRINCIPLES_ROOT)) {
     if (!file.endsWith(".json")) continue;
@@ -168,6 +210,7 @@ if (existsSync(PRINCIPLES_ROOT)) {
     let fileOk = true;
     for (const entry of raw) {
       const principle = parsePrinciple(entry); // throws on structural violation
+      principlesById.set(principle.id, principle);
       const unitList = principlesByUnit.get(principle.unitId) ?? [];
       unitList.push({ id: principle.id, order: principle.order, subLessonIds: principle.subLessonIds });
       principlesByUnit.set(principle.unitId, unitList);
@@ -394,6 +437,143 @@ if (existsSync(PRINCIPLES_ROOT)) {
       }
     }
   }
+}
+
+// Curriculum/practice concept integrity — real, reproduced production
+// defect this exists to catch: Board Basics Practice (meet-the-pieces'
+// very first, earliest-unlocking principle) required playing king moves
+// (Ka1-b2, Ke1-f2) although "Meet the king" — six principles later —
+// hadn't been taught, and its own declared conceptIds (board-orientation,
+// square-identification) didn't mention king-movement at all, so the
+// mismatch was invisible to every check above. This pass computes, for
+// every lesson and every principle's puzzle pool, the real set of
+// concepts an "ordinarily unlocked" learner (no placement bypass) can
+// actually be assumed to know by the time they reach it — from the exact
+// prerequisite graph already validated acyclic above, not a separate
+// guess — and fails if anything assessed there, declared OR structurally
+// implied by the actual moves on the board, falls outside that set.
+{
+  const conceptsIntroducedByCache = new Map<string, Set<string>>();
+  function conceptsIntroducedBy(lesson: Lesson): Set<string> {
+    if (conceptsIntroducedByCache.has(lesson.id)) return conceptsIntroducedByCache.get(lesson.id)!;
+    const declared = lesson.introducedConceptIds;
+    const result = new Set<string>(declared && declared.length > 0 ? declared : lesson.masteryTags);
+    conceptsIntroducedByCache.set(lesson.id, result);
+    return result;
+  }
+
+  // Every concept available once this lesson has been completed —
+  // everything its own (transitive) prerequisites make available, plus
+  // whatever this lesson itself introduces and any explicit
+  // prerequisiteConceptIds it declares. The prerequisite graph is
+  // already confirmed acyclic above, so plain memoized recursion is safe.
+  const availableAfterCache = new Map<string, Set<string>>();
+  function conceptsAvailableAfter(lessonId: string): Set<string> {
+    const cached = availableAfterCache.get(lessonId);
+    if (cached) return cached;
+    const acc = new Set<string>();
+    availableAfterCache.set(lessonId, acc); // populated in place below; safe even if re-entered, graph is acyclic
+    const lesson = lessonsById.get(lessonId);
+    if (!lesson) return acc;
+    for (const prereqId of lesson.prerequisites) {
+      for (const c of conceptsAvailableAfter(prereqId)) acc.add(c);
+    }
+    for (const c of conceptsIntroducedBy(lesson)) acc.add(c);
+    for (const c of lesson.prerequisiteConceptIds ?? []) acc.add(c);
+    return acc;
+  }
+
+  // Every concept available *while working through* this lesson — its
+  // prerequisites' availability, plus this lesson's own introduced
+  // concepts (a lesson may teach something in an early step and assess it
+  // in a later one within itself) and its own explicit extra assumptions.
+  function conceptsAvailableFor(lesson: Lesson): Set<string> {
+    const acc = new Set<string>();
+    for (const prereqId of lesson.prerequisites) {
+      for (const c of conceptsAvailableAfter(prereqId)) acc.add(c);
+    }
+    for (const c of conceptsIntroducedBy(lesson)) acc.add(c);
+    for (const c of lesson.prerequisiteConceptIds ?? []) acc.add(c);
+    return acc;
+  }
+
+  function moveConceptsForStep(step: Lesson["steps"][number]): { fen: string; moves: string[] } | null {
+    switch (step.type) {
+      case "move-piece":
+        return { fen: step.fen, moves: [...step.expectedMoves, ...step.altValid] };
+      case "capture":
+        return { fen: step.fen, moves: step.expectedMoves };
+      case "find-legal-move":
+        return { fen: step.fen, moves: step.validMoves };
+      default:
+        return null;
+    }
+  }
+
+  function reportMissing(where: string, missing: Set<string>) {
+    for (const concept of missing) {
+      failures += 1;
+      console.error(
+        `\n✗ ${where}\n  requires concept "${concept}" that hasn't been taught yet (not introduced by this content or any of its prerequisites) — an ordinarily unlocked learner couldn't know this`,
+      );
+    }
+  }
+
+  // Every lesson: its declared assessedConceptIds (falling back to
+  // masteryTags when not authored) must be available; so must every
+  // concept structurally implied by its own move-based steps' correct
+  // moves, whether or not the content declared it.
+  for (const lesson of lessonsById.values()) {
+    const available = conceptsAvailableFor(lesson);
+    const declaredAssessed = lesson.assessedConceptIds && lesson.assessedConceptIds.length > 0 ? lesson.assessedConceptIds : lesson.masteryTags;
+    const missing = new Set(declaredAssessed.filter((c) => !available.has(c)));
+    for (const step of lesson.steps) {
+      const moveInfo = moveConceptsForStep(step);
+      if (!moveInfo) continue;
+      for (const uci of moveInfo.moves) {
+        for (const concept of impliedMoveConceptIds(moveInfo.fen, uci)) {
+          if (!available.has(concept)) missing.add(concept);
+        }
+      }
+    }
+    if (missing.size > 0) reportMissing(`${lessonFilePathById.get(lesson.id)} [${lesson.id}]`, missing);
+  }
+
+  // Every principle's practice pool: reachable once that principle's own
+  // sub-lessons are complete (practice/[principleId]'s real unlock gate),
+  // so the concepts available to it are exactly the union of what its own
+  // sub-lessons make available, plus any explicit prerequisiteConceptIds.
+  for (const principle of principlesById.values()) {
+    const available = new Set<string>();
+    for (const subLessonId of principle.subLessonIds) {
+      for (const c of conceptsAvailableAfter(subLessonId)) available.add(c);
+    }
+    for (const c of principle.prerequisiteConceptIds ?? []) available.add(c);
+
+    for (const puzzleId of principle.puzzleIds) {
+      const puzzle = puzzlesById.get(puzzleId);
+      if (!puzzle) continue; // unknown-id case already reported above
+      const missing = new Set(puzzle.conceptIds.filter((c) => !available.has(c)));
+      for (const c of puzzle.prerequisiteConceptIds ?? []) {
+        if (!available.has(c)) missing.add(c);
+      }
+      if (puzzle.kind === "move") {
+        for (const uci of puzzle.correctMoves ?? []) {
+          for (const concept of impliedMoveConceptIds(puzzle.fen, uci)) {
+            if (!available.has(concept)) missing.add(concept);
+          }
+        }
+      }
+      if (missing.size > 0) reportMissing(`${PUZZLES_ROOT}/${principle.unitId}.json [${puzzle.id}] (principle "${principle.id}")`, missing);
+    }
+  }
+
+  // The placement assessment is deliberately exempt: probing whether an
+  // untaught concept is already known (e.g. a rated adult who already
+  // knows how a king moves) is placement's entire purpose, and it has no
+  // "taught by a prerequisite" chain to check against — nothing has been
+  // taught yet when it runs. It still gets every other check above
+  // (FEN legality, registered concept ids, schema validity).
 }
 
 console.log(`\n${checked} lesson file(s), ${puzzlesChecked} puzzle(s) checked, ${failures} issue(s) found.`);

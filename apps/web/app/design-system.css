@@ -1492,6 +1492,14 @@
   font-size: 13.5px;
   color: var(--mw-text);
 }
+.mw-game-review-summary--short {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mw-space-2);
+  border-left-color: var(--mw-info);
+  background: var(--mw-info-bg);
+  color: var(--mw-info-ink);
+}
 .mw-game-review-mono {
   font-family: var(--mw-font-mono);
   font-variant-numeric: tabular-nums;

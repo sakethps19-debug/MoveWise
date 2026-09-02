@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { buildPgn, gameStatus, replayPgn, tryMove } from "@movewise/chess-rules";
-import { buildDemoGameReview, buildMoveAnalysis, canAnalyze, explainMove, explanationFor, type MoveClassification } from "./gameAnalysis";
+import {
+  buildDemoGameReview,
+  buildMoveAnalysis,
+  canAnalyze,
+  explainMove,
+  explanationFor,
+  learnerMoveCount,
+  MIN_LEARNER_MOVES_FOR_OVERALL_ASSESSMENT,
+  type MoveAnalysis,
+  type MoveClassification,
+} from "./gameAnalysis";
 
 const ALL_CLASSIFICATIONS: MoveClassification[] = [
   "brilliant",
@@ -194,5 +204,43 @@ describe("canAnalyze", () => {
 
   it("blocks analysis when the fair-play flag is false", () => {
     expect(canAnalyze({ analysisAllowed: false })).toBe(false);
+  });
+});
+
+describe("learnerMoveCount (P1 honest short-game review)", () => {
+  function fakeMove(color: "w" | "b"): MoveAnalysis {
+    return {
+      moveNumber: 1,
+      color,
+      playedMove: "e4",
+      bestMove: "e4",
+      evalBefore: 0,
+      evalAfter: 0,
+      evalLoss: 0,
+      classification: "best",
+      explanation: "test",
+      conceptIds: [],
+      recommendedLessonIds: [],
+    };
+  }
+
+  it("counts only the learner's own color's moves when learnerColor is known", () => {
+    const moves = [fakeMove("w"), fakeMove("b"), fakeMove("w"), fakeMove("b"), fakeMove("w")];
+    expect(learnerMoveCount(moves, "w")).toBe(3);
+    expect(learnerMoveCount(moves, "b")).toBe(2);
+  });
+
+  it("counts every move when learnerColor is unknown (a stand-alone review with no game-side context)", () => {
+    const moves = [fakeMove("w"), fakeMove("b"), fakeMove("w")];
+    expect(learnerMoveCount(moves)).toBe(3);
+  });
+
+  it("MIN_LEARNER_MOVES_FOR_OVERALL_ASSESSMENT documents the real threshold used by the UI", () => {
+    // 1-move and 2-move games (the exact reported defect: 1.e4 e5 2.Nc3
+    // Nf6 3.Bc4, resigned after 2 learner moves) must fall below it.
+    expect(1).toBeLessThan(MIN_LEARNER_MOVES_FOR_OVERALL_ASSESSMENT);
+    expect(2).toBeLessThan(MIN_LEARNER_MOVES_FOR_OVERALL_ASSESSMENT);
+    // A 5-move game is the boundary case — right at the threshold, no longer "too few".
+    expect(5).toBeGreaterThanOrEqual(MIN_LEARNER_MOVES_FOR_OVERALL_ASSESSMENT);
   });
 });

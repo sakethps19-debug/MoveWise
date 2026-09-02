@@ -14,6 +14,10 @@
     "board-orientation",
     "square-identification"
   ],
+  "introducedConceptIds": ["square-identification"],
+  "practisedConceptIds": ["board-orientation"],
+  "assessedConceptIds": ["square-identification"],
+  "suitableLevel": "new-to-chess",
   "difficulty": 1,
   "estimatedDurationSec": 120,
   "steps": [

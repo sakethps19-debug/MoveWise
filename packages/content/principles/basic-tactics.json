@@ -5,8 +5,27 @@
     "title": "The knight fork",
     "conceptId": "knight-fork",
     "order": 0,
-    "subLessonIds": ["basic-tactics.01-the-knight-fork"],
-    "puzzleIds": ["basic-tactics.puzzle-knight-fork-1", "basic-tactics.puzzle-knight-fork-2"]
+    "subLessonIds": [
+      "basic-tactics.01-the-knight-fork"
+    ],
+    "puzzleIds": [
+      "basic-tactics.puzzle-knight-fork-1",
+      "basic-tactics.puzzle-knight-fork-2",
+      "tactical-vision.puzzle-lichess-0Wmez",
+      "tactical-vision.puzzle-lichess-1BVk9",
+      "tactical-vision.puzzle-lichess-1bDdH",
+      "tactical-vision.puzzle-lichess-1tsal",
+      "tactical-vision.puzzle-lichess-3h6gd",
+      "tactical-vision.puzzle-lichess-4WSQ5",
+      "tactical-vision.puzzle-lichess-4u3hp",
+      "tactical-vision.puzzle-lichess-C8JRp",
+      "tactical-vision.puzzle-lichess-CXsMC",
+      "tactical-vision.puzzle-lichess-I48eU",
+      "tactical-vision.puzzle-lichess-LZr4h",
+      "tactical-vision.puzzle-lichess-MkHMK",
+      "tactical-vision.puzzle-lichess-NuOub",
+      "tactical-vision.puzzle-lichess-VQaXl"
+    ]
   },
   {
     "id": "basic-tactics.hanging-pieces",
@@ -14,8 +33,53 @@
     "title": "Hanging pieces",
     "conceptId": "hanging-pieces",
     "order": 1,
-    "subLessonIds": ["basic-tactics.02-hanging-pieces"],
-    "puzzleIds": ["basic-tactics.puzzle-hanging-1", "basic-tactics.puzzle-hanging-2"]
+    "subLessonIds": [
+      "basic-tactics.02-hanging-pieces"
+    ],
+    "puzzleIds": [
+      "basic-tactics.puzzle-hanging-1",
+      "basic-tactics.puzzle-hanging-2",
+      "tactical-vision.puzzle-lichess-05tJf",
+      "tactical-vision.puzzle-lichess-0BxmS",
+      "tactical-vision.puzzle-lichess-0IpoN",
+      "tactical-vision.puzzle-lichess-0Nfsj",
+      "tactical-vision.puzzle-lichess-0icN3",
+      "tactical-vision.puzzle-lichess-0oMgy",
+      "tactical-vision.puzzle-lichess-0stES",
+      "tactical-vision.puzzle-lichess-12BJz",
+      "tactical-vision.puzzle-lichess-157zO",
+      "tactical-vision.puzzle-lichess-1Erzp",
+      "tactical-vision.puzzle-lichess-1iVfT",
+      "tactical-vision.puzzle-lichess-1qT0V",
+      "tactical-vision.puzzle-lichess-1uMNu",
+      "tactical-vision.puzzle-lichess-1zaL6",
+      "tactical-vision.puzzle-lichess-24mOl",
+      "tactical-vision.puzzle-lichess-27par",
+      "tactical-vision.puzzle-lichess-2LmJm",
+      "tactical-vision.puzzle-lichess-2Lrbq",
+      "tactical-vision.puzzle-lichess-2Tmif",
+      "tactical-vision.puzzle-lichess-2ZHhk",
+      "tactical-vision.puzzle-lichess-2i212",
+      "tactical-vision.puzzle-lichess-2lvuW",
+      "tactical-vision.puzzle-lichess-2wqI0",
+      "tactical-vision.puzzle-lichess-36bW6",
+      "tactical-vision.puzzle-lichess-3PLHW",
+      "tactical-vision.puzzle-lichess-3UfwY",
+      "tactical-vision.puzzle-lichess-3ZBko",
+      "tactical-vision.puzzle-lichess-3bHPK",
+      "tactical-vision.puzzle-lichess-3ghgO",
+      "tactical-vision.puzzle-lichess-43WMg",
+      "tactical-vision.puzzle-lichess-4F0Jf",
+      "tactical-vision.puzzle-lichess-4JGMS",
+      "tactical-vision.puzzle-lichess-4MqgQ",
+      "tactical-vision.puzzle-lichess-4Yhlp",
+      "tactical-vision.puzzle-lichess-5M40c",
+      "tactical-vision.puzzle-lichess-67K6T",
+      "tactical-vision.puzzle-lichess-6hMIb",
+      "tactical-vision.puzzle-lichess-6pchQ",
+      "tactical-vision.puzzle-lichess-7DN8B",
+      "tactical-vision.puzzle-lichess-9uqiI"
+    ]
   },
   {
     "id": "basic-tactics.opening-development",
@@ -23,8 +87,13 @@
     "title": "Develop your minor pieces first",
     "conceptId": "queen-development-timing",
     "order": 2,
-    "subLessonIds": ["basic-tactics.03-opening-development"],
-    "puzzleIds": ["basic-tactics.puzzle-opening-development-1", "basic-tactics.puzzle-opening-development-2"]
+    "subLessonIds": [
+      "basic-tactics.03-opening-development"
+    ],
+    "puzzleIds": [
+      "basic-tactics.puzzle-opening-development-1",
+      "basic-tactics.puzzle-opening-development-2"
+    ]
   },
   {
     "id": "basic-tactics.trade-evaluation",
@@ -32,7 +101,26 @@
     "title": "Is this trade worth it?",
     "conceptId": "trade-evaluation",
     "order": 3,
-    "subLessonIds": ["basic-tactics.04-is-this-trade-worth-it"],
-    "puzzleIds": ["basic-tactics.puzzle-trade-evaluation-1", "basic-tactics.puzzle-trade-evaluation-2"]
+    "subLessonIds": [
+      "basic-tactics.04-is-this-trade-worth-it"
+    ],
+    "puzzleIds": [
+      "basic-tactics.puzzle-trade-evaluation-1",
+      "basic-tactics.puzzle-trade-evaluation-2"
+    ]
+  },
+  {
+    "id": "basic-tactics.the-opposition",
+    "unitId": "basic-tactics",
+    "title": "King and pawn endings: the opposition",
+    "conceptId": "opposition-key-squares",
+    "order": 4,
+    "subLessonIds": [
+      "basic-tactics.05-the-opposition"
+    ],
+    "puzzleIds": [
+      "basic-tactics.puzzle-opposition-1",
+      "basic-tactics.puzzle-opposition-2"
+    ]
   }
 ]

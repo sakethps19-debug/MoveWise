@@ -94,5 +94,31 @@
       "default": "That capture loses material once the recapture happens. Check which target is defended before choosing."
     },
     "successExplanation": "Bxf4 wins the knight for free — nothing defends f4. Bxa3 would have lost the bishop for a single pawn, since the pawn on b4 recaptures immediately."
+  },
+  {
+    "id": "basic-tactics.puzzle-opposition-1",
+    "conceptIds": ["opposition-key-squares"],
+    "fen": "8/8/8/2k5/8/2K5/8/8 b - - 0 1",
+    "prompt": "It's Black's move in this opposition standoff. Which side actually has the advantage here?",
+    "kind": "select-square",
+    "correctSquares": ["c3"],
+    "difficulty": 2,
+    "feedback": {
+      "c5": "Black is the one who has to move here, and any king move gives up ground — that's a disadvantage, not an advantage.",
+      "default": "Tap the square the king that HAS the opposition (the one that does NOT have to move) is standing on."
+    },
+    "successExplanation": "White has the opposition — Black is forced to move and must give way, letting White's king advance."
+  },
+  {
+    "id": "basic-tactics.puzzle-opposition-2",
+    "conceptIds": ["opposition-key-squares"],
+    "fen": "k7/8/8/1PK5/8/8/8/8 w - - 0 1",
+    "prompt": "Escort the pawn — get your king in front of it before pushing.",
+    "correctMoves": ["c5b6"],
+    "difficulty": 2,
+    "feedback": {
+      "default": "That doesn't put your king directly in front of the pawn. Find the square on the pawn's own file, one rank ahead of it."
+    },
+    "successExplanation": "Kb6 escorts the pawn — the king leads the way, ready to shield it from the enemy king and clear its path to promotion."
   }
 ]

@@ -1,4 +1,15 @@
 import { test, expect } from "./fixtures";
+import { execFileSync } from "node:child_process";
+import path from "node:path";
+
+const DB_HELPER = path.join(__dirname, "db-helper.mjs");
+
+function dbHelper(command: string, args: Record<string, unknown> = {}): string {
+  return execFileSync("node", [DB_HELPER, command, JSON.stringify(args)], {
+    cwd: path.join(__dirname, ".."),
+    encoding: "utf-8",
+  });
+}
 
 /** Every move in packages/content/puzzles/placement.json's item order, verified legal via chess.js before this file was written (see the session's own content-authoring verification). Answering every one correctly exercises the full 14-item adaptive sequence end to end. */
 const ALL_CORRECT_MOVES: { from: string; to: string }[] = [
@@ -182,11 +193,27 @@ test("a signed-in rated player who scores 13/14 Advanced can open the recommende
   await expect(page.getByRole("heading", { name: /Placement result: Advanced/ })).toBeVisible();
   await expect(page.getByText(/13 of 14 answered correctly/)).toBeVisible();
 
+  // Real, since-added content (this round's "P0: content provenance" work)
+  // now means the missing item (opposition-key-squares) has its own real
+  // lesson — basic-tactics.05-the-opposition, added to fill a genuine
+  // pre-existing curriculum gap. The homepage correctly recommends that
+  // gap first, rather than skipping past it — a more accurate
+  // recommendation than before this content existed, but not what this
+  // test is here to check. Seed it as completed the same way
+  // tactical-vision.spec.ts already seeds prerequisite lessons elsewhere
+  // in this suite, so this test can still reach and verify the actual
+  // regression it exists for: the cross-unit prerequisite bypass on
+  // tactical-vision.01.
+  const userId = dbHelper("get-user-id", { email });
+  dbHelper("seed-completions", { userId, lessonIds: ["basic-tactics.05-the-opposition"] });
+
   // The homepage's own recommendation must lead somewhere it actually
-  // works — this is the "recommended implies accessible" invariant.
+  // works — this is the "recommended implies accessible" invariant. The
+  // card now says "Continue learning" rather than "Start here" (seeding
+  // basic-tactics.05's completion above gives this account real progress
+  // history) — the label isn't what this test checks; the destination is.
   await page.goto("/");
   const continueCard = page.locator(".mw-continue-card");
-  await expect(continueCard.getByText("Start here")).toBeVisible();
   await expect(continueCard.getByText("Checks, captures, and threats")).toBeVisible();
   await continueCard.click();
 

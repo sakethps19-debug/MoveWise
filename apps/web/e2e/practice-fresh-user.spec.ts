@@ -20,18 +20,16 @@ test("a fresh guest with zero completed lessons has at least one playable practi
   await expect(page.getByText("Puzzle 1/2")).toBeVisible();
 
   // It's real, solvable content, not a placeholder — meet-the-pieces'
-  // first board-basics puzzle: king a1 -> b2.
-  await page.locator('[aria-label*="a1,"]').click();
-  await page.locator('[aria-label*="b2,"]').click();
+  // first board-basics puzzle. Per the P0 curriculum-integrity fix, Board
+  // Basics only ever assesses concepts it has actually taught
+  // (orientation/squares, never piece movement, which isn't introduced
+  // for another six principles) — so this is a "select-square" puzzle,
+  // answered with a single tap, not a move. (PuzzleRunner's real-move
+  // fen-update regression coverage lives in puzzle-practice.spec.ts,
+  // against a still move-based pool.)
+  await expect(page.getByText("Tap the square where White's king starts.")).toBeVisible();
+  await page.locator('[aria-label*="e1,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
-
-  // Real, confirmed defect: PuzzleRunner rendered the board from the
-  // puzzle's fixed starting FEN, never from the move actually played —
-  // "Correct!" appeared but the king visually stayed on a1, never
-  // appearing to move to b2 at all. The board must reflect the real
-  // post-move position once a correct answer is confirmed.
-  await expect(page.locator('[aria-label="b2, white king"]')).toBeVisible();
-  await expect(page.locator('[aria-label="a1, empty"]')).toBeVisible();
 });
 
 test("locked pools name the exact prerequisite lesson, with a working, always-enabled CTA to it", async ({ page }) => {

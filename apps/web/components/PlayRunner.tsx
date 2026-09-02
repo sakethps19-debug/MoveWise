@@ -74,6 +74,13 @@ export function PlayRunner({
 }) {
   const [fen, setFen] = useState(START_FEN);
   const [playerColor, setPlayerColor] = useState<PlayerColor>("w");
+  // Real, reproduced defect this fixes: the board always rendered White-
+  // oriented, even when playing Black — a1 stayed bottom-left, Black's
+  // own pieces stayed at the top, exactly backwards from how a learner
+  // playing Black would see a real board. Defaults to match the side just
+  // chosen (Black -> flipped), but is then independent of it — a learner
+  // can flip back, and that choice survives for the rest of this game.
+  const [flipped, setFlipped] = useState(false);
   const [skill, setSkill] = useState<number>(10);
   const [selected, setSelected] = useState<Square | null>(null);
   const [lastMove, setLastMove] = useState<{ from: Square; to: Square } | null>(null);
@@ -302,6 +309,7 @@ export function PlayRunner({
     setLastMove(null);
     setIllegalAttempt(null);
     setPlayerColor(color);
+    setFlipped(color === "b");
     setEngineFailure(null);
     setMoves([]);
     setResigned(false);
@@ -437,6 +445,7 @@ export function PlayRunner({
               onSquareClick={handleSquareClick}
               interactive={canInteract}
               maxWidth={boardMaxWidth}
+              flipped={flipped}
               describedBy={illegalAttempt ? "mw-play-illegal-move" : undefined}
             />
             {illegalAttempt && (
@@ -444,6 +453,14 @@ export function PlayRunner({
                 {illegalAttempt.message}
               </p>
             )}
+            <Button
+              variant="ghost"
+              onClick={() => setFlipped((f) => !f)}
+              aria-pressed={flipped}
+              aria-label={flipped ? "Flip board to White's view" : "Flip board to Black's view"}
+            >
+              ⇅ Flip board
+            </Button>
           </div>
 
           <div ref={belowBoardCardRef} className={`mw-player-card${playerTurn ? " mw-player-card--active" : ""}`}>

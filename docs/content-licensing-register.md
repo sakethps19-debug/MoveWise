@@ -20,9 +20,10 @@ availability obligation, per the brief's Section 4 and Section 17).
   were made to the engine binary itself. `packages/engine`'s own code
   (the UCI wrapper) is original and not GPL-derived — it only *talks to*
   the engine over the UCI text protocol, at arm's length.
-- **Action item**: no GPL license file/notice currently lives in this
-  repo pointing at this. Should add one (e.g.
-  `apps/web/public/engine/LICENSE-NOTICE.md`) before any real deployment.
+- **Resolved this round**: `apps/web/scripts/copy-engine-assets.mjs` now
+  also writes `apps/web/public/engine/LICENSE-NOTICE.md` alongside the
+  staged binaries on every `predev`/`prebuild` run — see
+  `docs/stockfish-methodology.md`'s "GPLv3 compliance" section.
 
 ## Cburnett piece art
 
@@ -53,6 +54,26 @@ MIT or equivalent permissive licenses throughout — no dependency-scanning
 tool has been run against the full tree (see `docs/known-risks.md` and
 `docs/security-checklist.md`), so this is based on the well-known licenses
 of the direct dependencies, not an exhaustive transitive audit.
+
+## Lichess CC0 puzzle import (this round)
+
+104 puzzles imported via `scripts/import-lichess-puzzles.ts` from the CC0
+Lichess Open Database (bytes sourced from `FeXd/puzzle-chess`'s committed
+CSV — the official multi-gigabyte dump is unreachable from this build
+environment). Full detail, exact pinned versions, and per-record
+provenance: `docs/content-sources.md`, `docs/content-licensing-policy.md`,
+`packages/content/provenance/lichess-puzzles.json`.
+
+## lichess-org/chess-openings CC0 import (this round)
+
+2,337 opening lines (capped at 10 plies) imported via
+`scripts/import-chess-openings.ts` from the CC0
+`lichess-org/chess-openings` dataset, replacing the old 15-entry
+hand-authored opening-name book in `apps/web/lib/openingBook.ts` with
+real, licensed name/ECO data — the original hand-written strategic `idea`
+text for a curated subset of common openings is retained unchanged (still
+original MoveWise prose, not from this dataset). Detail:
+`docs/content-sources.md`, `packages/content/provenance/chess-openings.json`.
 
 ## Curriculum content
 

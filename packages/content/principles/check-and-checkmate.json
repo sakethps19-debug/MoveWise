@@ -5,8 +5,13 @@
     "title": "Recognizing check",
     "conceptId": "check",
     "order": 0,
-    "subLessonIds": ["check-and-checkmate.01-what-is-check"],
-    "puzzleIds": ["check-and-checkmate.puzzle-check-1", "check-and-checkmate.puzzle-check-2"]
+    "subLessonIds": [
+      "check-and-checkmate.01-what-is-check"
+    ],
+    "puzzleIds": [
+      "check-and-checkmate.puzzle-check-1",
+      "check-and-checkmate.puzzle-check-2"
+    ]
   },
   {
     "id": "check-and-checkmate.recognizing-checkmate",
@@ -14,8 +19,15 @@
     "title": "Recognizing checkmate",
     "conceptId": "checkmate",
     "order": 1,
-    "subLessonIds": ["check-and-checkmate.02-what-is-checkmate"],
-    "puzzleIds": ["check-and-checkmate.puzzle-checkmate-1", "check-and-checkmate.puzzle-checkmate-2"]
+    "subLessonIds": [
+      "check-and-checkmate.02-what-is-checkmate"
+    ],
+    "puzzleIds": [
+      "check-and-checkmate.puzzle-checkmate-1",
+      "check-and-checkmate.puzzle-checkmate-2",
+      "tactical-vision.puzzle-lichess-PLxIg",
+      "tactical-vision.puzzle-lichess-hNuqy"
+    ]
   },
   {
     "id": "check-and-checkmate.thinking-under-check",
@@ -23,8 +35,13 @@
     "title": "Thinking under check",
     "conceptId": "decision-making",
     "order": 2,
-    "subLessonIds": ["check-and-checkmate.03-thinking-under-check"],
-    "puzzleIds": ["check-and-checkmate.puzzle-decision-1", "check-and-checkmate.puzzle-decision-2"]
+    "subLessonIds": [
+      "check-and-checkmate.03-thinking-under-check"
+    ],
+    "puzzleIds": [
+      "check-and-checkmate.puzzle-decision-1",
+      "check-and-checkmate.puzzle-decision-2"
+    ]
   },
   {
     "id": "check-and-checkmate.back-rank-safety",
@@ -32,7 +49,12 @@
     "title": "Back-rank safety",
     "conceptId": "back-rank-safety",
     "order": 3,
-    "subLessonIds": ["check-and-checkmate.04-back-rank-safety"],
-    "puzzleIds": ["check-and-checkmate.puzzle-back-rank-1", "check-and-checkmate.puzzle-back-rank-2"]
+    "subLessonIds": [
+      "check-and-checkmate.04-back-rank-safety"
+    ],
+    "puzzleIds": [
+      "check-and-checkmate.puzzle-back-rank-1",
+      "check-and-checkmate.puzzle-back-rank-2"
+    ]
   }
 ]

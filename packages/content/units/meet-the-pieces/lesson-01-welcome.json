@@ -11,6 +11,9 @@
   "masteryTags": [
     "board-orientation"
   ],
+  "introducedConceptIds": ["board-orientation"],
+  "assessedConceptIds": ["board-orientation"],
+  "suitableLevel": "new-to-chess",
   "difficulty": 1,
   "estimatedDurationSec": 180,
   "steps": [
@@ -93,7 +96,7 @@
     {
       "id": "step-6",
       "type": "review",
-      "summary": "You can now read the board: 64 squares, two mirrored sides, White at the bottom and moving first. White's king starts on e1, Black's king starts on e8. Next: naming every square by its file and rank, so you can talk about any move precisely."
+      "summary": "You now know the board's orientation: White's pieces start at the bottom, and White always moves first. You found both kings — White's on e1, Black's on e8 — and saw how the two sides mirror each other. Next: naming every square by its file and rank, so you can talk about any move precisely."
     }
   ],
   "principleId": "meet-the-pieces.board-basics"

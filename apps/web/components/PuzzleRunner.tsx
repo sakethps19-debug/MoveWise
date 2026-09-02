@@ -85,10 +85,20 @@ export function PuzzleRunner({
   useEffect(() => {
     setFen(puzzle.fen);
     missedThisPuzzleRef.current = false;
-  }, [puzzle.fen]);
+    // Depends on puzzle.id, not puzzle.fen: a real, reproduced defect —
+    // two adjacent puzzles can share an identical starting fen (Board
+    // Basics' new select-square puzzles both start from the game's
+    // opening position), and this effect must still re-fire between them
+    // so a miss on puzzle N doesn't wrongly carry into puzzle N+1's
+    // first-try accounting.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puzzle.id]);
 
+  // Only a "move" puzzle has legal-move targets to highlight — a
+  // "select-square" puzzle (no piece-movement rule required, e.g. Board
+  // Basics' orientation/coordinate puzzles) never selects a piece to move.
   const legalTargets = useMemo(
-    () => (selected && puzzle ? legalTargetsFrom(puzzle.fen, selected) : []),
+    () => (puzzle.kind === "move" && selected && puzzle ? legalTargetsFrom(puzzle.fen, selected) : []),
     [selected, puzzle],
   );
 
@@ -127,11 +137,36 @@ export function PuzzleRunner({
     }
   }
 
+  function recordAttempt(correct: boolean) {
+    if (onAttempt) Promise.resolve(onAttempt(puzzle.id, correct)).catch(() => setSyncError(true));
+    else recordGuestPracticeAttempt(correct, correct ? undefined : puzzle.conceptIds);
+  }
+
   function handleClick(square: Square) {
     if (status === "correct") return;
     if (status === "incorrect") {
       setStatus("active");
       setFeedback(null);
+    }
+
+    // A "select-square" puzzle (Board Basics' orientation/coordinate
+    // content, e.g.) is answered by a single tap — no piece is selected
+    // or moved, since that content is deliberately scoped to never
+    // require a piece-movement rule that hasn't been taught yet.
+    if (puzzle.kind === "select-square") {
+      const correct = (puzzle.correctSquares ?? []).includes(square);
+      recordAttempt(correct);
+      if (!correct) {
+        missedThisPuzzleRef.current = true;
+        setStatus("incorrect");
+        setFeedback(puzzle.feedback.default ?? "Not quite — try again.");
+        return;
+      }
+      setSolved((s) => s + 1);
+      if (!missedThisPuzzleRef.current) setFirstTry((f) => f + 1);
+      setStatus("correct");
+      setFeedback(null);
+      return;
     }
 
     if (!selected) {
@@ -153,16 +188,14 @@ export function PuzzleRunner({
     // in app/actions.ts) with zero indication to the learner. It still
     // shouldn't block the puzzle flow on failure, but it also shouldn't
     // be silent — see the syncError notice below.
-    if (!result || !moveMatches(result.move, puzzle.correctMoves)) {
-      if (onAttempt) Promise.resolve(onAttempt(puzzle.id, false)).catch(() => setSyncError(true));
-      else recordGuestPracticeAttempt(false, puzzle.conceptIds);
+    if (!result || !moveMatches(result.move, puzzle.correctMoves ?? [])) {
+      recordAttempt(false);
       missedThisPuzzleRef.current = true;
       setStatus("incorrect");
       setFeedback(puzzle.feedback.default ?? "Not quite — try again.");
       return;
     }
-    if (onAttempt) Promise.resolve(onAttempt(puzzle.id, true)).catch(() => setSyncError(true));
-    else recordGuestPracticeAttempt(true);
+    recordAttempt(true);
     setFen(result.fenAfter);
     setSolved((s) => s + 1);
     if (!missedThisPuzzleRef.current) setFirstTry((f) => f + 1);

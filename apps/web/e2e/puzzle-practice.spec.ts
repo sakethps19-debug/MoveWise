@@ -83,34 +83,49 @@ test("completing a principle's sub-lessons unlocks its puzzle pool, and solving 
   await practiceLink.click();
   await page.waitForURL("/practice/meet-the-pieces.board-basics");
 
-  await expect(page.getByText("Puzzle 1/2")).toBeVisible();
+  await expect(page.getByText("Puzzle 1/4")).toBeVisible();
 
-  // A wrong move first: king a1 -> a8 is not a legal single-square king
-  // move. Folded into this test (rather than its own signup) to keep
+  // A wrong tap first: d1 (the queen's square) is not where White's king
+  // starts. Folded into this test (rather than its own signup) to keep
   // this file's total signups low — signupAction is rate-limited to
   // 20/hour per IP (lib/rate-limit.ts), a real, deliberate security
   // feature shared with the rest of this suite's own signup-based tests,
   // not something to work around by spending a fresh account per
   // scenario when one account can demonstrate both.
-  await page.locator('[aria-label*="a1,"]').click();
-  await page.locator('[aria-label*="a8,"]').click();
+  //
+  // Per the P0 curriculum-integrity fix, every Board Basics puzzle is now
+  // "select-square" (a single tap, no move) — it assesses only
+  // orientation/squares, which is all this pool's own two lessons
+  // actually taught; the pool previously (a real, reproduced defect)
+  // required king moves nobody had been taught yet.
+  await page.locator('[aria-label*="d1,"]').click();
   await expect(page.getByText(/^Not quite\./)).toBeVisible();
   // The puzzle is still on puzzle 1 — a wrong answer doesn't skip ahead.
-  await expect(page.getByText("Puzzle 1/2")).toBeVisible();
+  await expect(page.getByText("Puzzle 1/4")).toBeVisible();
 
-  // Now solve it correctly. meet-the-pieces.puzzle-board-basics-1: king a1 -> b2.
-  await page.locator('[aria-label*="a1,"]').click();
-  await page.locator('[aria-label*="b2,"]').click();
+  // Now solve it correctly. meet-the-pieces.puzzle-board-basics-1: tap e1.
+  await page.locator('[aria-label*="e1,"]').click();
 
   await expect(page.getByText(/^Correct!/)).toBeVisible();
-  await expect(page.getByText(/one square at a time/)).toBeVisible(); // successExplanation text, not just "Correct!"
+  await expect(page.getByText(/same square this lesson introduced it on/)).toBeVisible(); // successExplanation text, not just "Correct!"
   await page.getByRole("button", { name: "Continue" }).click();
 
-  await expect(page.getByText("Puzzle 2/2")).toBeVisible();
+  await expect(page.getByText("Puzzle 2/4")).toBeVisible();
 
-  // meet-the-pieces.puzzle-board-basics-2: king e1 -> f2.
-  await page.locator('[aria-label*="e1,"]').click();
-  await page.locator('[aria-label*="f2,"]').click();
+  // meet-the-pieces.puzzle-board-basics-2: tap e8.
+  await page.locator('[aria-label*="e8,"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  await expect(page.getByText("Puzzle 3/4")).toBeVisible();
+  // meet-the-pieces.puzzle-board-basics-3: tap e4.
+  await page.locator('[aria-label*="e4,"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  await expect(page.getByText("Puzzle 4/4")).toBeVisible();
+  // meet-the-pieces.puzzle-board-basics-4: tap c6.
+  await page.locator('[aria-label*="c6,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
   await page.getByRole("button", { name: "Finish practice" }).click();
 
@@ -119,10 +134,11 @@ test("completing a principle's sub-lessons unlocks its puzzle pool, and solving 
   // used to count "puzzles eventually completed" (always equal to
   // puzzles.length once a set is finished, since there's no way to skip
   // an unsolved one) and mislabel it "solved on the first try" — this
-  // exact journey (puzzle 1 wrong-then-correct, puzzle 2 correct) used to
-  // still claim "2 of 2 solved on the first try," which this test itself
-  // previously (wrongly) asserted. Only puzzle 2 was genuinely first-try.
-  await expect(page.getByText("1 of 2 solved on the first try.")).toBeVisible();
+  // exact journey (puzzle 1 wrong-then-correct, puzzles 2-4 correct) used
+  // to still claim "4 of 4 solved on the first try," which this test
+  // itself previously (wrongly) asserted for the old 2-puzzle pool. Only
+  // puzzles 2-4 were genuinely first-try.
+  await expect(page.getByText("3 of 4 solved on the first try.")).toBeVisible();
   await page.getByRole("link", { name: "Back to learning path" }).click();
   await page.waitForURL("/");
 
@@ -155,10 +171,21 @@ test("completing a principle's sub-lessons unlocks its puzzle pool, and solving 
   await page.locator('[aria-label*="h8,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();
   await expect(page.getByText(/clear line/)).toBeVisible();
+  // Real, confirmed defect this guards against: PuzzleRunner used to
+  // render the board from the puzzle's fixed starting FEN, never from the
+  // move actually played — "Correct!" appeared but the piece visually
+  // stayed on its start square. For a "move" puzzle (unlike Board
+  // Basics' new "select-square" ones above), the board must reflect the
+  // real post-move position once a correct answer is confirmed.
+  await expect(page.locator('[aria-label="h8, white rook"]')).toBeVisible();
+  await expect(page.locator('[aria-label="h1, empty"]')).toBeVisible();
 
   // basic-tactics.the-knight-fork: knight c4 -> e5 forks the king and rook.
+  // Pool size is 16 (2 hand-authored + 14 imported CC0 Lichess puzzles —
+  // see docs/content-review-report.md); the hand-authored puzzle-1 is
+  // still served first, since imports were appended, not prepended.
   await page.goto("/practice/basic-tactics.the-knight-fork");
-  await expect(page.getByText("Puzzle 1/2")).toBeVisible();
+  await expect(page.getByText("Puzzle 1/16")).toBeVisible();
   await page.locator('[aria-label*="c4,"]').click();
   await page.locator('[aria-label*="e5,"]').click();
   await expect(page.getByText(/^Correct!/)).toBeVisible();

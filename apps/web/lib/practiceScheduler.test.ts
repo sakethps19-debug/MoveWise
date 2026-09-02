@@ -11,6 +11,7 @@ import type { WarmUpCandidate } from "./warmUp";
 function puzzle(id: string, conceptId: string, difficulty: 1 | 2 | 3 = 1): Puzzle {
   return {
     id,
+    kind: "move",
     conceptIds: [conceptId],
     fen: "8/8/8/8/8/8/8/K6k w - - 0 1",
     prompt: "Move.",
