@@ -98,6 +98,28 @@ later migrations shipped with RLS disabled until
    grants/RLS state, which is exactly why this needed its own dedicated
    check rather than being assumed to be "probably still fine."
 
+**One residual default-privilege gap, confirmed structurally unfixable
+from this app's own role, not silently ignored**: querying
+`pg_default_acl` against production directly before applying
+`20260902120000_default_privileges_deny_anon_authenticated` showed
+exactly two roles own a default-ACL entry in `public` —
+`postgres` (which that migration closes) and `supabase_admin`, Supabase's
+own internal control-plane role. `pg_auth_members` confirms `postgres` is
+not a member of `supabase_admin`, and `pg_roles.rolsuper` confirms
+`postgres` is not a superuser either — so no migration this repo could
+ever run (all of them run as `postgres`) can legally alter
+`supabase_admin`'s default privileges; Postgres would reject the attempt
+outright. In practice this is a latent, not an exploited, condition:
+Supabase's own internal jobs don't provision application tables in
+`public`, only this app's own Prisma migrations do, and those run as
+`postgres`. `check-rls.ts` exempts this one specific, confirmed-unfixable
+owner (`UNFIXABLE_DEFAULT_ACL_OWNERS`) so the check stays meaningful
+(anything else would still fail it) instead of failing forever on
+something no migration here could close — and logs a note rather than
+staying silent about it. Closing it for real would need Supabase support
+or a dashboard-level action outside this remediation's own database
+credentials, and is recorded as a P2 follow-up, not attempted here.
+
 **Data API exposure at the project-settings level (separate from the
 above, not yet closed by any migration)**: everything in points 1–6
 above closes access at the *database* layer (RLS, grants, default

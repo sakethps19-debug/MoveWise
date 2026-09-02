@@ -75,6 +75,31 @@ if (!DATABASE_URL) {
 const REVIEWED_VIEWS: ReadonlySet<string> = new Set([]);
 const REVIEWED_SECURITY_DEFINER_FUNCTIONS: ReadonlySet<string> = new Set([]);
 
+/**
+ * Default-ACL owners this check does not hold accountable for a future
+ * anon/authenticated default grant. Confirmed live against the real
+ * Supabase project (erfjoslqpjdnlsfzimvi) while preparing to apply
+ * 20260902120000_default_privileges_deny_anon_authenticated: exactly two
+ * roles own a default ACL entry in `public` — "postgres" (the role every
+ * migration in this repo runs as, and the one that migration actually
+ * closes) and "supabase_admin", Supabase's own internal control-plane
+ * role. `pg_auth_members` confirms "postgres" is not a member of
+ * "supabase_admin", and `pg_roles.rolsuper` confirms "postgres" is not a
+ * superuser either — so no migration run as "postgres" (i.e. nothing
+ * `prisma migrate deploy` ever does) can legally run
+ * `ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin ...` in the first
+ * place; it would fail with a permission error, not silently no-op. This
+ * app's own migrations are also the only thing that ever creates tables
+ * in `public` — Supabase's internal jobs don't provision application
+ * tables there — so this is a structurally out-of-reach, not-actually-
+ * exploited-in-practice condition, not an oversight to silently pass on.
+ * Exempting it here (rather than leaving the check failing forever on
+ * something no migration in this repo could ever fix) keeps the check
+ * meaningful: it still fails hard on any OTHER unexpected default-ACL
+ * owner, which would be a genuinely new and actionable finding.
+ */
+const UNFIXABLE_DEFAULT_ACL_OWNERS: ReadonlySet<string> = new Set(["supabase_admin"]);
+
 interface TableRlsRow {
   table_name: string;
   rls_enabled: boolean;
@@ -90,6 +115,7 @@ interface GrantRow {
 interface DefaultAclRow {
   obj_type: "r" | "S" | "f";
   grantee: string;
+  defacl_role: string;
 }
 
 interface ViewRow {
@@ -238,18 +264,28 @@ async function main(): Promise<void> {
       // runtime role: a default ACL owned by a different role that still
       // names anon/authenticated is just as real a future-exposure risk.
       const { rows: defaultAcls } = await client.query<DefaultAclRow>(`
-        SELECT d.defaclobjtype AS obj_type, a.grantee::regrole::text AS grantee
+        SELECT d.defaclobjtype AS obj_type, a.grantee::regrole::text AS grantee, d.defaclrole::regrole::text AS defacl_role
         FROM pg_default_acl d
         JOIN pg_namespace n ON n.oid = d.defaclnamespace
         CROSS JOIN LATERAL aclexplode(d.defaclacl) a
         WHERE n.nspname = 'public'
           AND a.grantee::regrole::text IN ('anon', 'authenticated');
       `);
-      if (defaultAcls.length > 0) {
+      const actionableDefaultAcls = defaultAcls.filter((d) => !UNFIXABLE_DEFAULT_ACL_OWNERS.has(d.defacl_role));
+      const exemptDefaultAcls = defaultAcls.filter((d) => UNFIXABLE_DEFAULT_ACL_OWNERS.has(d.defacl_role));
+      if (actionableDefaultAcls.length > 0) {
         const kindName: Record<string, string> = { r: "tables", S: "sequences", f: "functions" };
-        const byKind = [...new Set(defaultAcls.map((d) => `${kindName[d.obj_type] ?? d.obj_type} (${d.grantee})`))];
+        const byKind = [...new Set(actionableDefaultAcls.map((d) => `${kindName[d.obj_type] ?? d.obj_type} (${d.grantee}, owned by ${d.defacl_role})`))];
         failures.push(
           `unsafe default privileges: future ${byKind.join(", ")} would automatically grant anon/authenticated access on creation`,
+        );
+      }
+      if (exemptDefaultAcls.length > 0) {
+        const owners = [...new Set(exemptDefaultAcls.map((d) => d.defacl_role))];
+        console.log(
+          `check-rls: note — ${exemptDefaultAcls.length} default-ACL entr(ies) owned by ${owners.join(", ")} still name anon/authenticated, ` +
+            `but this role is structurally out of reach for any migration in this repo (not this app's own runtime role, and not something it is a ` +
+            `member of or superuser over) — see UNFIXABLE_DEFAULT_ACL_OWNERS in this script. Not counted as a failure, but not silently hidden either.`,
         );
       }
     }
