@@ -27,6 +27,28 @@ rather than repeating it.
 
 ## Medium priority
 
+- **Prisma connects as `postgres`, a broad-privilege role, not a
+  purpose-built least-privilege application role.** Not a live gap today
+  — RLS is enabled on every table with zero policies, and `postgres`
+  legitimately needs to bypass it (see `docs/security-checklist.md`'s RLS
+  posture section) — but `postgres` also has privileges this app's own
+  runtime never needs (creating/dropping objects, altering roles, the
+  full Supabase-managed-role surface), which is more blast radius than
+  necessary if the application connection string itself were ever
+  compromised (e.g. leaked via a misconfigured log, a compromised CI
+  secret, or a dependency supply-chain issue). The fix: a dedicated
+  `movewise_app` role granted exactly SELECT/INSERT/UPDATE/DELETE on the
+  12 application tables (no DDL, no role-management privileges, no
+  `BYPASSRLS` — meaning it would also need explicit, scoped RLS policies
+  or ownership, a design decision of its own), with `prisma migrate
+  deploy` continuing to run as `postgres` (migrations legitimately need
+  DDL) while the app's own runtime `DATABASE_URL` switches to the new
+  role. This is a real infrastructure change (new role, new connection
+  string, a cutover with its own rollback plan) requiring credential
+  rotation and careful verification against every read/write path this
+  app has — deliberately not implemented speculatively. Tracked as a
+  scoped P1 follow-up, not attempted in the same pass as the RLS
+  remediation itself.
 - **No analytics.** None of the brief's Section 18 questions ("where do
   learners struggle," "which misconceptions recur") are answerable yet —
   blocked on both an analytics pipeline and the learner model
