@@ -52,10 +52,18 @@ export function PlacementRunner({
   const currentItemId = useMemo(() => nextPlacementItemId(answers), [answers]);
   const puzzle = currentItemId ? puzzlesById[currentItemId] : undefined;
 
+  /**
+   * Deliberately NOT synced via a `useEffect` keyed on `puzzle` — that was
+   * a real, reproduced bug: an effect only runs *after* the render that
+   * changed `puzzle` has already committed, so for one paint the new
+   * question's prompt (read directly from `puzzle` below, no state) was
+   * visible while the board still showed the previous question's FEN,
+   * for as long as React took to schedule the effect. `advance()` below
+   * now computes the next puzzle's FEN synchronously and sets it in the
+   * same state batch as `answers`, so the prompt and the board always
+   * commit together — there is no render where they can disagree.
+   */
   const [fen, setFen] = useState(puzzle?.fen ?? "");
-  useEffect(() => {
-    if (puzzle) setFen(puzzle.fen);
-  }, [puzzle]);
 
   const legalTargets = useMemo(
     () => (selected && puzzle ? legalTargetsFrom(puzzle.fen, selected) : []),
@@ -99,11 +107,18 @@ export function PlacementRunner({
   }
 
   function advance() {
-    if (pendingAnswer) setAnswers((prev) => [...prev, pendingAnswer]);
+    const newAnswers = pendingAnswer ? [...answers, pendingAnswer] : answers;
+    const nextId = nextPlacementItemId(newAnswers);
+    const nextPuzzle = nextId ? puzzlesById[nextId] : undefined;
+    // Every piece of this question's state updates in one batch: React 18
+    // coalesces these into a single re-render, so the next question's
+    // prompt, board, and interaction state all become visible together.
+    setAnswers(newAnswers);
     setPendingAnswer(null);
     setStatus("active");
     setFeedback(null);
     setSelected(null);
+    setFen(nextPuzzle?.fen ?? "");
   }
 
   function handleClick(square: Square) {

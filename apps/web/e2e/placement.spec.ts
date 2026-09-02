@@ -37,6 +37,39 @@ async function answerCorrectly(page: import("@playwright/test").Page, from: stri
   await continueBtn.click();
 }
 
+test("continuing to the next placement question never leaves the previous question's board visible", async ({ page }) => {
+  await page.goto("/placement");
+  await expect(page.getByText("Placement assessment")).toBeVisible();
+
+  await answerCorrectly(page, "d1", "d3"); // movement-rook
+  await answerCorrectly(page, "c1", "h6"); // movement-bishop
+
+  // Solve movement-queen (Qd4-g1, fen "k7/8/8/8/3Q4/8/8/4K3 w - - 0 1").
+  await page.locator('[aria-label*="d4,"]').click();
+  await page.locator('[aria-label*="g1,"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // Real, reproduced bug this guards against: the board's `fen` state
+  // previously synced via a `useEffect` that ran one render behind the
+  // question/prompt text, so immediately after Continue the *next*
+  // question's prompt could be visible while the board still rendered
+  // the *previous* question's position. movement-knight's own fen
+  // ("4k3/8/8/8/8/8/8/1N2K3 w - - 0 1") has no piece on g1 (where the
+  // queen puzzle just ended) and a knight on b1 — checked immediately
+  // after Continue, with no extra wait, so a stale board would fail this.
+  await expect(page.getByText(/Move the knight in its L-shape/)).toBeVisible();
+  await expect(page.locator('[data-square="g1"]')).toHaveAttribute("aria-label", "g1, empty");
+  await expect(page.locator('[data-square="b1"]')).toHaveAttribute("aria-label", /white knight/);
+
+  // Proves interaction isn't acting on stale geometry, not just that the
+  // label eventually catches up: the real b1->d2 knight move (the *new*
+  // question's own answer) is immediately clickable and correct.
+  await page.locator('[data-square="b1"]').click();
+  await page.locator('[data-square="d2"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+});
+
 test("a rated guest who aces the placement assessment unlocks tactics practice immediately, with zero lessons completed @smoke", async ({
   page,
 }) => {

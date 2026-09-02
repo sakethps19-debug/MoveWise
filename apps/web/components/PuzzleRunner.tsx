@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Puzzle } from "@movewise/exercise-schema";
 import { legalTargetsFrom, moveMatches, tryMove, type Square } from "@movewise/chess-rules";
@@ -79,20 +79,17 @@ export function PuzzleRunner({
   // pre-move square. Every other exercise runner in this codebase
   // (MoveStep, MiniGameStep, GuidedSequenceStep) tracks its own fen state
   // and updates it to `result.fenAfter` on a real move — this brings
-  // PuzzleRunner in line with that same pattern. Resets whenever the
-  // puzzle itself changes (a new puzzle starts from its own position).
+  // PuzzleRunner in line with that same pattern.
+  //
+  // Deliberately NOT re-synced via a `useEffect` keyed on `puzzle.id` —
+  // that was a second, real bug: an effect only runs *after* the render
+  // that already advanced `index`, so for one paint the next puzzle's
+  // prompt (derived directly from `puzzle`, no state) was visible with
+  // the board still showing the previous puzzle's position. `advance()`
+  // below now sets the next puzzle's `fen` (and resets
+  // `missedThisPuzzleRef`) synchronously in the same call that advances
+  // `index`, so they always land in the same React commit.
   const [fen, setFen] = useState(puzzle.fen);
-  useEffect(() => {
-    setFen(puzzle.fen);
-    missedThisPuzzleRef.current = false;
-    // Depends on puzzle.id, not puzzle.fen: a real, reproduced defect —
-    // two adjacent puzzles can share an identical starting fen (Board
-    // Basics' new select-square puzzles both start from the game's
-    // opening position), and this effect must still re-fire between them
-    // so a miss on puzzle N doesn't wrongly carry into puzzle N+1's
-    // first-try accounting.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [puzzle.id]);
 
   // Only a "move" puzzle has legal-move targets to highlight — a
   // "select-square" puzzle (no piece-movement rule required, e.g. Board
@@ -133,7 +130,10 @@ export function PuzzleRunner({
       setFinished(true);
       if (!onAttempt && isWarmUp) recordGuestWarmUpCompletion();
     } else {
-      setIndex((i) => i + 1);
+      const nextIndex = index + 1;
+      missedThisPuzzleRef.current = false;
+      setFen(puzzles[nextIndex].fen);
+      setIndex(nextIndex);
     }
   }
 
