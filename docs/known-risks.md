@@ -800,7 +800,12 @@ rather than repeating it.
   new tables — a real exposure via Supabase's auto-provisioned public
   REST API, even though this app doesn't use that API at all. Surfaced to
   the user with the remediation SQL shown, not auto-applied, per the
-  tool's own instructions; they chose to enable it. **Still open**: a
+  tool's own instructions; they chose to enable it. **Update**: this only
+  ever covered the tables that existed at the time — nine tables added by
+  later migrations shipped with RLS disabled until a dedicated
+  remediation pass closed the gap for every table (including future
+  ones, via an automated CI check) — see `docs/security-checklist.md`'s
+  "Row-Level Security posture" section. **Still open**: a
   real production `DATABASE_URL` (Supabase never exposes the DB password
   via API — the user needs to get it from their dashboard) and an actual
   deploy of the app itself; ADR-0005 lands the data layer only.

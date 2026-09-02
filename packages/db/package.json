@@ -8,6 +8,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
+    "db:check-rls": "tsx scripts/check-rls.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -20,6 +21,7 @@
     "@types/pg": "^8.21.0",
     "dotenv": "^17.0.0",
     "prisma": "7.9.1",
+    "tsx": "^4.19.0",
     "typescript": "^5.6.0"
   }
 }

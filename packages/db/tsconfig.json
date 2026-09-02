@@ -3,9 +3,8 @@
   "compilerOptions": {
     "lib": ["ES2022"],
     "outDir": "dist",
-    "rootDir": "src",
     "noEmit": true,
     "allowImportingTsExtensions": true
   },
-  "include": ["src"]
+  "include": ["src", "scripts"]
 }
