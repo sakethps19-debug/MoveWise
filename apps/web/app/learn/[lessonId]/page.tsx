@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@movewise/db";
-import { loadLesson } from "../../../lib/lessons";
+import { loadLesson, loadUnitLessons } from "../../../lib/lessons";
 import { loadUnitPrinciples, findPreviousPrinciple } from "../../../lib/principles";
 import { PROFICIENT_STATUSES, type MasteryStatus } from "../../../lib/masteryModel";
 import { unitFullyDemonstrated } from "../../../lib/lessonStatus";
@@ -10,6 +10,9 @@ import { completeLessonAction } from "../../actions";
 import { getSession } from "../../../lib/auth";
 import { LESSON_CHECKPOINT_CLOSED_STEP } from "../../../lib/lessonCheckpointStore";
 import type { LessonCheckpointState } from "../../../components/LessonRunner";
+
+/** Every unit's id, in curriculum order — mirrors app/page.tsx's own UNITS list. Content only (never user-specific), so building the full lesson/principle graph from it is safe to serialize down to a client component. */
+const ALL_UNIT_IDS = ["meet-the-pieces", "check-and-checkmate", "basic-tactics", "tactical-vision"];
 
 export default async function LessonPage({
   params,
@@ -206,11 +209,25 @@ export default async function LessonPage({
   // this browser's localStorage, unreadable from the server — so
   // LessonGate performs the equivalent check client-side, once, right
   // here, rather than ever rendering the runner for a guest unchecked.
+  //
+  // P0 "one availability resolver": LessonGate now calls the exact same
+  // statusOf/unlockReason functions every other surface uses (see its own
+  // doc comment), which needs the same content-graph data those other
+  // callers already have — every unit's lessons/principles. This is
+  // content, not user-specific data, so it's cheap and safe to compute
+  // server-side and serialize down as props.
   if (!user && lesson.prerequisites.length > 0) {
-    const prerequisites = lesson.prerequisites.map((id) => ({ id, title: loadLesson(id)?.title ?? id }));
+    const allLessons = ALL_UNIT_IDS.flatMap((unitId) => loadUnitLessons(unitId));
+    const allPrinciples = ALL_UNIT_IDS.flatMap((unitId) => loadUnitPrinciples(unitId));
+    const unitPrinciplesInOrder = loadUnitPrinciples(lesson.unitId);
     return (
       <main>
-        <LessonGate lessonId={lesson.id} lessonTitle={lesson.title} prerequisites={prerequisites}>
+        <LessonGate
+          lesson={lesson}
+          allPrinciples={allPrinciples}
+          allLessons={allLessons}
+          unitPrinciplesInOrder={unitPrinciplesInOrder}
+        >
           {runner}
         </LessonGate>
       </main>

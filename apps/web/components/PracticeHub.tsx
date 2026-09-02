@@ -81,6 +81,7 @@ export function PracticeHub({
   const effectiveUnconfirmed = conceptMastery === null ? guestUnconfirmed : unconfirmedConceptIds;
 
   const allPrinciplesById = new Map(units.flatMap((u) => u.principles).map((p) => [p.id, p]));
+  const allLessonsById = new Map(units.flatMap((u) => u.lessons).map((l) => [l.id, l]));
   const demonstratedLessonIds = demonstratedLessonIdsFrom(allPrinciplesById, demonstratedConceptIds);
   const statusFor = (lesson: Lesson) =>
     statusOf(
@@ -90,6 +91,7 @@ export function PracticeHub({
       units.find((u) => u.id === lesson.unitId)?.principles ?? [],
       conceptMastery,
       demonstratedConceptIds,
+      allLessonsById,
     );
   const isDone = (lesson: Lesson) => statusFor(lesson) === "completed" || demonstratedLessonIds.has(lesson.id);
 
