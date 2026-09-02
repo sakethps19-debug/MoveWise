@@ -131,6 +131,71 @@ describe("scorePlacement", () => {
     expect(result.level).toBe("new");
     expect(result.demonstratedConceptIds).toHaveLength(0);
   });
+
+  /**
+   * P0 "make placement evidence honest" regression coverage: real,
+   * reported defect — a single elementary Kf6 escort move used to mark
+   * `opposition-key-squares` directly_demonstrated, silently bypassing
+   * basic-tactics.05-the-opposition's entire lesson (a real curriculum
+   * skip) even though the move never actually tested opposition/key-square
+   * theory. Fixed by re-scoping placement.endgame-king-escort's own
+   * conceptIds to what the move actually demonstrates.
+   */
+  it("a correct endgame-king-escort answer never grants opposition-key-squares — that concept has its own dedicated lesson and must be earned there", () => {
+    const result = scorePlacement([answer("placement.endgame-king-escort", true)]);
+    expect(result.demonstratedConceptIds).not.toContain("opposition-key-squares");
+    const oppositionEvidence = result.conceptEvidence.find((e) => e.conceptId === "opposition-key-squares");
+    expect(oppositionEvidence).toBeUndefined(); // removed from the placement universe entirely, not just left unverified
+  });
+
+  it("a correct endgame-king-escort answer directly demonstrates pawn-escort-technique — real evidence for what the move actually was", () => {
+    const result = scorePlacement([answer("placement.endgame-king-escort", true)]);
+    const escort = result.conceptEvidence.find((e) => e.conceptId === "pawn-escort-technique")!;
+    expect(escort.level).toBe("directly_demonstrated");
+    expect(escort.source).toBe("placement.endgame-king-escort");
+    expect(result.demonstratedConceptIds).toContain("pawn-escort-technique");
+  });
+
+  it("a wrong endgame-king-escort answer does not demonstrate pawn-escort-technique", () => {
+    const result = scorePlacement([answer("placement.endgame-king-escort", false)]);
+    expect(result.demonstratedConceptIds).not.toContain("pawn-escort-technique");
+  });
+
+  /**
+   * Regression coverage for a real bug found via e2e testing while
+   * building the fix above: an earlier version of this fix also attached
+   * king-movement/pawn-movement directly to these advanced-tier items, on
+   * the reasoning that a correct answer really does involve moving a king
+   * or pawn. That reasoning broke on the *wrong*-answer case — a wrong
+   * answer to an advanced judgment item (e.g. escorting the pawn to the
+   * wrong square) is very often still a fully legal king/pawn move, but
+   * scorePlacement's per-item loop marks every one of a wrong item's own
+   * conceptIds "unverified" and permanently excludes them from the
+   * cluster-level fallback — silently erasing king-movement/pawn-movement
+   * evidence the foundational cluster had already legitimately
+   * established, confirmed live via a homepage recommendation regressing
+   * from "bypassed" back to "Meet the king" recommended. king-movement and
+   * pawn-movement must only ever be earned through the foundational
+   * cluster here — never coupled to an unrelated advanced item's pass/fail.
+   */
+  it("a wrong endgame-king-escort or back-rank-safety answer never touches king-movement/pawn-movement's own evidence — only the foundational cluster does", () => {
+    const result = scorePlacement([
+      answer("placement.movement-rook", true),
+      answer("placement.movement-bishop", true),
+      answer("placement.movement-queen", true),
+      answer("placement.movement-knight", true),
+      answer("placement.endgame-king-escort", false),
+      answer("placement.back-rank-safety", false),
+    ]);
+    const kingMovement = result.conceptEvidence.find((e) => e.conceptId === "king-movement")!;
+    const pawnMovement = result.conceptEvidence.find((e) => e.conceptId === "pawn-movement")!;
+    // Still demonstrated — via the 4/4 foundational cluster, unaffected by
+    // the two unrelated advanced items being answered wrong.
+    expect(kingMovement.level).toBe("inferred_high_confidence");
+    expect(pawnMovement.level).toBe("inferred_high_confidence");
+    expect(result.demonstratedConceptIds).toContain("king-movement");
+    expect(result.demonstratedConceptIds).toContain("pawn-movement");
+  });
 });
 
 describe("scorePlacement's conceptEvidence (P1 'honest placement evidence')", () => {
@@ -177,8 +242,17 @@ describe("scorePlacement's conceptEvidence (P1 'honest placement evidence')", ()
   });
 
   it("reports every concept in the placement universe explicitly, even ones never asked about at all", () => {
+    // "checkmate" (a core-tier concept with its own dedicated item,
+    // placement.recognize-checkmate) is outside the foundational cluster,
+    // so it can never be silently swept up by the cluster-level inference
+    // the way an untested cluster concept can — only answering its own
+    // item moves it off "unverified". Not opposition-key-squares: P0
+    // "honest placement evidence" deliberately removed that concept from
+    // the placement universe entirely (see lib/placement.ts's doc comment
+    // on placement.endgame-king-escort) rather than ever reporting it
+    // — even as "unverified" — as something this assessment covers.
     const result = scorePlacement([answer("placement.movement-rook", true), answer("placement.movement-bishop", true)]);
-    const neverAsked = result.conceptEvidence.find((e) => e.conceptId === "opposition-key-squares")!;
+    const neverAsked = result.conceptEvidence.find((e) => e.conceptId === "checkmate")!;
     expect(neverAsked).toBeDefined();
     expect(neverAsked.level).toBe("unverified");
     expect(neverAsked.source).toBe("not-asked");

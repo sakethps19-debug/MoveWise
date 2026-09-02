@@ -9,6 +9,7 @@ import {
   scorePlacement,
   earlyExitReason,
   PLACEMENT_ASSESSMENT_VERSION,
+  PLACEMENT_ITEM_COUNT,
   type PlacementAnswer,
   type PlacementResult,
 } from "../lib/placement";
@@ -51,10 +52,18 @@ export function PlacementRunner({
   const currentItemId = useMemo(() => nextPlacementItemId(answers), [answers]);
   const puzzle = currentItemId ? puzzlesById[currentItemId] : undefined;
 
+  /**
+   * Deliberately NOT synced via a `useEffect` keyed on `puzzle` — that was
+   * a real, reproduced bug: an effect only runs *after* the render that
+   * changed `puzzle` has already committed, so for one paint the new
+   * question's prompt (read directly from `puzzle` below, no state) was
+   * visible while the board still showed the previous question's FEN,
+   * for as long as React took to schedule the effect. `advance()` below
+   * now computes the next puzzle's FEN synchronously and sets it in the
+   * same state batch as `answers`, so the prompt and the board always
+   * commit together — there is no render where they can disagree.
+   */
   const [fen, setFen] = useState(puzzle?.fen ?? "");
-  useEffect(() => {
-    if (puzzle) setFen(puzzle.fen);
-  }, [puzzle]);
 
   const legalTargets = useMemo(
     () => (selected && puzzle ? legalTargetsFrom(puzzle.fen, selected) : []),
@@ -98,11 +107,18 @@ export function PlacementRunner({
   }
 
   function advance() {
-    if (pendingAnswer) setAnswers((prev) => [...prev, pendingAnswer]);
+    const newAnswers = pendingAnswer ? [...answers, pendingAnswer] : answers;
+    const nextId = nextPlacementItemId(newAnswers);
+    const nextPuzzle = nextId ? puzzlesById[nextId] : undefined;
+    // Every piece of this question's state updates in one batch: React 18
+    // coalesces these into a single re-render, so the next question's
+    // prompt, board, and interaction state all become visible together.
+    setAnswers(newAnswers);
     setPendingAnswer(null);
     setStatus("active");
     setFeedback(null);
     setSelected(null);
+    setFen(nextPuzzle?.fen ?? "");
   }
 
   function handleClick(square: Square) {
@@ -242,11 +258,20 @@ function PlacementResultScreen({
   result: PlacementResult;
   conceptTitles: Record<string, string>;
 }) {
+  /**
+   * P0 "make placement evidence honest": these used to be marketing-style
+   * skill labels ("Beginner"/"Intermediate"/"Advanced") — real, reported
+   * defect: "Advanced" from a 14-item diagnostic implies a chess rating
+   * this assessment's ceiling (4 advanced-tier items) cannot actually
+   * distinguish — it can't tell a 1000-rated player from a 1500-rated one
+   * apart. Every label instead names exactly what was demonstrated,
+   * scoped to this assessment, never a global skill/rating claim.
+   */
   const levelLabel: Record<PlacementResult["level"], string> = {
     new: "New to chess",
-    beginner: "Beginner",
-    intermediate: "Intermediate",
-    advanced: "Advanced",
+    beginner: "Foundations demonstrated",
+    intermediate: "Improving player",
+    advanced: "Intermediate concepts demonstrated",
   };
   const startHref =
     result.recommendedStartUnitId === "meet-the-pieces"
@@ -262,6 +287,11 @@ function PlacementResultScreen({
       <h1 className="mw-completion-title">Placement result: {levelLabel[result.level]}</h1>
       <p className="mw-completion-explanation">
         {result.itemsCorrect} of {result.itemsAnswered} answered correctly.
+      </p>
+      <p className="mw-page-subtitle" style={{ marginTop: "var(--mw-space-2)" }}>
+        This is a {PLACEMENT_ITEM_COUNT}-item diagnostic, not a chess rating — it checks specific concepts (piece
+        movement, check/checkmate recognition, a few tactics and endgame ideas), not calculation depth, opening
+        knowledge, or endgame technique broadly. Treat it as a starting point, not a final judgment of your level.
       </p>
 
       {result.demonstratedConceptIds.length > 0 && (

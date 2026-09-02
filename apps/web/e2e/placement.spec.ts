@@ -37,6 +37,39 @@ async function answerCorrectly(page: import("@playwright/test").Page, from: stri
   await continueBtn.click();
 }
 
+test("continuing to the next placement question never leaves the previous question's board visible", async ({ page }) => {
+  await page.goto("/placement");
+  await expect(page.getByText("Placement assessment")).toBeVisible();
+
+  await answerCorrectly(page, "d1", "d3"); // movement-rook
+  await answerCorrectly(page, "c1", "h6"); // movement-bishop
+
+  // Solve movement-queen (Qd4-g1, fen "k7/8/8/8/3Q4/8/8/4K3 w - - 0 1").
+  await page.locator('[aria-label*="d4,"]').click();
+  await page.locator('[aria-label*="g1,"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+
+  // Real, reproduced bug this guards against: the board's `fen` state
+  // previously synced via a `useEffect` that ran one render behind the
+  // question/prompt text, so immediately after Continue the *next*
+  // question's prompt could be visible while the board still rendered
+  // the *previous* question's position. movement-knight's own fen
+  // ("4k3/8/8/8/8/8/8/1N2K3 w - - 0 1") has no piece on g1 (where the
+  // queen puzzle just ended) and a knight on b1 — checked immediately
+  // after Continue, with no extra wait, so a stale board would fail this.
+  await expect(page.getByText(/Move the knight in its L-shape/)).toBeVisible();
+  await expect(page.locator('[data-square="g1"]')).toHaveAttribute("aria-label", "g1, empty");
+  await expect(page.locator('[data-square="b1"]')).toHaveAttribute("aria-label", /white knight/);
+
+  // Proves interaction isn't acting on stale geometry, not just that the
+  // label eventually catches up: the real b1->d2 knight move (the *new*
+  // question's own answer) is immediately clickable and correct.
+  await page.locator('[data-square="b1"]').click();
+  await page.locator('[data-square="d2"]').click();
+  await expect(page.getByText(/^Correct!/)).toBeVisible();
+});
+
 test("a rated guest who aces the placement assessment unlocks tactics practice immediately, with zero lessons completed @smoke", async ({
   page,
 }) => {
@@ -47,7 +80,7 @@ test("a rated guest who aces the placement assessment unlocks tactics practice i
     await answerCorrectly(page, from, to);
   }
 
-  await expect(page.getByRole("heading", { name: /Placement result: Advanced/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Placement result: Intermediate concepts demonstrated/ })).toBeVisible();
   await expect(page.getByText(/14 of 14 answered correctly/)).toBeVisible();
   const goToTactics = page.getByRole("link", { name: "Go to tactics practice" });
   await expect(goToTactics).toBeVisible();
@@ -66,14 +99,54 @@ test("a rated guest who aces the placement assessment unlocks tactics practice i
   // Placement was never designed to test Tactical Vision's own patterns
   // (forks/pins/skewers/etc — genuinely new material, not implied by
   // foundational movement/blunder-recognition items), so acing it
-  // honestly routes here to Tactical Vision's first lesson as the next
-  // thing to learn, rather than falsely claiming every unit is cleared —
-  // real, correct behavior once a curriculum has more than the units
-  // placement's own item set covers, not a regression.
+  // honestly routes to the real remaining gap as the next thing to learn.
+  //
+  // P0 "make placement evidence honest" changed what that gap is: placement
+  // no longer marks opposition-key-squares directly_demonstrated from the
+  // single elementary endgame-king-escort move (see lib/placement.ts's own
+  // doc comment on that item — a real, reported overclaim, not this test's
+  // concern). basic-tactics.05-the-opposition (the unit's *last* principle)
+  // is therefore correctly still un-demonstrated even after a perfect
+  // 14/14, so the homepage recommends finishing it before Tactical Vision —
+  // a more honest recommendation than before this fix, not a regression.
   await page.goto("/");
   const continueCard = page.locator(".mw-continue-card");
   await expect(continueCard.getByText("Start here")).toBeVisible();
-  await expect(continueCard.getByText("Checks, captures, and threats")).toBeVisible();
+  await expect(continueCard.getByText("King and pawn endings: the opposition")).toBeVisible();
+});
+
+test("a guest who aces the placement assessment can open 'What is check?' directly by URL, even though its prerequisite is meet-the-pieces' own mastery-challenge lesson @smoke", async ({
+  page,
+}) => {
+  // Real, confirmed live bug (reproduction #2 of the P0 "guest and account
+  // availability" defect): check-and-checkmate.01-what-is-check's own
+  // prerequisite is meet-the-pieces.12-unit-mastery-challenge — a lesson
+  // that belongs to no principle's own subLessonIds, so the old
+  // components/LessonGate.tsx (a THIRD, independent reimplementation of
+  // lesson-gating logic that checked only literal readGuestProgress()
+  // completions, never placement evidence at all) could never unlock it
+  // for a guest, no matter what their placement demonstrated — even
+  // though the homepage's own recommendation and a signed-in learner's
+  // server-side route guard both correctly treated a fully-demonstrated
+  // meet-the-pieces unit as satisfying it. Fixed by having LessonGate call
+  // the exact same statusOf/unlockReason functions (lib/lessonStatus.ts)
+  // every other surface already uses, via the shared
+  // computeGuestDemonstratedConceptIds() evidence-gathering step.
+  await page.goto("/placement");
+  for (const { from, to } of ALL_CORRECT_MOVES) {
+    await answerCorrectly(page, from, to);
+  }
+  await expect(page.getByRole("heading", { name: /Placement result: Intermediate concepts demonstrated/ })).toBeVisible();
+
+  // Direct URL navigation, not a card click — the client-side route guard
+  // (LessonGate) itself is what's under test here, not LearningPath's card
+  // rendering (already covered by the "Start here" assertion in the
+  // previous test).
+  await page.goto("/learn/check-and-checkmate.01-what-is-check");
+  await expect(page).not.toHaveURL(/\/\?locked=/);
+  await expect(page.getByText(/is locked until/)).toHaveCount(0);
+  await expect(page.getByText("What is check?")).toBeVisible();
+  await expect(page.getByText("Step 1/")).toBeVisible();
 });
 
 test("a placement assessment failed at the foundational level ends early, recommends starting from the beginning, and demonstrates nothing", async ({
@@ -118,6 +191,12 @@ test("a placement assessment failed at the foundational level ends early, recomm
   // exactly as it is for anyone else who hasn't completed its prerequisites.
   await page.goto("/learn/meet-the-pieces.03-meet-the-rook");
   await expect(page).toHaveURL(/\/\?locked=/);
+
+  // The mastery-challenge bypass (see the "aces the placement assessment"
+  // test above) must never fire from a partial/failed result either — a
+  // real, honest "locked" here, not just for the foundational-tier lesson.
+  await page.goto("/learn/check-and-checkmate.01-what-is-check");
+  await expect(page).toHaveURL(/\/\?locked=/);
 });
 
 test("a signed-in rated player's placement result is a real, server-persisted UserConceptMastery row — the server-side gate bypasses it too, not just the client UI", async ({
@@ -135,7 +214,7 @@ test("a signed-in rated player's placement result is a real, server-persisted Us
   for (const { from, to } of ALL_CORRECT_MOVES) {
     await answerCorrectly(page, from, to);
   }
-  await expect(page.getByRole("heading", { name: /Placement result: Advanced/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Placement result: Intermediate concepts demonstrated/ })).toBeVisible();
 
   // The server route itself (not just the client-rendered UI) must let a
   // signed-in learner straight into a lesson whose prerequisite it never
@@ -190,7 +269,7 @@ test("a signed-in rated player who scores 13/14 Advanced can open the recommende
   await expect(page.getByText(/^Not quite\./)).toBeVisible();
   await page.getByRole("button", { name: /See my result/ }).click();
 
-  await expect(page.getByRole("heading", { name: /Placement result: Advanced/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Placement result: Intermediate concepts demonstrated/ })).toBeVisible();
   await expect(page.getByText(/13 of 14 answered correctly/)).toBeVisible();
 
   // Real, since-added content (this round's "P0: content provenance" work)

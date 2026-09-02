@@ -146,6 +146,13 @@
     "unitId": "basic-tactics"
   },
   {
+    "id": "pawn-escort-technique",
+    "name": "Escorting a pawn with the king",
+    "description": "A pawn pushed on its own can be stopped or captured by the enemy king — moving your own king in front of it first is the elementary technique. Deliberately narrower than real opposition/key-square theory (corresponding squares, taking the opposition, distant opposition): a single escort move demonstrates this elementary habit, not comprehensive endgame technique.",
+    "parentId": "tactics",
+    "unitId": "basic-tactics"
+  },
+  {
     "id": "knight",
     "name": "The knight",
     "description": "General knight-piece familiarity — distinct from knight-movement (meet-the-pieces' piece-rules lesson) and knight-fork (the tactic); tags content that's simply about the knight as a piece.",

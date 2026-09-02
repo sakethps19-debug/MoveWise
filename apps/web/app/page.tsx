@@ -162,11 +162,15 @@ export default async function HomePage({
     const checkpointLesson = checkpoint ? loadLesson(checkpoint.lessonId) : null;
 
     const completedLessonIds = new Set(rows.map((c) => c.lessonId));
+    const allLessonsById = new Map(units.flatMap((u) => u.lessons).map((l) => [l.id, l]));
     const frontierLessons: { lessonId: string; title: string }[] = [];
     outer: for (const unit of units) {
       const principlesById = new Map(unit.principles.map((p) => [p.id, p]));
       for (const lesson of unit.lessons) {
-        if (statusOf(lesson, completedLessonIds, principlesById, unit.principles, conceptMastery, demonstratedConceptIds) === "available") {
+        if (
+          statusOf(lesson, completedLessonIds, principlesById, unit.principles, conceptMastery, demonstratedConceptIds, allLessonsById) ===
+          "available"
+        ) {
           frontierLessons.push({ lessonId: lesson.id, title: lesson.title });
           if (frontierLessons.length >= 2) break outer;
         }

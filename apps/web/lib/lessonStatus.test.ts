@@ -153,3 +153,85 @@ describe("unitFullyDemonstrated", () => {
     expect(unitFullyDemonstrated(principles, new Set(["concept-a", "concept-b", "unrelated-concept"]))).toBe(false);
   });
 });
+
+/**
+ * Regression coverage for the P0 "guest and account availability"
+ * reproduction #2: "What is check?" (prerequisite: meet-the-pieces' own
+ * mastery-challenge lesson) stayed locked for a learner whose placement
+ * directly demonstrated every concept in meet-the-pieces, because a
+ * mastery-challenge lesson belongs to no principle's own `subLessonIds` —
+ * `demonstratedLessonIdsFrom` can never cover it directly. `statusOf` and
+ * `unlockReason` must apply the identical `unitFullyDemonstrated` bypass
+ * through their new `lessonsById` parameter, exactly mirroring the
+ * signed-in server-side route guard in app/learn/[lessonId]/page.tsx, so
+ * a recommendation can never link to a destination that then rejects the
+ * same learner state.
+ */
+describe("statusOf / unlockReason mastery-challenge prerequisite bypass", () => {
+  const boardBasics = makePrinciple({
+    id: "meet-the-pieces.board-basics",
+    conceptId: "board-orientation",
+    subLessonIds: ["meet-the-pieces.01-welcome"],
+  });
+  const rookPrinciple = makePrinciple({
+    id: "meet-the-pieces.rook",
+    conceptId: "rook-movement",
+    subLessonIds: ["meet-the-pieces.03-meet-the-rook"],
+  });
+  const principlesById = new Map([
+    [boardBasics.id, boardBasics],
+    [rookPrinciple.id, rookPrinciple],
+  ]);
+  const principlesInOrder = [boardBasics, rookPrinciple];
+
+  const masteryChallenge = makeLesson({
+    id: "meet-the-pieces.12-unit-mastery-challenge",
+    kind: "mastery-challenge" as Lesson["kind"],
+    unitId: "meet-the-pieces",
+  });
+  const whatIsCheck = makeLesson({
+    id: "check-and-checkmate.01-what-is-check",
+    unitId: "check-and-checkmate",
+    prerequisites: ["meet-the-pieces.12-unit-mastery-challenge"],
+  });
+  const lessonsById = new Map([
+    [masteryChallenge.id, masteryChallenge],
+    [whatIsCheck.id, whatIsCheck],
+  ]);
+
+  it("stays locked when the mastery-challenge's unit is only partially demonstrated", () => {
+    const partial = new Set(["board-orientation"]); // rook-movement missing
+    expect(statusOf(whatIsCheck, new Set(), principlesById, principlesInOrder, null, partial, lessonsById)).toBe(
+      "locked",
+    );
+  });
+
+  it("unlocks once every principle in the mastery-challenge's unit is demonstrated", () => {
+    const full = new Set(["board-orientation", "rook-movement"]);
+    expect(statusOf(whatIsCheck, new Set(), principlesById, principlesInOrder, null, full, lessonsById)).toBe(
+      "available",
+    );
+  });
+
+  it("does not bypass without lessonsById (backward-compatible: omitting the param keeps prior behavior)", () => {
+    const full = new Set(["board-orientation", "rook-movement"]);
+    expect(statusOf(whatIsCheck, new Set(), principlesById, principlesInOrder, null, full)).toBe("locked");
+  });
+
+  it("never marks the mastery-challenge lesson itself completed by the bypass — only 'available'", () => {
+    const full = new Set(["board-orientation", "rook-movement"]);
+    expect(statusOf(masteryChallenge, new Set(), principlesById, principlesInOrder, null, full, lessonsById)).toBe(
+      "available",
+    );
+  });
+
+  it("unlockReason agrees with statusOf: names the mastery-challenge lesson while locked, null once demonstrated", () => {
+    const partial = new Set(["board-orientation"]);
+    const lockedReason = unlockReason(whatIsCheck, new Set(), lessonsById, principlesById, principlesInOrder, false, partial);
+    expect(lockedReason).toMatch(/Unit mastery challenge|unit-mastery-challenge/);
+
+    const full = new Set(["board-orientation", "rook-movement"]);
+    const unlockedReason = unlockReason(whatIsCheck, new Set(), lessonsById, principlesById, principlesInOrder, false, full);
+    expect(unlockedReason).toBeNull();
+  });
+});

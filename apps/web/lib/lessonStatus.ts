@@ -51,12 +51,43 @@ export function statusOf(
    * without violating "never falsely mark a concept completed".
    */
   demonstratedConceptIds?: Set<string>,
+  /**
+   * Every lesson by id, needed only to resolve a *prerequisite*'s own
+   * `kind`/`unitId` for the mastery-challenge bypass immediately below.
+   * Optional and additive: omitting it just means a mastery-challenge
+   * prerequisite can only be passed by literal completion, matching this
+   * function's behavior before this parameter existed — every existing
+   * caller that doesn't pass it keeps its exact prior behavior.
+   */
+  lessonsById?: Map<string, Lesson>,
 ): CoreStatus {
   if (completedIds === null) return "available"; // guest: no progress tracked, nothing to lock against
   if (completedIds.has(lesson.id)) return "completed";
 
   const demonstratedLessonIds = demonstratedLessonIdsFrom(principlesById, demonstratedConceptIds);
-  const passesPrereq = (p: string) => completedIds.has(p) || demonstratedLessonIds.has(p);
+  const passesPrereq = (p: string) => {
+    if (completedIds.has(p) || demonstratedLessonIds.has(p)) return true;
+    // Real, confirmed bug this closes: a mastery-challenge lesson (e.g.
+    // meet-the-pieces.12-unit-mastery-challenge) belongs to no principle's
+    // own subLessonIds at all, so `demonstratedLessonIdsFrom` above can
+    // never cover it directly — a *downstream* lesson whose prerequisite
+    // IS a mastery-challenge lesson (e.g. check-and-checkmate.01-what-is-
+    // check) stayed locked here even once every principle in that
+    // mastery-challenge's own unit was genuinely demonstrated, because
+    // this function had no equivalent to the special-cased bypass
+    // app/learn/[lessonId]/page.tsx's server-side route guard already
+    // implemented separately for signed-in learners — the exact
+    // "recommendation says available, route says locked" contradiction
+    // reported live, reproduced here structurally so it can't recur the
+    // next time a caller (e.g. a guest-only client-side gate) is added
+    // without re-deriving this same special case badly or not at all.
+    const prereqLesson = lessonsById?.get(p);
+    if (prereqLesson?.kind === "mastery-challenge") {
+      const unitPrinciples = [...principlesById.values()].filter((pr) => pr.unitId === prereqLesson.unitId);
+      return unitFullyDemonstrated(unitPrinciples, demonstratedConceptIds);
+    }
+    return false;
+  };
   if (!lesson.prerequisites.every(passesPrereq)) return "locked";
 
   // No signed-in session to check proficiency against at all (a guest) —
@@ -134,7 +165,18 @@ export function unlockReason(
 ): string | null {
   if (completedIds === null) return null; // guest: no per-row reason, matches statusOf's "everything open" treatment
   const demonstratedLessonIds = demonstratedLessonIdsFrom(principlesById, demonstratedConceptIds);
-  const missingPrereq = lesson.prerequisites.find((p) => !completedIds.has(p) && !demonstratedLessonIds.has(p));
+  const passesPrereq = (p: string) => {
+    if (completedIds.has(p) || demonstratedLessonIds.has(p)) return true;
+    // Same mastery-challenge bypass as statusOf above — kept in sync so
+    // the reason text and the actual lock decision can never disagree.
+    const prereqLesson = lessonsById.get(p);
+    if (prereqLesson?.kind === "mastery-challenge") {
+      const unitPrinciples = [...principlesById.values()].filter((pr) => pr.unitId === prereqLesson.unitId);
+      return unitFullyDemonstrated(unitPrinciples, demonstratedConceptIds);
+    }
+    return false;
+  };
+  const missingPrereq = lesson.prerequisites.find((p) => !passesPrereq(p));
   if (missingPrereq) {
     const title = lessonsById.get(missingPrereq)?.title ?? missingPrereq;
     return `Unlocks after "${title}"`;

@@ -61,7 +61,43 @@ export const PLACEMENT_ITEMS: PlacementItemMeta[] = [
   { id: "placement.trade-evaluation", tier: "advanced", conceptIds: ["trade-evaluation", "piece-values"] },
   { id: "placement.opening-development", tier: "advanced", conceptIds: ["queen-development-timing"] },
   { id: "placement.back-rank-safety", tier: "advanced", conceptIds: ["back-rank-safety"] },
-  { id: "placement.endgame-king-escort", tier: "advanced", conceptIds: ["opposition-key-squares"] },
+  /**
+   * P0 "honest placement evidence": this item's own conceptIds used to be
+   * just `["opposition-key-squares"]` — a real, reproduced overclaim. The
+   * accepted move (Kf6, walking the king in front of its own pawn) is a
+   * single elementary escort move — real evidence for the narrower
+   * `pawn-escort-technique` concept, but it is not a genuine test of real
+   * opposition/key-square theory (corresponding squares, taking the
+   * opposition, distant opposition) — that concept has its own dedicated
+   * lesson (basic-tactics.05-the-opposition) and must be earned there, not
+   * granted from this one move. Before this fix, a learner who passed
+   * this single elementary item got `opposition-key-squares` marked
+   * directly_demonstrated, which silently bypassed that entire lesson via
+   * the demonstratedConceptIds prerequisite/pool-unlock bypass — "one
+   * elementary Kf6 move must not certify comprehensive opposition
+   * knowledge" (P0 requirement), and a real curriculum-skip, not just a
+   * cosmetic mislabeling.
+   *
+   * Deliberately does NOT also attach `king-movement` here, even though
+   * the accepted move is a real king move: king-movement already has a
+   * safe, honest evidence source (the foundational cluster's 2-of-4
+   * inference), and coupling it to THIS item's own pass/fail turned out to
+   * actively regress that — a wrong answer here (e.g. moving the king
+   * sideways instead of escorting) is very often still a fully legal king
+   * move, but scorePlacement's per-item loop marks every one of an
+   * incorrectly-answered item's conceptIds "unverified" and permanently
+   * excludes them from the cluster-level fallback (`answeredDirectlyConceptIds`),
+   * regardless of whether the *underlying mechanic* was actually
+   * demonstrated. Confirmed live via e2e: a learner who aced all 4
+   * foundational movement items (genuinely demonstrating king-movement)
+   * but missed this one advanced judgment item lost king-movement's
+   * cluster-inferred credit entirely, silently regressing the homepage's
+   * "Meet the king" lesson from bypassed back to recommended. A concept
+   * should only ever gain a *new*, more direct evidence source here — it
+   * must never let an unrelated item's wrong answer erase evidence a
+   * different, already-passed item legitimately established.
+   */
+  { id: "placement.endgame-king-escort", tier: "advanced", conceptIds: ["pawn-escort-technique"] },
 ];
 
 /**

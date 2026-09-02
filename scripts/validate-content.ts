@@ -21,7 +21,12 @@ import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { parseLesson, parseConcept, parsePrinciple, parsePuzzle, type Lesson, type Puzzle, type Principle } from "../packages/exercise-schema/src/index";
 import { validateLesson, validatePuzzle, impliedMoveConceptIds } from "../packages/exercise-schema/src/validate-chess";
-import { validateInstructionalQuality, validatePuzzleInstructionalQuality } from "../packages/exercise-schema/src/validate-instructional";
+import {
+  validateInstructionalQuality,
+  validatePuzzleInstructionalQuality,
+  validateSpatialLanguage,
+  validatePuzzleSpatialLanguage,
+} from "../packages/exercise-schema/src/validate-instructional";
 import { DETECTABLE_CONCEPT_IDS } from "../apps/web/lib/conceptDetection";
 import { parseProvenanceRecord, validateProvenanceManifest, type ProvenanceRecord } from "../packages/exercise-schema/src/provenance";
 
@@ -61,7 +66,7 @@ for (const filePath of walkLessonFiles(UNITS_ROOT)) {
   }
   lessonsById.set(parsed.id, parsed);
   lessonFilePathById.set(parsed.id, filePath);
-  const issues = [...validateLesson(parsed), ...validateInstructionalQuality(parsed)];
+  const issues = [...validateLesson(parsed), ...validateInstructionalQuality(parsed), ...validateSpatialLanguage(parsed)];
 
   if (issues.length > 0) {
     failures += issues.length;
@@ -93,7 +98,11 @@ if (existsSync(PUZZLES_ROOT)) {
         console.error(`\n✗ ${filePath}\n  duplicate puzzle id "${puzzle.id}"`);
       }
       puzzlesById.set(puzzle.id, puzzle);
-      const issues = [...validatePuzzle(puzzle), ...validatePuzzleInstructionalQuality(puzzle)];
+      const issues = [
+        ...validatePuzzle(puzzle),
+        ...validatePuzzleInstructionalQuality(puzzle),
+        ...validatePuzzleSpatialLanguage(puzzle),
+      ];
       if (issues.length > 0) {
         failures += issues.length;
         fileOk = false;

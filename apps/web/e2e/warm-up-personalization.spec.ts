@@ -38,7 +38,7 @@ test("a rated player who aced the placement assessment gets a tactics-level Dail
     await expect(page.getByText(/^Correct!/)).toBeVisible();
     await page.getByRole("button", { name: /Continue|See my result/ }).click();
   }
-  await expect(page.getByRole("heading", { name: /Placement result: Advanced/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Placement result: Intermediate concepts demonstrated/ })).toBeVisible();
 
   await page.goto("/practice/warm-up");
   await expect(page.getByText("Puzzle 1/")).toBeVisible();

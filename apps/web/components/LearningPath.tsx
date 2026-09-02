@@ -151,6 +151,7 @@ export function LearningPath({
       units.find((u) => u.id === lesson.unitId)?.principles ?? [],
       conceptMastery,
       demonstratedConceptIds,
+      allLessonsById,
     );
   const unlockReasonFor = (lesson: Lesson) =>
     unlockReason(
@@ -182,6 +183,7 @@ export function LearningPath({
       units.find((u) => u.id === lesson.unitId)?.principles ?? [],
       conceptMastery,
       undefined,
+      allLessonsById,
     ) === "locked";
   // Layers "in-progress" and "mastered" onto the three core, gating-
   // relevant statuses — see the LessonStatus/CoreStatus doc comment above.

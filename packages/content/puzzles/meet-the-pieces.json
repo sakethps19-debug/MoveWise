@@ -79,13 +79,13 @@
     "id": "meet-the-pieces.puzzle-bishop-1",
     "conceptIds": ["bishop-movement"],
     "fen": "4k3/8/8/8/8/8/8/2B1K3 w - - 0 1",
-    "prompt": "Move the bishop along its diagonal as far as it can toward the top-right corner.",
+    "prompt": "Move the bishop along its diagonal as far as it can go, up and to the right.",
     "correctMoves": ["c1h6"],
     "difficulty": 1,
     "feedback": {
       "default": "The bishop only moves diagonally — pick the diagonal heading up and to the right from c1, and go as far as the board allows."
     },
-    "successExplanation": "Bh6 travels the whole c1–h6 diagonal in one move — bishops move diagonally, any distance, until something blocks them."
+    "successExplanation": "Bh6 travels the whole c1–h6 diagonal in one move, all the way to the edge of the board on the h-file — bishops move diagonally, any distance, until something blocks them."
   },
   {
     "id": "meet-the-pieces.puzzle-bishop-2",
@@ -115,13 +115,13 @@
     "id": "meet-the-pieces.puzzle-queen-2",
     "conceptIds": ["queen-movement"],
     "fen": "k7/8/8/8/3Q4/8/8/4K3 w - - 0 1",
-    "prompt": "Move the queen diagonally down-right, all the way to the corner of the board.",
+    "prompt": "Move the queen diagonally down-right, all the way to the edge of the board.",
     "correctMoves": ["d4g1"],
     "difficulty": 1,
     "feedback": {
       "default": "This time use the queen's diagonal movement, like a bishop — head down and to the right from d4 until you reach the edge."
     },
-    "successExplanation": "Qg1 travels the whole diagonal from d4 down to the corner — the queen's diagonal moves work exactly like a bishop's."
+    "successExplanation": "Qg1 travels the whole diagonal from d4 down to the edge of the board, on the first rank — the queen's diagonal moves work exactly like a bishop's."
   },
   {
     "id": "meet-the-pieces.puzzle-king-1",
