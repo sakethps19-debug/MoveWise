@@ -51,11 +51,32 @@ migrate now rather than continue deferring it.
    Supabase's own tooling flags as critical: with an anon key, that REST
    API can read/write any row. **This was surfaced to the user directly,
    with the remediation SQL shown, not auto-applied** — they chose to
-   enable RLS with no policies on all three tables. No policies means
+   enable RLS with no policies on the three tables that existed at the
+   time (`User`, `Session`, `LessonCompletion`). No policies means
    deny-all for the anon/authenticated PostgREST roles; the app's own
    Postgres role isn't affected (table owner bypasses RLS by default),
    so nothing about the app's behavior changes — this only closes an API
    surface the app never used.
+
+   **Update — this was an incomplete remediation, not a one-time fix**:
+   every table added by a later migration silently shipped with RLS
+   disabled, since nothing re-applied step 5's reasoning to new tables —
+   nine tables (`RateLimitHit`, `MoveAnalysis`, `GameAnalysis`,
+   `LessonCheckpoint`, `Game`, `ExerciseAttempt`, `PasswordResetToken`,
+   `PlacementAttempt`, `UserConceptMastery`) were live with RLS disabled
+   until a dedicated remediation pass caught it via Supabase's Security
+   Advisor, closed it for every current and future table (migration
+   `20260902110000_enforce_rls_all_tables_revoke_data_api`, which also
+   revokes `anon`/`authenticated`'s table-level privileges as a second,
+   independent layer), and added an automated regression check
+   (`packages/db/scripts/check-rls.ts`, run in CI) so this specific class
+   of gap — a new table forgetting `ENABLE ROW LEVEL SECURITY` — fails
+   the build instead of drifting silently again. See
+   `docs/security-checklist.md`'s "Row-Level Security posture" section
+   for the full current posture and the runtime-role preflight this pass
+   verified live before touching anything (table ownership +
+   `rolbypassrls`, not assumed from this ADR's own "table owner bypasses
+   RLS by default" claim above).
 
 ## Consequences
 - **Real production `DATABASE_URL` still needs a human step**: Supabase

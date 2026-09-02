@@ -80,6 +80,17 @@ jobs:
       - name: Build apps/web (also runs prisma generate/migrate deploy again, via predev/prebuild)
         run: pnpm run build
 
+      # RLS regression check (docs/security-checklist.md) — runs after
+      # the build above, since that's what actually applies every
+      # migration (via predev/prebuild's `prisma migrate deploy`) against
+      # this job's own throwaway Postgres. Confirmed real gap this
+      # guards against: nine tables added after the first RLS migration
+      # silently shipped with RLS disabled, caught only by hand later via
+      # Supabase's Security Advisor — this makes that a build failure
+      # instead of a silent drift.
+      - name: Check RLS is enabled on every public table
+        run: pnpm --filter @movewise/db db:check-rls
+
   e2e:
     runs-on: ubuntu-latest
     needs: verify
