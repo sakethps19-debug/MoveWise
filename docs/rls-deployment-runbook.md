@@ -1,17 +1,35 @@
-# Deployment runbook: RLS remediation migration
+# Deployment runbook: RLS remediation migrations
 
-Covers `packages/db/prisma/migrations/20260902110000_enforce_rls_all_tables_revoke_data_api`.
+Covers both:
+- `packages/db/prisma/migrations/20260902110000_enforce_rls_all_tables_revoke_data_api`
+- `packages/db/prisma/migrations/20260902120000_default_privileges_deny_anon_authenticated`
+  (a follow-up audit found that role "postgres" — the exact role
+  migrations run as — had a default-privilege entry auto-granting
+  `anon`/`authenticated` on every *future* table/sequence/function; the
+  first migration alone would not have stopped the next new table from
+  shipping exposed again)
 
 **Why this is a runbook and not just "push the branch"**: Vercel Preview
 and Production share the exact same live Supabase database
 (`erfjoslqpjdnlsfzimvi`) — confirmed in `docs/deployment.md`, not a
-guess. `prisma migrate deploy` runs on every build via `apps/web`'s
-`prebuild` script, including Preview builds for an open PR. Pushing this
-branch and opening a PR would therefore apply this migration to the one
-shared production database the moment Vercel builds the Preview — before
-a human ever reviewed the diff. **This migration has not been pushed.**
-Everything below is what to do, in order, when a human decides to
-proceed.
+guess. `prisma migrate deploy` used to run on every build via `apps/web`'s
+`prebuild` script, including Preview builds for an open PR, which would
+have applied these migrations to the one shared production database the
+moment Vercel built the Preview — before a human ever reviewed the diff.
+
+**This is now closed at the code level, not just by a runbook step**:
+`apps/web/scripts/setup-db.mjs` checks Vercel's own `VERCEL_ENV` system
+variable and skips `prisma migrate deploy` entirely whenever it's
+`"preview"` — a Preview build can no longer run any migration, ever,
+regardless of how `DATABASE_URL` happens to be scoped in Vercel's
+project settings. Proven behaviorally, not just by reading the code, in
+`apps/web/scripts/setup-db.test.ts` (a deliberately-unreachable
+`DATABASE_URL` makes a real Production-mode run fail fast, since
+`migrate deploy` needs a live connection; the same unreachable URL under
+`VERCEL_ENV=preview` succeeds, proving `migrate deploy` was never even
+attempted). Step 1 below is now a defense-in-depth option, not the sole
+safeguard. **These migrations have not been pushed.** Everything below is
+what to do, in order, when a human decides to proceed.
 
 ## 0. Preconditions (already satisfied — recorded here for the record)
 
@@ -42,28 +60,30 @@ proceed.
       document's own honest limitation note) and confirmed every exposed
       table is currently empty.
 
-## 1. Before pushing: make the Preview build safe
+## 1. Preview safety (already guaranteed by the code-level guard — optional hardening below)
 
-**Do this before opening the PR, not after.** Pick one:
+The `VERCEL_ENV` guard in `setup-db.mjs` (see above) already makes it
+architecturally impossible for a Preview build to run either migration —
+this holds regardless of Vercel project configuration, so there is no
+required manual step here anymore. Optional further hardening, worth
+doing independently of this specific migration since it addresses the
+broader shared-database risk documented in `docs/deployment.md`:
 
-- **(a) Preferred — Supabase branching.** If available on the project's
-  plan, enable Supabase's database-branching integration for this repo
-  so each Preview deployment gets its own isolated branch database
-  instead of touching the shared one. This is the fix `docs/deployment.md`
-  already recommends for the broader shared-database problem, and it
-  incidentally makes this migration's Preview-safety a non-issue too.
-- **(b) Minimum viable — pause the Preview build for this PR specifically.**
-  In Vercel's project settings, either (i) temporarily remove/rename
-  `DATABASE_URL` from the Preview environment before pushing this branch
-  (Preview simply won't boot a working app for the duration — safe, not
-  useful for visual review), or (ii) if the team's Vercel plan supports
-  it, disable automatic Preview deployments for this one branch/PR and
-  rely on local review + the runbook's own manual apply step instead.
-- **(c) If neither is set up**: do not push this branch until one of the
-  above is in place. Pushing with Preview pointed at the shared database
-  and no other guard means the migration applies the moment Vercel builds
-  the Preview, without the controlled sequencing the rest of this runbook
-  describes.
+- **Supabase branching**, if available on the project's plan — gives
+  each Preview deployment its own isolated branch database instead of
+  read/write access to the shared one. Checked during this same audit
+  (`mcp__Supabase__list_branches`): the project has exactly one branch
+  ("main", the production database itself) — branching is technically
+  available on this project but no isolated preview branch has been
+  created. Creating one requires a cost confirmation
+  (`confirm_cost`/`create_branch`) — a paid action, so this was not done
+  autonomously; a human should decide whether to enable it.
+- Removing/unsetting Preview's `DATABASE_URL` in Vercel (the previous
+  recommendation) is no longer necessary for migration safety
+  specifically, but is still worth considering for the separate,
+  broader risk that Preview can read/write real production *rows*
+  (not just schema) — that risk is unaffected by anything in this
+  migration and remains open, as `docs/deployment.md` already documents.
 
 ## 2. Push and open the PR
 
@@ -83,21 +103,23 @@ Do it as a controlled action, not as a side effect of a build:
 2. Merge to `main`. If step 1 chose option (b)(i) (Preview's
    `DATABASE_URL` removed), restore it now, after the migration has
    already been applied to production in the next steps — not before.
-3. **Production's own build applies the migration** the same way every
+3. **Production's own build applies both migrations** the same way every
    previous migration has been applied (`prisma migrate deploy` via
-   `prebuild`, per ADR-0005) — this is the one time it's meant to touch
-   the shared database. Watch the Production deployment's build log for
-   the migration name (`Applying migration
-   20260902110000_enforce_rls_all_tables_revoke_data_api`) and a clean
-   "All migrations have been successfully applied."
-4. If the build log shows an error applying this migration: **stop, do
+   `prebuild`, per ADR-0005 — now gated by the `VERCEL_ENV !== "preview"`
+   guard, which a real Production build always satisfies) — this is the
+   one time it's meant to touch the shared database. Watch the Production
+   deployment's build log for both migration names (`Applying migration
+   20260902110000_enforce_rls_all_tables_revoke_data_api`, then
+   `Applying migration 20260902120000_default_privileges_deny_anon_authenticated`)
+   and a clean "All migrations have been successfully applied."
+4. If the build log shows an error applying either migration: **stop, do
    not retry blindly.** The most likely failure mode given the guarded
-   `REVOKE` is a role name that doesn't match (unlikely — `anon`/
-   `authenticated` are Supabase-standard and were confirmed present via
-   `execute_sql` before writing this migration) or a permissions issue
-   with the deploying role (would mean the preflight in step 0 is
-   somehow stale — re-run it against production directly before doing
-   anything else).
+   `REVOKE`/`ALTER DEFAULT PRIVILEGES` blocks is a role name that doesn't
+   match (unlikely — `anon`/`authenticated` are Supabase-standard and
+   were confirmed present via `execute_sql` before writing these
+   migrations) or a permissions issue with the deploying role (would mean
+   the preflight in step 0 is somehow stale — re-run it against
+   production directly before doing anything else).
 
 ## 4. Immediately after production apply
 
@@ -138,11 +160,22 @@ Do it as a controlled action, not as a side effect of a build:
 
 ## Rollback
 
-**If step 3's migration itself fails to apply**: nothing has changed —
+**If step 3's migrations fail to apply**: nothing has changed —
 `prisma migrate deploy` is transactional per-migration and Prisma won't
 mark a failed migration as applied. Fix the migration file (in a new
 follow-up migration, per this repo's own rule — never edit an
 already-applied migration) and redeploy.
+
+To reverse the default-privileges migration specifically (restores the
+pre-audit default ACL — only do this alongside the table-level rollback
+below, since it re-opens the same class of exposure for any future
+table):
+
+```sql
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO anon, authenticated;
+```
 
 **If the migration applies successfully but step 4's smoke tests or
 monitoring reveal a real problem** (the app's own queries start failing,

@@ -98,6 +98,26 @@ later migrations shipped with RLS disabled until
    grants/RLS state, which is exactly why this needed its own dedicated
    check rather than being assumed to be "probably still fine."
 
+**Data API exposure at the project-settings level (separate from the
+above, not yet closed by any migration)**: everything in points 1–6
+above closes access at the *database* layer (RLS, grants, default
+privileges) — it does not disable the Data API endpoint itself. A
+follow-up audit checked whether the endpoint could be turned off
+entirely at the Supabase project-settings level (the strictest possible
+closure, since it removes the PostgREST/GraphQL/Realtime surface
+regardless of any future grant mistake) and found no MCP tool capable of
+reading or changing that setting — it is dashboard-only. Also confirmed:
+this app has zero Supabase SDK/PostgREST/GraphQL/Realtime/Storage/Auth
+usage anywhere in the codebase (`@supabase/*` does not appear in any
+`package.json`), so disabling the Data API is safe for the app itself
+whenever a human does it. The manual path, for whoever has dashboard
+access: **Supabase dashboard → Project Settings → Data API → either
+remove `public` from "Exposed schemas" or turn the Data API off
+entirely.** This is recorded here as an open, documented action, not
+performed autonomously — it is a project-configuration change outside
+this migration-based remediation's own scope and outside what the
+available tooling can verify or execute.
+
 **What this does not fix**: the Preview/Production shared-database risk
 (see the "Environment isolation" row above) is a completely separate
 problem — RLS and the REVOKE only close the Data API/PostgREST path,
